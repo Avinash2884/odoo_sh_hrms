@@ -1,0 +1,35 @@
+.job-side-card {
+    top: 100px;
+    border-radius: 12px;
+}
+
+.job-side-card h2 {
+    font-size: 24px;
+}
+
+.job-side-card .btn-primary {
+    font-weight: 600;
+    padding: 12px;
+}
+
+
+/* Custom Apply Now Button */
+.btn-apply-now {
+    background-color: #321d86 !important;
+    border-color: #321d86 !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+.btn-apply-now:hover {
+    background-color: #281768 !important; /* Darker shade on hover */
+    border-color: #281768 !important;
+    color: white !important;
+}
+
+.btn-apply-now:focus,
+.btn-apply-now:active {
+    background-color: #281768 !important;
+    border-color: #281768 !important;
+    box-shadow: 0 0 0 0.2rem rgba(50, 29, 134, 0.25) !important;
+}

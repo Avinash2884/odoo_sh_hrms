@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_entity_name_list" model="ir.ui.view">
+        <field name="name">entity.name.list</field>
+        <field name="model">entity.name</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_entity_name_form" model="ir.ui.view">
+        <field name="name">entity.name.form</field>
+        <field name="model">entity.name</field>
+        <field name="arch" type="xml">
+            <form string="Entity Name">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_entity_name" model="ir.actions.act_window">
+        <field name="name">Entity Names</field>
+        <field name="res_model">entity.name</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- list View -->
+    <record id="view_blood_group_list" model="ir.ui.view">
+        <field name="name">blood.group.list</field>
+        <field name="model">blood.group</field>
+        <field name="arch" type="xml">
+            <list string="Blood Groups">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_blood_group_form" model="ir.ui.view">
+        <field name="name">blood.group.form</field>
+        <field name="model">blood.group</field>
+        <field name="arch" type="xml">
+            <form string="Blood Group">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_blood_group" model="ir.actions.act_window">
+        <field name="name">Blood Groups</field>
+        <field name="res_model">blood.group</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your blood groups
+            </p>
+        </field>
+    </record>
+
+</odoo>

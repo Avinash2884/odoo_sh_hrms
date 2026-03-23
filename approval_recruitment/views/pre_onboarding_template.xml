@@ -1,0 +1,232 @@
+<odoo>
+    <template id="pre_onboarding_template" name="Pre-Onboarding Form">
+        <t t-call="website.layout">
+            <style>
+                /* Modern Card Styling */
+                .ob-card { border: none; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); background:
+                #ffffff; overflow: hidden; }
+
+                /* Updated to Brand Color #5b4fff */
+                .ob-header-main { background: #5b4fff; color: white; padding: 40px; text-align: center; }
+                .section-title { color: #5b4fff; font-weight: 800; font-size: 1.6rem; border-bottom: 3px solid #f0f0f0;
+                padding-bottom: 10px; margin-top: 40px; margin-bottom: 25px; display: block; }
+
+                .field-label { font-weight: 700; color: #333; font-size: 1rem; margin-bottom: 8px; display: block; }
+
+                /* Modern Input Styling */
+                .custom-text-input { border-radius: 12px; border: 2px solid #eee; padding: 14px; font-size: 1rem;
+                transition: 0.3s; background: #fafafa; }
+                .custom-text-input:focus { border-color: #5b4fff; background: #fff; box-shadow: 0 0 10px rgba(91, 79,
+                255, 0.1); outline: none; }
+
+                /* File Upload Styling - Modernized */
+                .file-upload-container { position: relative; background: #ffffff; border: 2px dashed #d1d1d1;
+                border-radius: 12px; padding: 15px; transition: 0.3s; text-align: center; }
+                .file-upload-container:hover { border-color: #5b4fff; background: #f8f7ff; }
+                .file-upload-container input[type="file"] { cursor: pointer; }
+
+                /* Category Selection Box */
+                .category-gate { background: #f8f9fa; border-radius: 15px; padding: 30px; border: 2px solid #5b4fff;
+                margin-bottom: 30px; }
+
+                /* Submit Button Color Update */
+                .btn-submit-modern { background: #5b4fff; color: white !important; border-radius: 50px; padding: 18px
+                60px; font-weight: 700; font-size: 1.1rem; letter-spacing: 1px; border: none; transition: 0.3s;
+                margin-top: 40px; width: 100%; }
+                .btn-submit-modern:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(91, 79, 255, 0.3);
+                background: #4a3ee6; }
+
+                .profile-header img { border: 3px solid #5b4fff !important; }
+                .reg-badge { background: #5b4fff; color: white; padding: 4px 12px; border-radius: 50px; font-size:
+                0.8rem; font-weight: 700; }
+            </style>
+
+            <div id="wrap" class="bg-light pb-5 pt-5">
+                <div class="container">
+                    <div class="ob-card mx-auto" style="max-width: 1000px;">
+                        <div class="ob-header-main">
+                            <h1 class="font-weight-bold mb-2">Pre-Onboarding Documentation</h1>
+                            <p class="mb-0 opacity-75">Securely upload your records to begin your journey with us.</p>
+                        </div>
+
+                        <div class="profile-header"
+                             style="background: #fdfbff; border-bottom: 2px solid #f0f0f0; padding: 30px;">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <t t-if="applicant.photograph">
+                                        <img t-att-src="image_data_uri(applicant.photograph)"
+                                             style="width: 110px; height: 135px; object-fit: cover; border-radius: 12px; border: 3px solid #5b4fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"/>
+                                    </t>
+                                    <t t-else="">
+                                        <div style="width: 110px; height: 135px; border-radius: 12px; border: 3px solid #dee2e6;"
+                                             class="d-flex align-items-center justify-content-center bg-light text-muted">
+                                            <i class="fa fa-user fa-3x"></i>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div class="col">
+                                    <div class="mb-2">
+                                        <span class="reg-badge">REG NO:
+                                            <t t-esc="applicant.registration_no"/>
+                                        </span>
+                                    </div>
+                                    <h2 class="font-weight-bold mb-1" style="color: #2c3e50;">
+                                        <t t-esc="applicant.partner_name"/>
+                                    </h2>
+                                    <h5 class="text-muted">
+                                        <t t-esc="applicant.discipline_applied"/>
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 p-md-5">
+                            <form action="/job/onboarding/save" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                                <div class="category-gate text-center">
+                                    <label class="field-label mb-3 text-uppercase" style="font-size: 1.1rem;">Please
+                                        select your joining status
+                                    </label>
+                                    <select id="doc_type_selector" name="joining_category"
+                                            class="form-control custom-text-input mx-auto" style="max-width: 350px;"
+                                            required="1">
+                                        <option value="" disabled="disabled" selected="selected">-- SELECT CATEGORY --
+                                        </option>
+                                        <option value="fresher">Fresher</option>
+                                        <option value="experienced">Experienced</option>
+                                    </select>
+                                </div>
+
+                                <div id="dynamic_sections" class="d-none">
+                                    <h4 class="section-title">I. Identity &amp; Bank Details</h4>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <label class="field-label">Aadhaar Number</label>
+                                            <input type="text" name="aadhaar_no"
+                                                   class="form-control custom-text-input mb-3"
+                                                   placeholder="1234 5678 9012" required="1"/>
+                                            <div class="file-upload-container">
+                                                <input type="file" name="aadhaar_card" class="form-control-file"
+                                                       required="1" multiple="multiple"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <label class="field-label">PAN Number</label>
+                                            <input type="text" name="pan_no" class="form-control custom-text-input mb-3"
+                                                   placeholder="ABCDE1234F" required="1"/>
+                                            <div class="file-upload-container">
+                                                <input type="file" name="pan_card" class="form-control-file"
+                                                       required="1" multiple="multiple"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <label class="field-label">Bank Name</label>
+                                            <input type="text" name="bank_name" class="form-control custom-text-input"
+                                                   required="1"/>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <label class="field-label">Account Number</label>
+                                            <input type="text" name="bank_acc_no" class="form-control custom-text-input"
+                                                   required="1"/>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <label class="field-label">IFSC Code</label>
+                                            <input type="text" name="bank_ifsc" class="form-control custom-text-input"
+                                                   required="1"/>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <label class="field-label">Branch Name</label>
+                                            <input type="text" name="bank_branch" class="form-control custom-text-input"
+                                                   required="1"/>
+                                        </div>
+                                        <div class="col-md-12 mb-4">
+                                            <label class="field-label">Cancelled Cheque / Passbook Copy</label>
+                                            <div class="file-upload-container">
+                                                <input type="file" name="bank_doc" class="form-control-file"
+                                                       required="1" multiple="multiple"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <h4 class="section-title">II. Educational Documents</h4>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <label class="field-label">10th Marksheet</label>
+                                            <div class="file-upload-container">
+                                                <input type="file" name="marksheet_10" required="1"
+                                                       multiple="multiple"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <label class="field-label">12th Marksheet</label>
+                                            <div class="file-upload-container">
+                                                <input type="file" name="marksheet_12" required="1"
+                                                       multiple="multiple"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <label class="field-label">UG Degree Certificate</label>
+                                            <div class="file-upload-container">
+                                                <input type="file" name="ug_degree" multiple="multiple"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <label class="field-label">PG Degree Certificate</label>
+                                            <div class="file-upload-container">
+                                                <input type="file" name="pg_degree" multiple="multiple"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 mb-4">
+                                            <label class="field-label">Diploma Certificate (if any)</label>
+                                            <div class="file-upload-container">
+                                                <input type="file" name="diploma_cert" multiple="multiple"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="exp_docs" class="d-none">
+                                        <h4 class="section-title" style="border-left: 6px solid #5b4fff;">III. Previous
+                                            Employment
+                                        </h4>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-4">
+                                                <label class="field-label">Last 3 Months Payslips</label>
+                                                <div class="file-upload-container">
+                                                    <input type="file" name="payslips" multiple="multiple"/>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-4">
+                                                <label class="field-label">Relieving Letter</label>
+                                                <div class="file-upload-container">
+                                                    <input type="file" name="relieving_letter" multiple="multiple"/>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-4">
+                                                <label class="field-label">Salary Revision Letter</label>
+                                                <div class="file-upload-container">
+                                                    <input type="file" name="salary_revision_letter"
+                                                           multiple="multiple"/>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-4">
+                                                <label class="field-label">Experience Letter</label>
+                                                <div class="file-upload-container">
+                                                    <input type="file" name="exp_appointment_letter"
+                                                           multiple="multiple"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-submit-modern shadow">SUBMIT
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_initiate_separation_form" model="ir.ui.view">
+        <field name="name">initiate.separation.form</field>
+        <field name="model">initiate.separation</field>
+        <field name="arch" type="xml">
+            <form string="Initiate Separation">
+                <header>
+                    <button
+                        name="action_revoke"
+                        type="object"
+                        string="Revoke"
+                        class="btn-danger"
+                        invisible="state != 'submitted'"/>
+                    <button
+                        name="action_submit"
+                        type="object"
+                        string="Submit"
+                        class="oe_highlight"
+                        invisible="state in ('submitted','handing_over_responsibility','clearance','exit','revoked')"/>
+
+                    <button
+                        name="action_manager_approve"
+                        type="object"
+                        string="Manager Approve"
+                        class="oe_highlight"
+                        invisible="internal_state in (False,'manager_approved','manager_rejected','hr_approved','hr_rejected','revoked')"
+                        groups="approval_recruitment.group_separation_reporting_manager"/>
+
+                    <button
+                        name="action_manager_reject"
+                        type="object"
+                        string="Manager Reject"
+                        class="oe_highlight"
+                        invisible="internal_state in (False,'manager_approved','manager_rejected','hr_approved','hr_rejected')"
+                        groups="approval_recruitment.group_separation_reporting_manager"/>
+
+                    <button
+                        name="action_hr_approve"
+                        type="object"
+                        string="HR Approve"
+                        class="oe_highlight"
+                        invisible="internal_state in (False,'submitted','hr_approved','hr_rejected')"
+                        groups="approval_recruitment.group_separation_hr_head"/>
+
+                    <button
+                        name="action_hr_reject"
+                        type="object"
+                        string="HR Reject"
+                        class="oe_highlight"
+                        invisible="internal_state in (False,'submitted','hr_approved','hr_rejected')"
+                        groups="approval_recruitment.group_separation_hr_head"/>
+
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group string="Employee Details">
+                        <group>
+                            <field name="employee_id" readonly="1" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="ls_employee_id"/>
+                            <field name="ls_designation_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="department_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="reporting_manager_id" options="{'no_open': True, 'no_create': True}" invisible="1"/>
+                            <field name="hr_id" options="{'no_open': True, 'no_create': True}" invisible="1"/>
+                            <field name="hr_head_id" options="{'no_open': True, 'no_create': True}" invisible="1"/>
+                            <field name="it_asset_head_id" options="{'no_open': True, 'no_create': True}" invisible="1"/>
+                            <field name="admin_head_id" options="{'no_open': True, 'no_create': True}" invisible="1"/>
+                            <field name="payroll_head_id" options="{'no_open': True, 'no_create': True}" invisible="1"/>
+
+                        </group>
+                        <group>
+                            <field name="joining_date_recruit"/>
+                            <field name="resignation_reason" readonly="internal_state in ('submitted','manager_approved','manager_rejected','hr_approved','hr_rejected',
+                            'handing_approved','handing_rejected','clearance_approved','clearance_rejected','exit_approved','exit_rejected','revoked')"/>
+                            <field name="detailed_reason" invisible="resignation_reason != 'other'" required = "resignation_reason == 'other'"
+                            readonly="internal_state in ('submitted','manager_approved','manager_rejected','hr_approved','hr_rejected',
+                            'handing_approved','handing_rejected','clearance_approved','clearance_rejected','exit_approved','exit_rejected','revoked')"/>
+                            <field name="last_working_date"
+                                   readonly="not is_hr_head or internal_state in (False,'submitted','hr_approved',
+                                   'hr_rejected','handing_approved','handing_rejected','clearance_approved',
+                                   'clearance_rejected','exit_approved','exit_rejected','revoked')"/>
+                            <field name="reason_for_resignation" placeholder="Voluntary Resignation" invisible="1"/>
+                            <field name="internal_state" readonly="1" invisible="1"/>
+                            <field name="it_assets_clearance_ids" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="">
+                        <group string='Manager Details' invisible="internal_state in (False,'submitted')">
+                            <field name="reporting_manager_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="action_performed_manager" readonly="1"/>
+                            <field name="action_by_manager" readonly="1"/>
+                        </group>
+                        <group string='HR Details' invisible="internal_state in (False,'submitted','manager_approved','manager_rejected')">
+                            <field name="hr_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="action_performed_hr" readonly="1"/>
+                            <field name="action_by_hr" readonly="1"/>
+                        </group>
+                    </group>
+                    <div class="row mt16" invisible="state in ('submitted','handing_over_responsibility','clearance','exit','revoked')">
+                        <div class="col-12">
+                            <field name="acknowledgement" nolabel="1"/>
+                            <span>
+                                I confirm that I am submitting my resignation as per company policy
+                                and understand that the final Last Working Day is subject to approval.
+                            </span>
+                        </div>
+                    </div>
+                    <notebook>
+                        <page string="Handing Over Responsibilities" name="handing_over_responsibilities"
+                        invisible="internal_state in (False,'submitted','manager_approved','manager_rejected','hr_rejected','revoked')">
+                            <form string="Handing Over Responsibilities">
+                                <group>
+                                    <group>
+                                        <field name="key_responsibility" readonly="key_state in ('submitted','approved')"/>
+                                        <field name="take_description" readonly="key_state in ('submitted','approved')"/>
+                                        <field name="handing_over_to" readonly="key_state in ('submitted','approved')" options="{'no_open': True, 'no_create': True}"/>
+                                        <field name="role"/>
+                                        <field name="status_of_tasks" readonly="key_state in ('submitted','approved')"/>
+                                        <field name="knowledge_transfer" readonly="key_state in ('submitted','approved')"/>
+                                    </group>
+                                    <group>
+                                        <field name="dues_cleared" readonly="key_state in ('submitted','approved')"/>
+                                        <field name="attachment_ids" widget="many2many_binary" readonly="key_state in ('submitted','approved')"/>
+                                        <field name="remarks" readonly="key_state in ('submitted','approved')"/>
+                                        <field name="key_state" readonly="1" invisible="1"/>
+                                        <field name="approver_name" readonly="1" options="{'no_open': True, 'no_create': True}" groups="approval_recruitment.group_separation_reporting_manager"/>
+                                        <field name="approval_date" readonly="1" groups="approval_recruitment.group_separation_reporting_manager"/>
+                                        <field name="approver_remark" groups="approval_recruitment.group_separation_reporting_manager" required="key_state == 'submitted'" readonly="key_state in (False,'approved','resubmitted')"/>
+                                    </group>
+                                </group>
+                                <button name="action_handover_submit"
+                                            type="object"
+                                            string="Submit"
+                                            class="oe_highlight"
+                                            invisible="key_state in ('submitted','approved')"/>
+
+                                <button name="action_handover_approve"
+                                            type="object"
+                                            string="Approve"
+                                            class="oe_highlight"
+                                            invisible="key_state in (False,'approved','resubmitted')"
+                                            groups="approval_recruitment.group_separation_reporting_manager"/>
+
+                                <button name="action_handover_reject"
+                                        type="object"
+                                        string="Resubmit"
+                                        class="oe_highlight"
+                                        invisible="key_state in (False,'approved','resubmitted')"
+                                        groups="approval_recruitment.group_separation_reporting_manager"/>
+                            </form>
+                        </page>
+                        <page string="Clearance" name="clearance"
+                        invisible="state in (False,'submitted')">
+                            <group string="IT Assets Clearance">
+                                <field name="it_assets_clearance_ids" string="" >
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="name" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                                        <field name="specification" readonly="it_assets_state in ('submitted','approved')"/>
+                                        <field name="issued" readonly="it_assets_state in ('submitted','approved')"/>
+                                        <field name="returned" groups="approval_recruitment.group_separation_it_assets_clearance_head" readonly="it_assets_state =='approved'"/>
+                                        <field name="condition" groups="approval_recruitment.group_separation_it_assets_clearance_head" readonly="it_assets_state =='approved'"/>
+                                        <field name="dues_cleared" groups="approval_recruitment.group_separation_it_assets_clearance_head" readonly="it_assets_state =='approved'"/>
+                                        <field name="asset_value_cost" groups="approval_recruitment.group_separation_it_assets_clearance_head" readonly="it_assets_state =='approved'"/>
+                                        <field name="remarks" groups="approval_recruitment.group_separation_it_assets_clearance_head" readonly="it_assets_state =='approved'"/>
+                                    </list>
+                                    <form string="IT Assets Clearance">
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="specification"/>
+                                                <field name="issued"/>
+                                                <field name="returned"/>
+                                            </group>
+                                            <group>
+                                                <field name="condition"/>
+                                                <field name="dues_cleared"/>
+                                                <field name="asset_value_cost"/>
+                                                <field name="remarks"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                            </group>
+                            <group>
+                                <field name="it_assets_clearance_dues_cleared_status" readonly="it_assets_state =='approved'" required="it_assets_state == 'submitted'" groups="approval_recruitment.group_separation_it_assets_clearance_head"/>
+                                <field name="it_assets_clearance_remarks" readonly="it_assets_state =='approved'" required="it_assets_state == 'submitted'" groups="approval_recruitment.group_separation_it_assets_clearance_head"/>
+                                <field name="it_assets_clearance_approver_name" options="{'no_create': True, 'no_open': True}" readonly="1" groups="approval_recruitment.group_separation_it_assets_clearance_head"/>
+                                <field name="it_assets_clearance_approval_date" readonly="1" groups="approval_recruitment.group_separation_it_assets_clearance_head"/>
+                                <button name="action_it_assets_submit"
+                                string="Submit"
+                                type="object"
+                                class="btn-primary"
+                                invisible="it_assets_state in ('submitted','approved')"/>
+                                <button name="action_it_assets_approve"
+                                string="Approve"
+                                type="object"
+                                class="btn-primary"
+                                groups="approval_recruitment.group_separation_it_assets_clearance_head"
+                                invisible="it_assets_state in (False,'approved','resubmitted')"/>
+                                <button name="action_it_assets_resubmitted"
+                                string="Resubmitted"
+                                type="object"
+                                class="btn-primary"
+                                groups="approval_recruitment.group_separation_it_assets_clearance_head"
+                                invisible="it_assets_state in (False,'approved','resubmitted')"/>
+                            </group>
+                            <group string="Admin Clearance" invisible="it_assets_state != 'approved'">
+                                <field name="admin_clearance_ids" string="">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="name" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                                        <field name="issued" readonly="admin_state in ('submitted','approved')"/>
+                                        <field name="returned" groups="approval_recruitment.group_separation_admin_clearance_head" readonly="admin_state =='approved'"/>
+                                        <field name="dues_cleared" groups="approval_recruitment.group_separation_admin_clearance_head" readonly="admin_state =='approved'"/>
+                                        <field name="remarks" groups="approval_recruitment.group_separation_admin_clearance_head" readonly="admin_state =='approved'"/>
+                                    </list>
+                                    <form string="Admin Clearance">
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="issued"/>
+                                                <field name="returned"/>
+                                                <field name="dues_cleared"/>
+                                                <field name="remarks"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                            </group>
+                            <group invisible="it_assets_state != 'approved'">
+                                <field name="admin_clearance_dues_cleared_status" readonly="admin_state =='approved'" required="admin_state == 'submitted'" groups="approval_recruitment.group_separation_admin_clearance_head"/>
+                                <field name="admin_clearance_remarks" readonly="admin_state =='approved'" required="admin_state == 'submitted'" groups="approval_recruitment.group_separation_admin_clearance_head"/>
+                                <field name="admin_clearance_approver_name" options="{'no_create': True, 'no_open': True}" readonly="1" groups="approval_recruitment.group_separation_admin_clearance_head"/>
+                                <field name="admin_clearance_approval_date" readonly="1" groups="approval_recruitment.group_separation_admin_clearance_head"/>
+                                <button name="action_admin_submit"
+                                string="Submit"
+                                type="object"
+                                class="btn-primary"
+                                invisible="admin_state in ('submitted','approved')"/>
+                                <button name="action_admin_approve"
+                                string="Approve"
+                                type="object"
+                                class="btn-primary"
+                                groups="approval_recruitment.group_separation_admin_clearance_head"
+                                invisible="admin_state in (False,'approved','resubmitted')"/>
+                                <button name="action_admin_resubmitted"
+                                string="Resubmitted"
+                                type="object"
+                                class="btn-primary"
+                                groups="approval_recruitment.group_separation_admin_clearance_head"
+                                invisible="admin_state in (False,'approved','resubmitted')"/>
+                            </group>
+                            <group string="Payroll Clearance" groups="approval_recruitment.group_separation_payroll_clearance_head"
+                            invisible="not can_show_payroll">
+                                <field name="payroll_clearance_ids" string="">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="name" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                                        <field name="applicable" readonly="payroll_state =='proceed'"/>
+                                        <field name="amount" readonly="payroll_state =='proceed'"/>
+                                        <field name="dues_cleared" readonly="payroll_state =='proceed'"/>
+                                        <field name="remarks" readonly="payroll_state =='proceed'"/>
+                                    </list>
+                                    <form string="Payroll Clearance">
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="applicable"/>
+                                                <field name="amount"/>
+                                                <field name="dues_cleared"/>
+                                                <field name="remarks"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                            </group>
+                            <group>
+                                <field name="payroll_clearance_dues_cleared_status" readonly="payroll_state =='proceed'" invisible="not can_show_payroll" groups="approval_recruitment.group_separation_payroll_clearance_head"/>
+                                <field name="payroll_clearance_remarks" readonly="payroll_state =='proceed'" invisible="not can_show_payroll" groups="approval_recruitment.group_separation_payroll_clearance_head"/>
+                                <field name="payroll_clearance_approver_names" options="{'no_create': True, 'no_open': True}" readonly="1" invisible="not can_show_payroll" groups="approval_recruitment.group_separation_payroll_clearance_head"/>
+                                <field name="payroll_clearance_approval_date" readonly="1" invisible="not can_show_payroll" groups="approval_recruitment.group_separation_payroll_clearance_head"/>
+                                <button name="action_proceed"
+                                string="Proceed"
+                                type="object"
+                                class="btn-primary"
+                                groups="approval_recruitment.group_separation_payroll_clearance_head"
+                                invisible="not can_show_payroll or payroll_state in ('proceed')"/>
+                            </group>
+                        </page>
+                        <page string="Exit Interview" name="exit_interview"
+                        invisible="state in (False,'submitted','handing_over_responsibility')">
+                            <group>
+                                <field name="exit_interview_line_ids" string="">
+                                    <list create="False" editable="bottom" delete="False">
+                                        <field name="question_id" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="option_id" options="{'no_create': True, 'no_open': True}"/>
+                                    </list>
+                                </field>
+                            </group>
+<!--                            <separator string=""/>-->
+                            <div class="alert mt16">
+                                <field name="exit_acknowledgement"/>
+                                <span>
+                                    I confirm that the feedback shared above is honest and based on my experience.
+                                </span>
+                            </div>
+                            <button name="action_exit_submit"
+                                string="Submit"
+                                type="object"
+                                class="btn-primary"
+                                invisible="exit_state in ('submitted')"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="view_initiate_separation_list" model="ir.ui.view">
+        <field name="name">initiate.separation.list</field>
+        <field name="model">initiate.separation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="employee_id"/>
+                <field name="ls_employee_id"/>
+                <field name="ls_designation_id"/>
+                <field name="department_id"/>
+                <field name="reporting_manager_id"/>
+                <field name="joining_date_recruit"/>
+                <field name="last_working_date"/>
+                <field name="resignation_reason"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'submitted'"
+                       decoration-warning="state == 'handing_over_responsibility'"
+                       decoration-primary="state == 'clearance'"
+                       decoration-danger="state == 'exit'"
+                       decoration-muted="state == 'revoked'"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_initiate_separation" model="ir.actions.act_window">
+        <field name="name">Initiate Separation</field>
+        <field name="res_model">initiate.separation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

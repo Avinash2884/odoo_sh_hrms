@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ========================= -->
+    <!-- List View -->
+    <!-- ========================= -->
+    <record id="view_employee_status_list" model="ir.ui.view">
+        <field name="name">employee.status.list</field>
+        <field name="model">employee.status</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========================= -->
+    <!-- Form View -->
+    <!-- ========================= -->
+    <record id="view_employee_status_form" model="ir.ui.view">
+        <field name="name">employee.status.form</field>
+        <field name="model">employee.status</field>
+        <field name="arch" type="xml">
+            <form string="Employee Status">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========================= -->
+    <!-- Action -->
+    <!-- ========================= -->
+    <record id="action_employee_status" model="ir.actions.act_window">
+        <field name="name">Employee Status</field>
+        <field name="res_model">employee.status</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+</odoo>

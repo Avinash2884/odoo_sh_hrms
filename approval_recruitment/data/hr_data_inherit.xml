@@ -1,0 +1,6 @@
+<odoo>
+    <record id="contract_type_probation" model="hr.contract.type">
+        <field name="name">Probation</field>
+        <field name="sequence">12</field>
+    </record>
+</odoo>

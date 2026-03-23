@@ -1,0 +1,40 @@
+<odoo>
+    <!-- list View -->
+    <record id="view_source_of_hire_list" model="ir.ui.view">
+        <field name="name">source.of.hire.list</field>
+        <field name="model">source.of.hire</field>
+        <field name="arch" type="xml">
+            <list string="Source of Hire">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_source_of_hire_form" model="ir.ui.view">
+        <field name="name">source.of.hire.form</field>
+        <field name="model">source.of.hire</field>
+        <field name="arch" type="xml">
+            <form string="Source of Hire">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_source_of_hire" model="ir.actions.act_window">
+        <field name="name">Source of Hire</field>
+        <field name="res_model">source.of.hire</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to create a new Source of Hire.
+            </p>
+        </field>
+    </record>
+
+</odoo>

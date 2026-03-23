@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_deputed_location_list" model="ir.ui.view">
+        <field name="name">deputed.location.list</field>
+        <field name="model">deputed.location</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_deputed_location_form" model="ir.ui.view">
+        <field name="name">deputed.location.form</field>
+        <field name="model">deputed.location</field>
+        <field name="arch" type="xml">
+            <form string="Deputed Location">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_deputed_location" model="ir.actions.act_window">
+        <field name="name">Deputed Locations</field>
+        <field name="res_model">deputed.location</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

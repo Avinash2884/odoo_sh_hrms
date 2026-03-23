@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_company_policy_configuration"
+          name="Policy"
+          parent="hr.menu_human_resources_configuration"
+          sequence="1"/>
+
+    <menuitem id="menu_company_policy"
+              name="Company Policy"
+              parent="menu_company_policy_configuration"
+              action="action_company_policy"
+              sequence="1"/>
+
+    <menuitem id="menu_employee_policy"
+              name="Company Policies"
+              parent="hr.menu_hr_root"
+              action="action_employee_policy"/>
+</odoo>

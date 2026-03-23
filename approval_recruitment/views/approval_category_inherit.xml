@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="approval_category_inherit_form_view" model="ir.ui.view">
+        <field name="name">approval.category.inherit.form</field>
+        <field name="model">approval.category</field>
+        <field name="inherit_id" ref="approvals.approval_category_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='manager_approval']" position="after">
+                <field name="hr_department_id" string="Department"/>
+            </xpath>
+
+            <xpath expr="//field[@name='has_location']" position="after">
+                <field name="has_total_no_of_positions"
+                       string="Total No of Positions"
+                       widget="radio"
+                       options="{'horizontal': true}"/>
+                <field name="has_job_position"
+                       string="Job Position"
+                       widget="radio"
+                       options="{'horizontal': true}"/>
+                <field name="has_experience_min"
+                       string="Experience Minimum"
+                       widget="radio"
+                       options="{'horizontal': true}"/>
+                <field name="has_experience_max"
+                       string="Experience Maximum"
+                       widget="radio"
+                       options="{'horizontal': true}"/>
+                <field name="has_overall_budget_for_all_posting"
+                       string="Budget for All Posting"
+                       widget="radio"
+                       options="{'horizontal': true}"/>
+                <field name="has_budget_for_each_employee_position"
+                       string="Budget for Per Employee"
+                       widget="radio"
+                       options="{'horizontal': true}"/>
+                <field name="has_start_date"
+                       string="Start Date"
+                       widget="radio"
+                       options="{'horizontal': true}"/>
+                <field name="has_end_date"
+                       string="End Date"
+                       widget="radio"
+                       options="{'horizontal': true}"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ========================= -->
+    <!-- List View -->
+    <!-- ========================= -->
+    <record id="view_designation_list" model="ir.ui.view">
+        <field name="name">designation.list</field>
+        <field name="model">designation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========================= -->
+    <!-- Form View -->
+    <!-- ========================= -->
+    <record id="view_designation_form" model="ir.ui.view">
+        <field name="name">designation.form</field>
+        <field name="model">designation</field>
+        <field name="arch" type="xml">
+            <form string="Designation">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========================= -->
+    <!-- Action -->
+    <!-- ========================= -->
+    <record id="action_designation" model="ir.actions.act_window">
+        <field name="name">Designations</field>
+        <field name="res_model">designation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

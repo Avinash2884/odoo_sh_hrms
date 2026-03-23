@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--Groups-->
+    <record model="res.groups.privilege" id="res_groups_privilege_separation">
+        <field name="name">Separation</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="sequence">10</field>
+    </record>
+    <record id="group_separation_employee" model="res.groups">
+        <field name="name">Employee</field>
+        <field name="privilege_id" ref="res_groups_privilege_separation"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="group_separation_reporting_manager" model="res.groups">
+        <field name="name">Reporting Manager</field>
+        <field name="privilege_id" ref="res_groups_privilege_separation"/>
+        <field name="implied_ids" eval="[(4, ref('group_separation_employee'))]"/>
+    </record>
+    <record id="group_separation_hr" model="res.groups">
+        <field name="name">HR</field>
+        <field name="privilege_id" ref="res_groups_privilege_separation"/>
+        <field name="implied_ids" eval="[(4, ref('group_separation_reporting_manager'))]"/>
+    </record>
+    <record id="group_separation_hr_head" model="res.groups">
+        <field name="name">HR Head</field>
+        <field name="privilege_id" ref="res_groups_privilege_separation"/>
+        <field name="implied_ids" eval="[(4, ref('group_separation_hr'))]"/>
+    </record>
+    <record id="group_separation_it_assets_clearance_head" model="res.groups">
+        <field name="name">IT Assets Clearance Head</field>
+        <field name="privilege_id" ref="res_groups_privilege_separation"/>
+        <field name="implied_ids" eval="[(4, ref('group_separation_hr_head'))]"/>
+    </record>
+    <record id="group_separation_admin_clearance_head" model="res.groups">
+        <field name="name">Admin Clearance Head</field>
+        <field name="privilege_id" ref="res_groups_privilege_separation"/>
+        <field name="implied_ids" eval="[(4, ref('group_separation_it_assets_clearance_head'))]"/>
+    </record>
+    <record id="group_separation_payroll_clearance_head" model="res.groups">
+        <field name="name">Payroll Clearance Head</field>
+        <field name="privilege_id" ref="res_groups_privilege_separation"/>
+        <field name="implied_ids" eval="[(4, ref('group_separation_admin_clearance_head'))]"/>
+    </record>
+
+    <!--Record Rule-->
+    <!-- 1️⃣ Employee → Only Their Own Record -->
+    <record id="rule_separation_employee_own" model="ir.rule">
+        <field name="name">Separation: Employee Own Record</field>
+        <field name="model_id" ref="model_initiate_separation"/>
+        <field name="groups" eval="[(4, ref('approval_recruitment.group_separation_employee'))]"/>
+        <field name="domain_force">
+            [('employee_id.user_id', '=', user.id)]
+        </field>
+    </record>
+
+    <!-- 2️⃣ Reporting Manager → Only Their Team -->
+    <record id="rule_separation_manager_team" model="ir.rule">
+        <field name="name">Separation: Manager Team Records</field>
+        <field name="model_id" ref="model_initiate_separation"/>
+        <field name="groups" eval="[(4, ref('approval_recruitment.group_separation_reporting_manager'))]"/>
+        <field name="domain_force">
+            [('employee_id.parent_id.user_id', '=', user.id)]
+        </field>
+    </record>
+
+    <!-- 3️⃣ HR → See All Records -->
+    <record id="rule_separation_hr_all" model="ir.rule">
+        <field name="name">Separation: HR All Records</field>
+        <field name="model_id" ref="model_initiate_separation"/>
+        <field name="groups" eval="[(4, ref('approval_recruitment.group_separation_hr'))]"/>
+        <field name="domain_force">
+            [(1,'=',1)]
+        </field>
+    </record>
+
+    <!-- 4️⃣ HR Head → Full Access -->
+    <record id="rule_separation_hr_head_all" model="ir.rule">
+        <field name="name">Separation: HR Head Full Access</field>
+        <field name="model_id" ref="model_initiate_separation"/>
+        <field name="groups" eval="[(4, ref('approval_recruitment.group_separation_hr_head'))]"/>
+        <field name="domain_force">
+            [(1,'=',1)]
+        </field>
+    </record>
+
+
+    <!-- 5️⃣ IT Clearance Head → See All -->
+    <record id="rule_separation_it_all" model="ir.rule">
+        <field name="name">Separation: IT Clearance Access</field>
+        <field name="model_id" ref="model_initiate_separation"/>
+        <field name="groups" eval="[(4, ref('approval_recruitment.group_separation_it_assets_clearance_head'))]"/>
+        <field name="domain_force">
+            [(1,'=',1)]
+        </field>
+    </record>
+
+
+    <!-- 6️⃣ Admin Clearance Head → See All -->
+    <record id="rule_separation_admin_clearance_all" model="ir.rule">
+        <field name="name">Separation: Admin Clearance Access</field>
+        <field name="model_id" ref="model_initiate_separation"/>
+        <field name="groups" eval="[(4, ref('approval_recruitment.group_separation_admin_clearance_head'))]"/>
+        <field name="domain_force">
+            [(1,'=',1)]
+        </field>
+    </record>
+
+
+    <!-- 7️⃣ Payroll Clearance Head → See All -->
+    <record id="rule_separation_payroll_all" model="ir.rule">
+        <field name="name">Separation: Payroll Clearance Access</field>
+        <field name="model_id" ref="model_initiate_separation"/>
+        <field name="groups" eval="[(4, ref('approval_recruitment.group_separation_payroll_clearance_head'))]"/>
+        <field name="domain_force">
+            [(1,'=',1)]
+        </field>
+    </record>
+
+</odoo>

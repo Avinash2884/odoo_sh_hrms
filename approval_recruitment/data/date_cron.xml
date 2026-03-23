@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_move_not_shown_applicants" model="ir.cron">
+        <field name="name">Move Not Joined Applicants to No Shown (6 PM)</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(datetime.now() + timedelta(days=1)).replace(hour=18, minute=0, second=0).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="model_id" ref="hr_recruitment.model_hr_applicant"/>
+        <field name="code">model._cron_move_not_shown_applicants()</field>
+        <field name="state">code</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="active">True</field>
+    </record>
+</odoo>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="view_hr_recruitment_stage_form_inherit_job" model="ir.ui.view">
+            <field name="name">hr.recruitment.stage.form.inherit.job</field>
+            <field name="model">hr.recruitment.stage</field>
+            <field name="inherit_id" ref="hr_recruitment.hr_recruitment_stage_form"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='sequence']" position="after">
+                    <field name="job_ids"
+                           widget="many2many_tags"
+                           options="{'no_create': True}"
+                           placeholder="Select Job Positions"/>
+                </xpath>
+
+            </field>
+        </record>
+        <record id="view_hr_recruitment_stage_list_inherit_job" model="ir.ui.view">
+            <field name="name">hr.recruitment.stage.list.inherit.job</field>
+            <field name="model">hr.recruitment.stage</field>
+            <field name="inherit_id" ref="hr_recruitment.hr_recruitment_stage_tree"/>
+            <field name="arch" type="xml">
+
+                <!-- Insert job_ids column after sequence -->
+                <xpath expr="//field[@name='name']" position="after">
+                    <field name="job_ids" widget="many2many_tags"/>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

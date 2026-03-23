@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_applicant_inherit_evaluations" model="ir.ui.view">
+        <field name="name">hr.applicant.inherit.evaluation</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='stage_id']" position="attributes">
+                <attribute name="domain">[('job_ids','in',job_id)]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_phone']" position="after">
+                <field name="ls_date_of_joining" invisible="not show_doj"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside" >
+                <page string="Evaluation" invisible="show_evaluation_page">
+                    <group>
+                        <field name="mark" readonly="1"/>
+                        <field name="is_suitable" invisible="1"/>
+                        <field name="application_status" invisible="1"/>
+                    </group>
+                    <field name="evaluation_ids">
+                        <list editable="bottom" create="False">
+                            <field name="interviewer_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="education" />
+                            <field name="professional" />
+                            <field name="personality" />
+                            <field name="communication" />
+                            <field name="knowledge" />
+                            <field name="experience" />
+                            <field name="status" />
+                            <field name="total_score" readonly="1"/>
+                        </list>
+                        <form>
+                            <group>
+                                <field name="interviewer_id"/>
+                                <field name="education"/>
+                                <field name="professional"/>
+                                <field name="personality"/>
+                                <field name="communication"/>
+                                <field name="knowledge"/>
+                                <field name="experience"/>
+                                <field name="status"/>
+                                <field name="total_score" readonly="1"/>
+                                <field name="notes"/>
+                            </group>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+            <xpath expr="//button[@name='archive_applicant']" position="attributes">
+                <attribute name="string">Reject</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="hr_applicant_view_form_inherit_custom" model="ir.ui.view">
+        <field name="name">hr.applicant.form.inherit.custom</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//group//field[@name='partner_name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <div style="width: 100%; display: inline-block; margin-bottom: 20px;">
+                    <field name="photograph" widget="image"
+                           options="{'size': [160, 160]}"
+                           style="float: right; margin-left: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"/>
+
+                    <div class="oe_title" style="width: 70%; float: left;">
+                        <div class="o_row text-muted" style="margin-bottom: -10px;">
+                            <span class="fw-bold me-1">Reg No:</span>
+                            <field name="registration_no" readonly="1" class="text-primary fw-bold"/>
+                        </div>
+                        <h1 style="margin-bottom: -5px;">
+                            <field name="partner_name" placeholder="Applicant Name" readonly="1"/>
+                        </h1>
+                        <h3 class="text-muted">
+                            <field name="discipline_applied" placeholder="Applied Position..."/>
+                        </h3>
+                    </div>
+                </div>
+            </xpath>
+
+            <xpath expr="//sheet/group[1]" position="after">
+                <group style="width: 100%;">
+                    <group>
+                        <separator string="Personal Information"/>
+                        <field name="title" options="{'no_create': True}"/>
+
+                        <label for="first_name" string="Name Details"/>
+                        <div class="o_row">
+                            <field name="first_name" placeholder="First"/>
+                            <field name="middle_name" placeholder="Middle"/>
+                            <field name="last_name" placeholder="Last"/>
+                        </div>
+
+                        <field name="father_name"/>
+                        <field name="mother_name"/>
+                        <field name="date_of_birth"/>
+                        <field name="gender"/>
+                        <field name="category"/>
+
+                        <separator string="Contact Details" class="mt-4"/>
+                        <field name="email_from" widget="email" string="Email ID"/>
+                        <field name="partner_phone" widget="phone" string="Mobile Number"/>
+                        <field name="phone_with_std"/>
+
+                        <span class="o_form_label o_td_label">Address</span>
+                        <div class="o_address_format">
+                            <field name="mailing_address" placeholder="Mailing Address..." class="o_address_street"/>
+                            <field name="permanent_address" placeholder="Permanent Address..." class="o_address_street mt-2"/>
+                            <div class="d-flex align-items-center mt-2">
+                                <span class="me-2 text-muted">ZIP:</span>
+                                <field name="pincode" placeholder="000000" class="o_address_zip" style="width: 40% !important;"/>
+                            </div>
+                        </div>
+                    </group>
+
+                    <group>
+                        <separator string="Documents" class="mt-4"/>
+                        <field name="resume_file" widget="binary" filename="resume_filename" string="Resume / CV"/>
+                        <field name="resume_filename" invisible="1"/>
+                        <field name="linkedin_profile" widget="url"/>
+                    </group>
+                </group>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Qualification &amp; Experience">
+                    <separator string="Educational Qualification"/>
+                    <field name="educational_qualification_ids">
+                        <list editable="bottom">
+                            <field name="exam_name" string="Degree/Exam"/>
+                            <field name="passing_date"/>
+                            <field name="university" string="Institution"/>
+                            <field name="marks_percentage" string="% / CGPA"/>
+                            <field name="main_subject"/>
+                        </list>
+                    </field>
+
+                    <separator string="Work Experience" class="mt-4"/>
+                    <field name="experience_ids">
+                        <list editable="bottom">
+                            <field name="employer_name"/>
+                            <field name="designation"/>
+                            <field name="from_date"/>
+                            <field name="to_date"/>
+                            <field name="gross_salary"/>
+                        </list>
+                    </field>
+                </page>
+
+                <page string="Declaration">
+                    <group>
+                        <field name="declaration" widget="boolean_toggle"/>
+                        <field name="photograph_filename" invisible="1"/>
+                    </group>
+                </page>
+
+                <page string="Onboarding Documents" name="onboarding_docs">
+                    <div class="row">
+                        <div class="col-md-6 border-end p-4">
+                            <group string="IDENTITY VERIFICATION" class="mb-4">
+                                <field name="aadhaar_no" class="fw-bold text-primary" style="font-size: 1.1rem;"/>
+                                <field name="aadhaar_card" widget="binary" filename="aadhaar_filename" string="Aadhaar Copy"/>
+                                <field name="pan_no" class="fw-bold text-primary" style="font-size: 1.1rem;"/>
+                                <field name="pan_card" widget="binary" filename="pan_filename" string="PAN Copy"/>
+                            </group>
+
+                            <group string="BANK ACCOUNT DETAILS">
+                                <field name="bank_name" class="fw-bold"/>
+                                <field name="bank_acc_no" class="fw-bold text-success"/>
+                                <field name="bank_ifsc"/>
+                                <field name="bank_branch"/>
+                                <field name="bank_doc" widget="binary" string="Cheque/Passbook"/>
+                            </group>
+                        </div>
+
+                        <div class="col-md-6 p-4">
+                            <group string="EDUCATIONAL RECORDS" class="mb-4">
+                                <field name="marksheet_10" widget="binary"/>
+                                <field name="marksheet_12" widget="binary"/>
+                                <field name="ug_degree" widget="binary"/>
+                                <field name="pg_degree" widget="binary"/>
+                                <field name="diploma_cert" widget="binary"/>
+                            </group>
+
+                            <group string="EMPLOYMENT HISTORY" invisible="joining_category != 'experienced'">
+                                <field name="payslips" widget="binary" string="Recent Payslips"/>
+                                <field name="relieving_letter" widget="binary"/>
+                                <field name="salary_revision_letter" widget="binary"/>
+                                <field name="exp_appointment_letter" widget="binary" string="Experience Letter"/>
+                            </group>
+                        </div>
+                    </div>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

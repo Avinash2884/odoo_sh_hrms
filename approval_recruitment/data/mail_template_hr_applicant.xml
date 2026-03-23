@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+      <record id="mail_template_offer_release" model="mail.template">
+        <field name="name">Employee: Offer Employment</field>
+        <field name="model_id" ref="hr_contract_salary.model_hr_contract_salary_offer"/>
+        <field name="subject">Offer of Employment - {{ object.company_id.name }}</field>
+        <field name="partner_to" eval="False"/>
+        <field name="email_to" eval="False"/>
+        <field name="use_default_to" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p>Hi <t t-out="object.applicant_id.partner_name"/>,</p>
+
+                <p><strong>Congratulations!</strong></p>
+
+                <p>
+                    At <t t-out="object.company_id.name"/>, our purpose is to transform healthcare — calmly, collaboratively, and with purpose.
+                    We are pleased to extend this offer of employment to you and are excited to have you join our mission.
+                </p>
+
+                <p>Please find your offer details attached.</p>
+
+                <p>
+                    Kindly confirm your acceptance on or before <strong>[<t t-out="object.offer_end_date"/>]</strong>.
+                    Also share a signed copy of offer letter with us.
+                </p>
+
+                <p><strong>Documents:</strong> On the date of joining, please provide self-attested and dated copies of below (digital version accepted):</p>
+
+                <ul>
+                    <li>Aadhar card</li>
+                    <li>PAN card</li>
+                    <li>Driving license (if available)</li>
+                    <li>Current / latest employment: Acceptance of Resignation / Relieving letter</li>
+                    <li>Previous employment: Experience letters, relieving letters</li>
+                    <li>Educational certificates and mark sheets (Degree/Diploma, X and XII)</li>
+                    <li>Passport-sized photographs</li>
+                </ul>
+
+                <p>
+                    Should you have any questions, feel free to contact
+                    <a href="mailto:rupesh@lifesigns.us">rupesh@lifesigns.us</a>.
+                </p>
+
+                <p>
+                    Warm regards,<br/>
+                    <strong>[<t t-out="user.name"/>]</strong><br/>
+                    <t t-out="object.company_id.name"/>
+                </p>
+
+
+
+            </div>
+        </field>
+        <field name="lang">{{ object.employee_version_id.employee_id.lang }}</field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+    <record id="mail_template_offer_acceptance" model="mail.template">
+        <field name="name">Offer Acceptance – Welcome</field>
+        <field name="model_id" ref="hr_contract_salary.model_hr_contract_salary_offer"/>
+        <field name="subject">Welcome to Team {{ object.company_id.name }}!</field>
+        <field name="partner_to" eval="False"/>
+        <field name="email_to" eval="False"/>
+        <field name="use_default_to" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+
+                <p>Hi <t t-out="object.applicant_id.partner_name"/>,</p>
+
+                <p>
+                    Thank you for sharing your signed offer letter.
+                    We are delighted to officially welcome you to
+                    <strong><t t-out="object.company_id.name"/></strong>.
+                </p>
+
+                <p>
+                    We look forward to your contributions and to the impact you will make to our mission.
+                </p>
+
+                <p>
+                    You will receive onboarding details shortly. In the meantime, feel free to reach out if you have any questions.
+                </p>
+
+                <p>
+                    Warm regards,<br/>
+                    <strong>[<t t-out="user.name"/>]</strong><br/>
+                    <t t-out="object.company_id.name"/>
+                </p>
+
+            </div>
+        </field>
+        <field name="lang">{{ object.employee_version_id.employee_id.lang }}</field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+  </data>
+</odoo>

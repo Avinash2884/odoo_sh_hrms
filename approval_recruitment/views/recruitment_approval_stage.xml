@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <!-- Form view -->
+        <record id="view_recruitment_approval_stage_form" model="ir.ui.view">
+            <field name="name">recruitment.approval.stage.form</field>
+            <field name="model">recruitment.approval.stage</field>
+            <field name="arch" type="xml">
+                <form string="Recruitment Approval Stage">
+                    <header>
+                        <button name="action_send_approval_mail"
+                            string="Send Email"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-envelope"/>
+                        <button string="Close" class="btn-secondary" special="cancel"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="name" invisible="1"/>
+                            <field name="job_position_id"/>
+                            <field name="user_id"/>
+                            <field name="approval_applicant_ids" widget="many2many_tags"/>
+                            <field name="job_position_budget" />
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Tree view -->
+        <record id="view_recruitment_approval_stage_tree" model="ir.ui.view">
+            <field name="name">recruitment.approval.stage.tree</field>
+            <field name="model">recruitment.approval.stage</field>
+            <field name="arch" type="xml">
+                <list string="Recruitment Approval Stages">
+                    <field name="job_position_id"/>
+                    <field name="user_id"/>
+                    <field name="approval_applicant_ids" widget="many2many_tags"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_recruitment_approval_stage" model="ir.actions.act_window">
+            <field name="name">Recruitment Approval Stages</field>
+            <field name="res_model">recruitment.approval.stage</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">Create a recruitment approval stage</p>
+            </field>
+        </record>
+
+        <!-- Menu item that opens the action -->
+        <menuitem id="menu_recruitment_approval_stage" name="Recruitment Approval"
+                  parent="hr_recruitment.menu_hr_recruitment_root" action="action_recruitment_approval_stage" sequence="99"/>
+    </data>
+</odoo>

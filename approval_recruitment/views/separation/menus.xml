@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_separation_root"
+          name="Separation"
+          parent="hr.menu_hr_root"/>
+    <menuitem id="menu_initiate_separation"
+          name="Initiate Separation"
+          parent="menu_separation_root"
+          action="action_initiate_separation"/>
+<!--    configuration-->
+    <menuitem id="menu_separation_configuration"
+          name="Separation"
+          parent="hr.menu_human_resources_configuration"
+          sequence="1"/>
+    <menuitem id="menu_device_type_sub_menu"
+              name="Device Type"
+              parent="menu_separation_configuration"
+              action="action_device_type"
+              sequence="1"/>
+    <menuitem id="menu_item_name_sub_menu"
+              name="Item Name"
+              parent="menu_separation_configuration"
+              action="action_item_name"
+              sequence="2"/>
+    <menuitem id="menu_payroll_component_sub_menu"
+              name="Payroll Component"
+              parent="menu_separation_configuration"
+              action="action_payroll_component"
+              sequence="3"/>
+    <menuitem id="menu_exit_interview_question"
+              name="Exit Interview"
+              parent="menu_separation_configuration"
+              action="action_exit_interview_question"
+              sequence="4"/>
+
+
+</odoo>

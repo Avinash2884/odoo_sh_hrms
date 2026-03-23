@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="assets_backend"
+              inherit_id="web.assets_backend">
+
+        <xpath expr="." position="inside">
+
+            <!-- Chart.js CDN -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+            <!-- Recruitment Dashboard JS -->
+            <script type="module"
+                src="/recruitment_dashboard/static/src/js/recruitment_dashboard.js"/>
+
+            <!-- Recruitment Dashboard Template -->
+            <link rel="import"
+                href="/recruitment_dashboard/static/src/xml/recruitment_dashboard.xml"/>
+
+        </xpath>
+    </template>
+</odoo>

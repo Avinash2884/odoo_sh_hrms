@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="mail_template_resignation_initiation" model="mail.template">
+            <field name="name">Resignation Initiation Mail</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.employee_id.work_email }}</field>
+            <field name="email_to">{{ object.reporting_manager_id.work_email }}</field>
+            <field name="subject">Resignation Initiated - {{ object.employee_id.name }}</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
+
+                    <p>
+                        Dear <t t-out="object.reporting_manager_id.name"/>,
+                    </p>
+
+                    <p>
+                        This is to inform you that
+                        <b><t t-out="object.employee_id.name"/></b>
+                        (<t t-out="object.ls_employee_id"/>) has initiated a resignation request.
+                    </p>
+
+                    <p>
+                        <b>Resignation Date:</b> <t t-out="format_date(object.create_date)"/><br/>
+                        <b>Reason for Resignation:</b> <t t-out="dict(object._fields['resignation_reason'].selection).get(object.resignation_reason)"/>
+                        <!-- Show detailed reason if 'Other' is selected -->
+                        <t t-if="object.resignation_reason == 'other'">
+                            : <t t-out="object.detailed_reason"/>
+                        </t>
+                    </p>
+
+                    <p>
+                        Kindly review and approve the request in the system to proceed further.
+                    </p>
+                    <p>
+                        Regards,<br/>
+                        <t t-out="user.name"/>
+                    </p>
+
+                </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+        <record id="mail_template_manager_approval" model="mail.template">
+            <field name="name">Resignation Manager Approval - Approved</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.reporting_manager_id.work_email }}</field>
+            <field name="email_to">{{ object.hr_id.work_email }}</field>
+            <field name="email_cc">{{ object.hr_head_id.work_email }}</field>
+            <field name="subject">Resignation Approved by Reporting Manager – {{ object.employee_id.name }}</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
+
+                    <p>Dear Team,</p>
+
+                    <p>
+                        The resignation request submitted by
+                        <b><t t-out="object.employee_id.name"/></b>
+                        (<t t-out="object.ls_employee_id"/>) has been approved by the Reporting Manager.
+                    </p>
+
+                    <p>
+                        Kindly review the request, confirm the Last Working Day as per policy, and proceed with further approvals.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.reporting_manager_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+        <record id="mail_template_manager_reject" model="mail.template">
+            <field name="name">Resignation Manager Approval - Rejected</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.reporting_manager_id.work_email }}</field>
+            <field name="email_to">{{ object.hr_id.work_email }}</field>
+            <field name="email_cc">{{ object.hr_head_id.work_email }}</field>
+            <field name="subject">Resignation Rejected by Reporting Manager – {{ object.employee_id.name }}</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
+
+                    <p>Dear Team,</p>
+
+                    <p>
+                        The resignation request submitted by
+                        <b><t t-out="object.employee_id.name"/></b>
+                        (<t t-out="object.ls_employee_id"/>) has been rejected by the Reporting Manager.
+                    </p>
+
+                    <p>
+                        Kindly review the request and take necessary follow-up action.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.reporting_manager_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+        <record id="mail_template_hr_approval" model="mail.template">
+            <field name="name">HR Approval - Initiate Handover</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.hr_head_id.work_email }}</field>
+            <field name="email_to">{{ object.employee_id.work_email }}</field>
+            <field name="subject">Resignation Initiation Approved – Initiate Handover Responsibilities</field>
+
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
+
+                    <p>
+                        Dear <t t-out="object.employee_id.name"/>,
+                    </p>
+
+                    <p>
+                        Your resignation has been approved.
+                    </p>
+
+                    <p>
+                        <b>Confirmed Last Working Day:</b>
+                        <t t-out="format_date(object.last_working_date)"/>
+                    </p>
+
+                    <p>
+                        You are requested to complete the Handing Over Responsibilities Form in the HR system
+                        within the stipulated timeline to ensure a smooth transition.
+                    </p>
+
+                    <p>
+                        For any clarification, please reach out to HR@lifesigns.us.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.hr_head_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_hr_reject" model="mail.template">
+            <field name="name">HR Rejection Mail</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.hr_head_id.work_email }}</field>
+            <field name="email_to">{{ object.employee_id.work_email }}</field>
+            <field name="subject">Resignation Request Rejected</field>
+
+            <field name="body_html" type="html">
+
+                <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
+
+                    <p>
+                        Dear <t t-out="object.employee_id.name"/>,
+                    </p>
+
+                    <p>
+                        Your resignation request has been reviewed and rejected.
+                    </p>
+
+                    <p>
+                        Kindly contact HR for further clarification.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.hr_head_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_handover_submit" model="mail.template">
+            <field name="name">Handover Form Submitted</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.employee_id.work_email }}</field>
+            <field name="email_to">{{ object.reporting_manager_id.work_email }}</field>
+            <field name="subject">Handover Form Submitted – {{ object.employee_id.name }}</field>
+
+            <field name="body_html" type="html">
+                <div style="font-family: Arial; font-size:13px">
+
+                    <p>Dear <t t-out="object.reporting_manager_id.name"/>,</p>
+
+                    <p>
+                        Employee <b><t t-out="object.employee_id.name"/></b>
+                        has submitted the Handing Over Responsibilities Form.
+                    </p>
+
+                    <p>
+                        Kindly review and approve the handover details in the system.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.employee_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_handover_approved" model="mail.template">
+            <field name="name">Handover Approved</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.reporting_manager_id.work_email }}</field>
+            <field name="email_to">{{ object.employee_id.work_email }}</field>
+            <field name="subject">Handover Approved – Proceed with Clearances</field>
+
+            <field name="body_html" type="html">
+                <div style="font-family: Arial; font-size:13px">
+
+                    <p>Dear <t t-out="object.employee_id.name"/>,</p>
+
+                    <p>
+                        Your Handing Over Responsibilities Form has been approved by your Reporting Manager.
+                    </p>
+
+                    <p>
+                        Please proceed with the following clearance forms in the HR system:
+                    </p>
+
+                    <p>
+                        • IT Asset Clearance<br/>
+                        • Admin Clearance
+                    </p>
+
+                    <p>
+                        Kindly complete them at the earliest to proceed with the exit process.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.reporting_manager_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_handover_resubmit" model="mail.template">
+            <field name="name">Handover Resubmission Required</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.reporting_manager_id.work_email }}</field>
+            <field name="email_to">{{ object.employee_id.work_email }}</field>
+            <field name="subject">Handover Form Requires Resubmission</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial; font-size:13px">
+
+                    <p>Dear <t t-out="object.employee_id.name"/>,</p>
+
+                    <p>
+                        Your Reporting Manager has requested clarification regarding the
+                        Handing Over Responsibilities Form you submitted.
+                    </p>
+
+                    <p>
+                        Kindly review the form and resubmit it with the required corrections.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.reporting_manager_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_it_assets_submit" model="mail.template">
+            <field name="name">IT Asset Clearance Submitted</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.employee_id.work_email }}</field>
+            <field name="email_to">{{ object.it_asset_head_id.work_email }}</field>
+            <field name="subject">IT Asset Clearance Submitted – {{ object.employee_id.name }}</field>
+            <field name="body_html" type="html">
+                <div>
+                    <p>Dear <t t-out="object.it_asset_head_id.name"/>,</p>
+
+                    <p>
+                        Employee <b><t t-out="object.employee_id.name"/></b>
+                        has submitted the IT Asset Clearance Form.
+                    </p>
+
+                    <p>Please review the clearance request.</p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.employee_id.name"/>
+                    </p>
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_it_assets_approved" model="mail.template">
+            <field name="name">IT Asset Approved - Notify Employee</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.it_asset_head_id.work_email }}</field>
+            <field name="email_to">{{ object.employee_id.work_email }}</field>
+            <field name="subject">IT Asset Clearance Approved – Proceed with Admin Clearance</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial; font-size:13px; line-height:1.5;">
+
+                    <p>Dear <t t-out="object.employee_id.name"/>,</p>
+
+                    <p>
+                        Your IT Asset Clearance has been approved by the IT Asset Head.
+                    </p>
+
+                    <p>
+                        You may now proceed to fill the Admin Clearance Form in the HR system.
+                    </p>
+
+                    <p>
+                        Kindly complete it at the earliest to continue the exit process.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.it_asset_head_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_it_assets_resubmit" model="mail.template">
+            <field name="name">IT Asset Clearance Resubmit Required</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.it_asset_head_id.work_email }}</field>
+            <field name="email_to">{{ object.employee_id.work_email }}</field>
+            <field name="subject">IT Asset Clearance Form Requires Resubmission – {{ object.employee_id.name }}</field>
+
+            <field name="body_html" type="html">
+                <div style="font-family: Arial; font-size:13px;">
+
+                    <p>Dear <t t-out="object.employee_id.name"/>,</p>
+
+                    <p>
+                        Your IT Asset Clearance Form has been reviewed by IT Asset Head
+                        and requires resubmission with corrections.
+                    </p>
+
+                    <p>
+                        Kindly review and resubmit the form in the system.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.it_asset_head_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_admin_clearance_submit" model="mail.template">
+            <field name="name">Admin Clearance Submitted</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.employee_id.work_email }}</field>
+            <field name="email_to">{{ object.admin_head_id.work_email }}</field>
+            <field name="subject">Admin Clearance Submitted – {{ object.employee_id.name }}</field>
+            <field name="body_html" type="html">
+                <div>
+                    <p>Dear <t t-out="object.admin_head_id.name"/>,</p>
+
+                    <p>
+                        Employee <b><t t-out="object.employee_id.name"/></b>
+                        has submitted the Admin Clearance Form.
+                    </p>
+
+                    <p>Please review the clearance request.</p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.employee_id.name"/>
+                    </p>
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_payroll_start" model="mail.template">
+            <field name="name">Payroll Clearance Initiation</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.admin_head_id.work_email }}</field>
+            <field name="email_to">{{ object.payroll_head_id.work_email }}</field>
+            <field name="subject">Clearances Completed – Payroll Process Initiation</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial; font-size:13px; line-height:1.5;">
+
+                    <p>Dear <t t-out="object.payroll_head_id.name"/>,</p>
+
+                    <p>
+                        IT Asset Clearance and Admin Clearance for
+                        <b><t t-out="object.employee_id.name"/></b> have been successfully approved.
+                    </p>
+
+                    <p>
+                        You may now proceed with the Payroll Clearance process.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.admin_head_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_admin_clearance_resubmit" model="mail.template">
+            <field name="name">Admin Clearance Resubmit Required</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.admin_head_id.work_email }}</field>
+            <field name="email_to">{{ object.employee_id.work_email }}</field>
+            <field name="subject">Admin Clearance Form Requires Resubmission – {{ object.employee_id.name }}</field>
+
+            <field name="body_html" type="html">
+                <div style="font-family: Arial; font-size:13px;">
+
+                    <p>Dear <t t-out="object.employee_id.name"/>,</p>
+
+                    <p>
+                        Your Admin Clearance Form has been reviewed by Admin Head
+                        and requires resubmission with corrections.
+                    </p>
+
+                    <p>
+                        Kindly review and resubmit the form in the system.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.admin_head_id.name"/>
+                    </p>
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_payroll_proceed" model="mail.template">
+            <field name="name">Exit Interview Request</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.payroll_head_id.work_email }}</field>
+            <field name="email_to">{{ object.employee_id.work_email }}</field>
+            <field name="subject">Exit Interview Form – {{ object.employee_id.name }}</field>
+
+            <field name="body_html" type="html">
+                <div style="font-family: Arial; font-size:13px; line-height:1.5;">
+
+                    <p>Dear <t t-out="object.employee_id.name"/>,</p>
+
+                    <p>
+                        Kindly fill the <b>Exit Interview Form</b> in the HR system to proceed with your exit process.
+                    </p>
+
+                    <p>
+                        For any clarification, reach out to HR.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.payroll_head_id.name"/>
+                    </p>
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_exit_interview_submitted" model="mail.template">
+            <field name="name">Exit Interview Submitted</field>
+            <field name="model_id" ref="approval_recruitment.model_initiate_separation"/>
+            <field name="email_from">{{ object.employee_id.work_email }}</field>
+            <field name="email_to">{{ object.hr_id.work_email }}</field>
+            <field name="email_cc">{{ object.hr_head_id.work_email }}</field>
+            <field name="subject">Exit Interview Submitted – {{ object.employee_id.name }}</field>
+
+            <field name="body_html" type="html">
+                <div style="font-family: Arial; font-size:13px; line-height:1.5;">
+
+                    <p>Dear HR Team,</p>
+
+                    <p>
+                        Employee <b><t t-out="object.employee_id.name"/></b> has submitted the Exit Interview Form.
+                    </p>
+
+                    <p>
+                        Kindly review the submission and proceed with the exit process.
+                    </p>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.employee_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

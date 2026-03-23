@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── List View ── -->
+    <record id="view_geo_restriction_list" model="ir.ui.view">
+        <field name="name">geo.restriction.list</field>
+        <field name="model">geo.restriction</field>
+        <field name="arch" type="xml">
+            <list string="Geo Restrictions">
+                <field name="company_latitude" string="Latitude"/>
+<!--                <field name="company_longitude" string="Longitude"/>-->
+<!--                <field name="allowed_distance" string="Allowed Distance (M)"/>-->
+            </list>
+        </field>
+    </record>
+
+<!--    &lt;!&ndash; ── Form View ── &ndash;&gt;-->
+<!--    <record id="view_geo_restriction_form" model="ir.ui.view">-->
+<!--        <field name="name">geo.restriction.form</field>-->
+<!--        <field name="model">geo.restriction</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <form string="Geo Restriction">-->
+<!--                <sheet>-->
+<!--                    <group>-->
+
+<!--                        <group string="📍 Office Location">-->
+<!--                            <field name="company_latitude"-->
+<!--                                   string="Latitude"-->
+<!--                                   placeholder="e.g. 13.0382380"/>-->
+<!--                            <field name="company_longitude"-->
+<!--                                   string="Longitude"-->
+<!--                                   placeholder="e.g. 80.2545612"/>-->
+<!--                            <field name="allowed_distance"-->
+<!--                                   string="Allowed Distance (Meters)"-->
+<!--                                   placeholder="e.g. 100"/>-->
+<!--                        </group>-->
+
+<!--                        <group string="🗺️ Map">-->
+<!--                            <div colspan="2">-->
+<!--                                <button name="action_open_map"-->
+<!--                                        type="object"-->
+<!--                                        string="📍 Open in Google Maps"-->
+<!--                                        class="oe_highlight"/>-->
+<!--                            </div>-->
+<!--                        </group>-->
+
+<!--                    </group>-->
+
+<!--                    <div class="alert alert-info" role="alert" style="margin-top:12px;">-->
+<!--                        <strong>Tip:</strong>-->
+<!--                        Open Google Maps → Right-click your office → Copy the lat, lng values shown.-->
+<!--                    </div>-->
+
+<!--                </sheet>-->
+<!--            </form>-->
+<!--        </field>-->
+<!--    </record>-->
+
+<!--    &lt;!&ndash; ── Action ── &ndash;&gt;-->
+<!--    <record id="action_geo_restriction" model="ir.actions.act_window">-->
+<!--        <field name="name">Geo Restriction</field>-->
+<!--        <field name="res_model">geo.restriction</field>-->
+<!--        <field name="view_mode">list,form</field>-->
+<!--        <field name="help" type="html">-->
+<!--            <p class="o_view_nocontent_smiling_face">-->
+<!--                Add your first Geo Restriction!-->
+<!--            </p>-->
+<!--            <p>-->
+<!--                Set your office GPS coordinates and allowed check-in radius.-->
+<!--            </p>-->
+<!--        </field>-->
+<!--    </record>-->
+
+    <!-- ── Menu under Attendances ── -->
+    <menuitem
+        id="menu_geo_restriction_config_parent"
+        name="Configuration"
+        parent="hr_attendance.menu_hr_attendance_root"
+        sequence="90"/>
+
+    <menuitem
+        id="menu_geo_restriction"
+        name="Geo Restriction"
+        parent="menu_geo_restriction_config_parent"
+        action="action_geo_restriction"
+        sequence="10"/>
+
+</odoo>

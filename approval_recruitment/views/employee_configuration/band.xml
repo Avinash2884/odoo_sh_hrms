@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_band_list" model="ir.ui.view">
+        <field name="name">band.list</field>
+        <field name="model">band</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_band_form" model="ir.ui.view">
+        <field name="name">band.form</field>
+        <field name="model">band</field>
+        <field name="arch" type="xml">
+            <form string="Band">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_band" model="ir.actions.act_window">
+        <field name="name">Bands</field>
+        <field name="res_model">band</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

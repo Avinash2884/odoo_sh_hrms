@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 1. CUSTOM HEADER - Only Logo -->
+    <template id="custom_job_header"
+              inherit_id="website.layout"
+              name="Clean Job Page Header">
+
+        <xpath expr="//header" position="replace">
+            <header>
+                <div class="container py-3">
+                    <a href="/">
+                        <img src="/website_job_custom/static/src/img/LS_logo.svg"
+                             alt="Lifesigns"
+                             style="max-height: 60px;"/>
+                    </a>
+                </div>
+            </header>
+        </xpath>
+
+    </template>
+
+    <template id="hide_navbar_job_detail"
+              inherit_id="website_hr_recruitment.detail">
+
+        <!-- Remove the navbar only on job detail page -->
+        <xpath expr="//nav[contains(@class,'navbar')]" position="replace"/>
+
+    </template>
+
+    <!-- 2. CUSTOM JOB PAGE -->
+    <template id="custom_job_page"
+              inherit_id="website_hr_recruitment.detail"
+              name="Custom Job Page Layout">
+
+        <xpath expr="//div[@id='wrap']" position="replace">
+
+            <div id="wrap" class="js_hr_job">
+                <div class="container py-5">
+                    <div class="row">
+
+                        <!-- LEFT SIDE CARD -->
+                        <div class="col-lg-4 mb-4">
+                            <div class="card shadow p-4 sticky-top job-side-card">
+
+                                <h2 class="fw-bold mb-3" t-field="job.name"/>
+
+                                <p class="mb-2" t-if="job.contract_type_id">
+                                    <i class="fa fa-briefcase me-2"/>
+                                    <span t-field="job.contract_type_id.name"/>
+                                </p>
+
+                                <t t-if="job.address_id">
+                                    <p class="mb-3">
+                                        <i class="fa fa-map-marker me-2"/>
+                                        <span t-esc="job.sudo().address_id.city"/>
+                                    </p>
+                                </t>
+
+                                <a t-att-href="'/jobs/apply/%s' % job.id"
+                                   class="btn btn-apply-now btn-lg w-100 mt-3">
+                                    Apply Now
+                                </a>
+
+                            </div>
+                        </div>
+
+                        <!-- RIGHT SIDE EDITABLE AREA -->
+                        <div class="col-lg-8">
+
+                            <!-- THIS MAKES PAGE CUSTOMIZABLE -->
+                            <div class="oe_structure">
+                                <section class="mb-5">
+                                    <h4 class="fw-bold mb-3">About Lifesigns</h4>
+                                    <p>
+                                        Lifesigns is a fast-growing healthtech company focused on transforming the way
+                                        individuals, clinicians, and enterprises monitor and manage health.
+                                    </p>
+                                    <p>
+                                        We build intuitive, intelligent, and scalable digital health experiences that
+                                        positively impact real-world care outcomes.
+                                    </p>
+                                    <p>
+                                        As part of our design team, you will work at the intersection of healthcare,
+                                        technology, and human-centered design.
+                                    </p>
+                                </section>
+
+                                <section class="mb-5">
+                                    <h4 class="fw-bold mb-3">Job Summary</h4>
+                                    <p>
+                                        We are looking for a passionate Product Designer (0–5 years) who can think
+                                        deeply, design effectively, and collaborate cross-functionally to craft seamless user
+                                        experiences across our digital health products.
+                                    </p>
+                                    <p>
+                                        You should have a strong portfolio demonstrating your design thinking,
+                                        UX artefacts, and problem-solving approach — not just final UI screens.
+                                    </p>
+                                    <p>
+                                        You will work with the design lead, product owners, and engineers to simplify
+                                        complex healthcare workflows and design solutions that are usable,
+                                        accessible, and impactful.
+                                    </p>
+                                </section>
+
+                                <section class="mb-5">
+                                    <h4 class="fw-bold mb-3">Key Responsibilities</h4>
+                                    <ul>
+                                        <li>Understand user needs through research, interviews, data insights, and
+                                            real-world healthcare scenarios.</li>
+                                        <li>Translate requirements into user journeys, wireframes, prototypes, and
+                                            high-fidelity designs.</li>
+                                        <li>Create UX artefacts such as flowcharts, IA maps, wireframes, usability test
+                                            plans, and research summaries.</li>
+                                        <li>Design intuitive interfaces for web and mobile health monitoring
+                                            applications.</li>
+                                        <li>Collaborate closely with design lead, product, and engineering to ensure
+                                            design feasibility and clarity.</li>
+                                        <li>Participate in design reviews, usability testing, and iteration cycles.</li>
+                                        <li>Contribute to and maintain the design system.</li>
+                                        <li>Advocate for user-centered design in a domain with complex regulatory,
+                                            privacy, and safety constraints.</li>
+                                    </ul>
+                                </section>
+
+                                <section class="mb-5">
+                                    <h4 class="fw-bold mb-3">Qualifications</h4>
+                                    <ul>
+                                        <li>0–5 years of experience in Product/UI/UX Design.</li>
+                                        <li>A strong portfolio highlighting your design process, UX artefacts, problem
+                                            framing, and solutioning — not just visuals.</li>
+                                        <li>Proficiency in Figma.</li>
+                                        <li>Ability to break down ambiguous problems into structured flows and
+                                            interactions.</li>
+                                        <li>Good understanding of interaction design, usability principles, and
+                                            responsive design.</li>
+                                        <li>Strong communication skills to present design rationale clearly.</li>
+                                        <li>Ability to work in agile, cross-functional teams.</li>
+                                        <li>Curiosity, empathy, and a passion for solving real problems in healthcare.</li>
+                                    </ul>
+                                </section>
+
+                                <section class="mb-5">
+                                    <h4 class="fw-bold mb-3">What We Offer</h4>
+                                    <ul>
+                                        <li>Competitive salary and performance-based incentives.</li>
+                                        <li>Opportunities for professional growth and leadership development.</li>
+                                        <li>Comprehensive training programs and continuous learning opportunities.</li>
+                                        <li>A collaborative and agile work environment focused on making real impact.</li>
+                                        <li>An inclusive culture that values innovation, collaboration, and independent
+                                            thinking.</li>
+                                    </ul>
+
+                                    <p class="mt-3">
+                                        Lifesigns is an equal opportunity employer. We celebrate diversity and are
+                                        committed to creating an inclusive environment for all employees.
+                                    </p>
+
+                                    <p>
+                                        If you're ready to challenge the norm and drive change, join us and explore how
+                                        you can make an impact.
+                                    </p>
+                                </section>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </xpath>
+
+    </template>
+
+    <!-- 3. CUSTOM FOOTER -->
+    <template id="custom_job_footer"
+              inherit_id="website.layout"
+              name="Clean Job Page Footer">
+
+        <xpath expr="//div[@id='footer']" position="replace">
+            <div id="footer">
+                <section class="py-4" style="background-color: #f8f9fa;">
+                    <div class="container text-center">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <!-- Social Media Links -->
+                                <div class="mb-3">
+                                    <a href="https://www.facebook.com/lifesigns"
+                                       target="_blank"
+                                       class="me-3">
+                                        <i class="fa fa-2x fa-facebook-square" style="color: #5b4fff;"/>
+                                    </a>
+                                    <a href="https://twitter.com/lifesigns"
+                                       target="_blank"
+                                       class="me-3">
+                                        <i class="fa fa-2x fa-twitter" style="color: #5b4fff;"/>
+                                    </a>
+                                    <a href="https://www.linkedin.com/company/lifesigns"
+                                       target="_blank"
+                                       class="me-3">
+                                        <i class="fa fa-2x fa-linkedin" style="color: #5b4fff;"/>
+                                    </a>
+                                    <a href="https://www.instagram.com/lifesigns"
+                                       target="_blank">
+                                        <i class="fa fa-2x fa-instagram" style="color: #5b4fff;"/>
+                                    </a>
+                                </div>
+
+                                <!-- Copyright -->
+                                <p class="mb-0">
+                                    <small>Copyright © Lifesigns</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </xpath>
+
+    </template>
+
+</odoo>
+

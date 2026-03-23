@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================= -->
+    <!-- EMR Privilege Category -->
+    <!-- ============================= -->
+
+    <record model="res.groups.privilege" id="res_groups_privilege_emr">
+        <field name="name">EMR</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="sequence">15</field>
+    </record>
+
+    <!-- ============================= -->
+    <!-- EMR Team Member -->
+    <!-- ============================= -->
+
+    <record id="group_emr_team_member" model="res.groups">
+        <field name="name">Team Member</field>
+        <field name="privilege_id" ref="res_groups_privilege_emr"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- ============================= -->
+    <!-- EMR Reporting Head -->
+    <!-- ============================= -->
+
+    <record id="group_emr_reporting_head" model="res.groups">
+        <field name="name">Reporting Head</field>
+        <field name="privilege_id" ref="res_groups_privilege_emr"/>
+        <field name="implied_ids" eval="[(4, ref('group_emr_team_member'))]"/>
+    </record>
+
+    <!-- ============================= -->
+    <!-- EMR Manager -->
+    <!-- ============================= -->
+
+    <record id="group_emr_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="privilege_id" ref="res_groups_privilege_emr"/>
+        <field name="implied_ids" eval="[(4, ref('group_emr_reporting_head'))]"/>
+    </record>
+
+    <!-- ============================= -->
+    <!-- EMR Admin -->
+    <!-- ============================= -->
+
+    <record id="group_emr_admin" model="res.groups">
+        <field name="name">Admin</field>
+        <field name="privilege_id" ref="res_groups_privilege_emr"/>
+        <field name="implied_ids" eval="[(4, ref('group_emr_manager'))]"/>
+    </record>
+
+</odoo>

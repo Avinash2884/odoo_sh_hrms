@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_interview_marks" model="ir.actions.report">
+        <field name="name">Interview Evaluation</field>
+        <field name="model">hr.job</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">approval_recruitment.report_interview_marks</field>
+        <field name="report_file">approval_recruitment.report_interview_marks</field>
+        <field name="print_report_name">'Interview Marks - All Candidates'</field>
+        <field name="binding_model_id" ref="hr_recruitment.model_hr_job"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

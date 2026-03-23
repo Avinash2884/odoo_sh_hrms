@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="approval_request_inherit_form_view" model="ir.ui.view">
+        <field name="name">approval.request.inherit.form</field>
+        <field name="model">approval.request</field>
+        <field name="inherit_id" ref="approvals.approval_request_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="no_of_position" invisible="has_total_no_of_positions == 'no'" required="has_total_no_of_positions == 'required'"/>
+                <field name="approval_job_position" invisible="has_job_position == 'no'" required="has_job_position == 'required'"/>
+                <field name="approval_experience_minimum" invisible="has_experience_min == 'no'" required="has_experience_min == 'required'"/>
+                <field name="approval_experience_maximum" invisible="has_experience_max == 'no'" required="has_experience_max == 'required'"/>
+            </xpath>
+            <xpath expr="//field[@name='reference']" position="after">
+                <field name="approval_overall_budget_for_all_posting" invisible="has_overall_budget_for_all_posting == 'no'" required="has_overall_budget_for_all_posting == 'required'"/>
+                <field name="approval_budget_for_each_employee_position" invisible="has_budget_for_each_employee_position == 'no'" required="has_budget_for_each_employee_position == 'required'"/>
+                <field name="approval_start_date" invisible="has_start_date == 'no'" required="has_start_date == 'required'"/>
+                <field name="approval_end_date" invisible="has_end_date == 'no'" required="has_end_date == 'required'"/>
+<!--                <field name="hr_skill_type_id"/>-->
+<!--                <field name="hr_skill_ids"/>-->
+<!--                <field name="hr_skill_level_ids"/>-->
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_interview_marks">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="job">
+                <t t-call="web.external_layout">
+                    <div style="text-align:center; margin-bottom:20px;">
+                        <h2>Interview Evaluation Report</h2>
+                        <h3>Job: <t t-esc="job.name"/></h3>
+                    </div>
+
+                    <table class="table table-sm table-bordered">
+                        <thead style="background-color:#007bff; color:white;">
+                            <tr>
+                                <th style="text-align:center;">S.No</th>
+                                <th>Name</th>
+                                <th>Stage</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Marks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Initialize serial number -->
+                            <t t-set="sno" t-value="1"/>
+
+                            <!-- Get candidates in Stage 1 & 2 -->
+<!--                            <t t-set="stage_ids" t-value="env['hr.recruitment.stage'].search([('name', 'in', ['Interview Stage 1', 'Interview Stage 2','Culture-fit Assessment'])]).ids"/>-->
+<!--                            <t t-foreach="job.env['hr.applicant'].search([('job_id','=',job.id),('stage_id','in',stage_ids)])" t-as="candidate">-->
+<!--                                <tr>-->
+<!--                                    <td style="text-align:center;"><t t-esc="sno"/></td>-->
+<!--                                    <td><t t-esc="candidate.partner_name"/></td>-->
+<!--                                    <td><t t-esc="candidate.stage_id.name"/></td>-->
+<!--                                    <td><t t-esc="candidate.email_from"/></td>-->
+<!--                                    <td><t t-esc="candidate.partner_phone"/></td>-->
+<!--                                    <td><t t-esc="candidate.mark"/></td>-->
+<!--                                </tr>-->
+<!--                                <t t-set="sno" t-value="sno + 1"/>-->
+<!--                            </t>-->
+                            <t t-set="stage_ids" t-value="[env.ref('hr_recruitment.stage_job2').id, env.ref('hr_recruitment.stage_job3').id,env.ref('approval_recruitment.stage_job6').id,]"/>
+
+                            <t t-foreach="job.env['hr.applicant'].search([('job_id','=',job.id), ('stage_id','in', stage_ids)])" t-as="candidate">
+                                <tr>
+                                    <td style="text-align:center;"><t t-esc="sno"/></td>
+                                    <td><t t-esc="candidate.partner_name"/></td>
+                                    <td><t t-esc="candidate.stage_id.name"/></td>
+                                    <td><t t-esc="candidate.email_from"/></td>
+                                    <td><t t-esc="candidate.partner_phone"/></td>
+                                    <td><t t-esc="candidate.mark or ''"/></td>
+                                </tr>
+                                <t t-set="sno" t-value="sno + 1"/>
+                            </t>
+
+                            <!-- If no candidates found -->
+                            <t t-if="job.env['hr.applicant'].search([('job_id','=',job.id),('stage_id','in',stage_ids)])==False">
+                                <tr>
+                                    <td colspan="7" style="text-align:center;">No candidates in Interview Stage 1 and 2</td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                    <br/>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

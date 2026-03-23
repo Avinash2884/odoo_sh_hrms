@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="custom_job_application_form"
+              inherit_id="website_hr_recruitment.apply"
+              name="Custom Job Application Form Fields">
+
+        <xpath expr="//input[@name='partner_name']/../.." position="replace"/>
+        <xpath expr="//input[@name='email_from']/../.." position="replace"/>
+        <xpath expr="//input[@name='partner_phone']/../.." position="replace"/>
+
+        <xpath expr="//input[@name='linkedin_profile']" position="attributes">
+            <attribute name="required">required</attribute>
+        </xpath>
+        <xpath expr="//input[@name='Resume']" position="attributes">
+            <attribute name="required">required</attribute>
+        </xpath>
+        <xpath expr="//textarea[@name='short_introduction']" position="attributes">
+            <attribute name="required">required</attribute>
+        </xpath>
+
+
+        <xpath expr="//input[@name='linkedin_profile']/../.." position="before">
+
+            <div class="col-12 mb-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold">Registration No</label>
+                        <input type="text" class="form-control fw-bold text-primary"
+                               name="registration_no" id="reg_no_field" readonly="readonly"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Discipline Applied</label>
+                        <input type="text" class="form-control"
+                               name="discipline_applied" placeholder="e.g., Computer Science"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 mb-4">
+                <h5 class="fw-bold border-bottom pb-2">Photograph</h5>
+                <div class="row align-items-start mt-3">
+                    <div class="col-auto">
+                        <div id="photo_preview_box"
+                             onclick="document.getElementById('photo_upload').click();"
+                             style="width:110px;height:135px;border:2px dashed #ccc;display:flex;align-items:center;justify-content:center;background:#f9f9f9;cursor:pointer;">
+                            <span id="photo_placeholder" class="text-muted text-center" style="font-size:11px;">Passport<br/>Photo</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label class="fw-bold">Upload Photograph</label>
+                        <input type="file" class="form-control" name="photograph" id="photo_upload" accept="image/jpeg,image/png"/>
+                        <small class="text-muted">JPG, PNG · Max 2MB</small>
+                        <br/>
+                        <button type="button" id="remove_photo" class="btn btn-sm btn-outline-danger mt-2" style="display:none;">Remove Photo</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 mb-4">
+                <h5 class="fw-bold border-bottom pb-2">Personal Information</h5>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-2">
+                        <label class="fw-bold">Title</label>
+                        <select class="form-select" name="title">
+                            <option value="mr">Mr.</option>
+                            <option value="ms">Ms.</option>
+                            <option value="mrs">Mrs.</option>
+                            <option value="dr">Dr.</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="fw-bold">First Name *</label>
+                        <input type="text" class="form-control" name="first_name" required="required"/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="fw-bold">Middle Name</label>
+                        <input type="text" class="form-control" name="middle_name"/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="fw-bold">Last Name *</label>
+                        <input type="text" class="form-control" name="last_name" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Father's Name</label>
+                        <input type="text" class="form-control" name="father_name"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Mother's Name</label>
+                        <input type="text" class="form-control" name="mother_name"/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="fw-bold">Date of Birth *</label>
+                        <input type="date" class="form-control" name="date_of_birth" required="required"/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="fw-bold">Gender *</label>
+                        <select class="form-select" name="gender" required="required">
+                            <option value="">Select</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="fw-bold">Category</label>
+                        <select class="form-select" name="category">
+                            <option value="general">General</option>
+                            <option value="obc">OBC</option>
+                            <option value="sc">SC</option>
+                            <option value="st">ST</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 mb-4">
+                <h5 class="fw-bold border-bottom pb-2">Contact Information</h5>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label class="fw-bold">Email *</label>
+                        <input type="email" class="form-control" name="email_from" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Mobile Number *</label>
+                        <input type="tel" class="form-control" name="partner_phone" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Phone (with STD Code)</label>
+                        <input type="text" class="form-control" name="phone_with_std"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Pin Code</label>
+                        <input type="text" class="form-control" name="pincode" required="required"/>
+                    </div>
+                    <div class="col-12">
+                        <label class="fw-bold">Mailing Address</label>
+                        <textarea class="form-control" name="mailing_address" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 mt-2">
+                <h5 class="fw-bold border-bottom pb-2">Educational Qualification</h5>
+            </div>
+            <div class="col-12 mb-4">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle" id="edu_table">
+                        <thead class="table-secondary text-center">
+                            <tr>
+                                <th style="min-width:180px;">Exam / Qualification</th>
+                                <th style="min-width:120px;">Passing Date</th>
+                                <th style="min-width:180px;">University / Institution</th>
+                                <th style="min-width:90px;">% / CGPA</th>
+                                <th style="min-width:150px;">Main Subject</th>
+                                <th style="width:45px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="edu_tbody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="6" class="bg-light">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="add_edu_row">
+                                        <i class="fa fa-plus me-1"/> Add a Line
+                                    </button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-12 mt-2">
+                <h5 class="fw-bold border-bottom pb-2">
+                    Work Experience <small class="fw-normal text-muted">(Starting from present employment)</small>
+                </h5>
+            </div>
+            <div class="col-12 mb-4">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle" id="exp_table">
+                        <thead class="table-secondary text-center">
+                            <tr>
+                                <th style="min-width:160px;">Employer Name &amp; Address</th>
+                                <th style="min-width:110px;">From</th>
+                                <th style="min-width:110px;">To</th>
+                                <th style="min-width:130px;">Designation</th>
+                                <th style="min-width:160px;">Nature of Duties</th>
+                                <th style="min-width:110px;">Gross Salary</th>
+                                <th style="min-width:90px;">Pay Scale</th>
+                                <th style="width:45px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="exp_tbody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="8" class="bg-light">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="add_exp_row">
+                                        <i class="fa fa-plus me-1"/> Add a Line
+                                    </button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </xpath>
+
+
+        <xpath expr="//textarea[@name='short_introduction']/../.." position="after">
+
+            <div class="col-12 mt-4 mb-3">
+                <div class="card border-secondary">
+                    <div class="card-body">
+                        <h6 class="fw-bold">Declaration</h6>
+                        <p class="mb-2 text-muted">
+                            I hereby declare that all the information provided above is true and correct to the
+                            best of my knowledge. Any false information may lead to disqualification.
+                        </p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="declaration" id="declaration" required="required"/>
+                            <label class="form-check-label fw-bold" for="declaration">
+                                I agree to the above declaration *
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </xpath>
+
+    </template>
+</odoo>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_hr_job_applications" model="ir.actions.act_window">
+        <field name="context">{'job_id': active_id}</field>
+    </record>
+
+</odoo>

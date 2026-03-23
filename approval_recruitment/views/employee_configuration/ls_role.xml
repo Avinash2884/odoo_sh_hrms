@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_ls_role_list" model="ir.ui.view">
+        <field name="name">ls.role.list</field>
+        <field name="model">ls.role</field>
+        <field name="arch" type="xml">
+            <list string="Roles">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_ls_role_form" model="ir.ui.view">
+        <field name="name">ls.role.form</field>
+        <field name="model">ls.role</field>
+        <field name="arch" type="xml">
+            <form string="Role">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_ls_role" model="ir.actions.act_window">
+        <field name="name">Roles</field>
+        <field name="res_model">ls.role</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to create a new Role.
+            </p>
+        </field>
+    </record>
+
+</odoo>

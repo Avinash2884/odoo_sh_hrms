@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- list View -->
+    <record id="view_ls_account_type_list" model="ir.ui.view">
+        <field name="name">ls.account.type.list</field>
+        <field name="model">ls.account.type</field>
+        <field name="arch" type="xml">
+            <list string="Account Types">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_ls_account_type_form" model="ir.ui.view">
+        <field name="name">ls.account.type.form</field>
+        <field name="model">ls.account.type</field>
+        <field name="arch" type="xml">
+            <form string="Account Type">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_ls_account_type" model="ir.actions.act_window">
+        <field name="name">Account Types</field>
+        <field name="res_model">ls.account.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+</odoo>

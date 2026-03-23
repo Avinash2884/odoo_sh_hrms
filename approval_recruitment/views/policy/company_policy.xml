@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_company_policy_list" model="ir.ui.view">
+        <field name="name">company.policy.list</field>
+        <field name="model">company.policy</field>
+        <field name="arch" type="xml">
+            <list string="Company Policy">
+                <field name="name"/>
+                <field name="revision_1_date"/>
+                <field name="revision_2_date"/>
+                <field name="revision_3_date"/>
+                <field name="revision_4_date"/>
+                <field name="revision_5_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_company_policy_form" model="ir.ui.view">
+        <field name="name">company.policy.form</field>
+        <field name="model">company.policy</field>
+        <field name="arch" type="xml">
+            <form string="Company Policy">
+                <header>
+                    <button
+                        name="action_submit"
+                        type="object"
+                        string="Submit"
+                        class="oe_highlight"
+                        invisible="state in ('submit','publish')"/>
+                    <button
+                        name="action_publish"
+                        type="object"
+                        string="Publish"
+                        class="oe_highlight"
+                        invisible="state in (False)"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                    <notebook>
+                        <page string="Revisions">
+                            <group>
+                                <group string="Revision 1">
+                                    <field name="revision_1_file_name" string="File Name" invisible="1"/>
+                                    <field name="revision_1_file" filename="revision_1_file_name" string="Upload"/>
+                                    <field name="revision_1_date" readonly="1" string="Uploaded On"/>
+                                    <field name="revision_1_published" widget="boolean_toggle"/>
+                                </group>
+                                <group string="Revision 2">
+                                    <field name="revision_2_file_name" string="File Name" invisible="1"/>
+                                    <field name="revision_2_file" filename="revision_2_file_name" string="Upload"/>
+                                    <field name="revision_2_date" readonly="1" string="Uploaded On"/>
+                                    <field name="revision_2_published" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Revision 3">
+                                    <field name="revision_3_file_name" string="File Name" invisible="1"/>
+                                    <field name="revision_3_file" filename="revision_3_file_name" string="Upload"/>
+                                    <field name="revision_3_date" readonly="1" string="Uploaded On"/>
+                                    <field name="revision_3_published" widget="boolean_toggle"/>
+                                </group>
+                                <group string="Revision 4">
+                                    <field name="revision_4_file_name" string="File Name" invisible="1"/>
+                                    <field name="revision_4_file" filename="revision_4_file_name" string="Upload"/>
+                                    <field name="revision_4_date" readonly="1" string="Uploaded On"/>
+                                    <field name="revision_4_published" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Revision 5">
+                                    <field name="revision_5_file_name" string="File Name" invisible="1"/>
+                                    <field name="revision_5_file" filename="revision_5_file_name" string="Upload"/>
+                                    <field name="revision_5_date" readonly="1" string="Uploaded On"/>
+                                    <field name="revision_5_published" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_company_policy" model="ir.actions.act_window">
+        <field name="name">Company Policy</field>
+        <field name="res_model">company.policy</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Company Policy
+            </p>
+        </field>
+    </record>
+</odoo>
