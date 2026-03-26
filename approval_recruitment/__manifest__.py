@@ -2,10 +2,11 @@
 {
     'name': "Approval-Recruitment",
     'version': '1.0.0',
-    'depends': ['base','hr','mail','approvals','hr_recruitment','hr_skills','hr_appraisal','survey','hr_contract_salary'],
+    'depends': ['base','hr','mail','approvals','hr_recruitment','hr_skills','hr_appraisal','survey',
+                'hr_contract_salary','account','website_hr_recruitment'],
     'summary': "Approval-Man Power",
     'author': "Unisas ITBusiness Solutions Private Limited",
-    'category': 'Custom',
+    'category': 'Human Resource',
     'license': 'LGPL-3',
     'data': [
         "security/ir.model.access.csv",
@@ -27,7 +28,20 @@
         "views/hr_department_inherit_views.xml",
         "views/hr_recruitment_stages_views.xml",
         "views/res_company_inherit.xml",
-        "views/ls_state_public_holiday.xml",
+        'views/job_application_form.xml',
+        'views/job_template.xml',
+        'views/pre_onboarding_template.xml',
+        'report/evaluation_report_template.xml',
+        'report/evaluation_report.xml',
+        'report/cmt_full_time_appointment_letter.xml',
+        'report/full_time_employee_appointment_letter.xml',
+        'report/hse_appointment_letter.xml',
+        'report/internship_letter.xml',
+        'report/offer_of_appointment.xml',
+        'report/cmt_offer_letter_template.xml',
+        'report/hse_offer_letter_template.xml',
+
+        # Employee Configuration
         "views/employee_configuration/employment_type.xml",
         "views/employee_configuration/entity_name.xml",
         "views/employee_configuration/base_location.xml",
@@ -46,26 +60,21 @@
         "views/employee_configuration/blood_group.xml",
         "views/employee_configuration/account_type.xml",
         "views/employee_configuration/menus.xml",
+
+        # Separation
         "views/separation/initiate_separation.xml",
         "views/separation/device_type.xml",
         "views/separation/item_name.xml",
         "views/separation/payroll_component.xml",
         "views/separation/exit_interview_questions.xml",
         "views/separation/menus.xml",
+
+        # Policy
         "views/policy/company_policy.xml",
         "views/policy/employee_policy.xml",
         "views/policy/menus.xml",
-        'views/job_application_form.xml',
-        'views/job_template.xml',
-        'views/pre_onboarding_template.xml',
-        'report/evaluation_report_template.xml',
-        'report/evaluation_report.xml',
-
     ],
     'assets': {
-            # 'web.assets_frontend': [
-            #     'approval_recruitment/static/src/css/job.css',
-            # ],
             'web.assets_frontend': [
                 'approval_recruitment/static/src/scss/custom_buttons.scss',
                 'approval_recruitment/static/src/js/application_form.js',

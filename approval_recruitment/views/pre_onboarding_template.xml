@@ -83,7 +83,7 @@
                         <div class="p-4 p-md-5">
                             <form action="/job/onboarding/save" method="post" enctype="multipart/form-data">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-
+                                <input type="hidden" name="access_token" t-att-value="token"/>
                                 <div class="category-gate text-center">
                                     <label class="field-label mb-3 text-uppercase" style="font-size: 1.1rem;">Please
                                         select your joining status

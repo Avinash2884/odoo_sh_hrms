@@ -18,8 +18,6 @@ access_ls_role,access.ls.role,model_ls_role,base.group_user,1,1,1,0
 access_source_of_hire,access.source.of.hire,model_source_of_hire,base.group_user,1,1,1,0
 access_blood_group,access.blood.group,model_blood_group,base.group_user,1,1,1,0
 access_ls_account_type,access.ls.account.type,model_ls_account_type,base.group_user,1,1,1,0
-access_ls_public_holiday,access.ls.public.holiday,model_ls_public_holiday,base.group_user,1,1,1,0
-access_ls_state_public_holiday,access.ls.state.public.holiday,model_ls_state_public_holiday,base.group_user,1,1,1,0
 access_ls_hr_employee_education,access.hr.employee.education,model_hr_employee_education,base.group_user,1,1,1,0
 access_initiate_separation,access.initiate.separation,model_initiate_separation,base.group_user,1,1,1,1
 access_device_type,access.device.type,model_device_type,base.group_user,1,1,1,1

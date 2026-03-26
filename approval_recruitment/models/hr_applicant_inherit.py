@@ -1,8 +1,11 @@
 from datetime import date, timedelta
-
+import uuid
 from odoo.exceptions import ValidationError
+import logging
+_logger = logging.getLogger(__name__)
 
-from odoo import models, fields, api , _
+from odoo import models, fields, api, _
+
 
 class HrApplicantInherit(models.Model):
     _inherit = 'hr.applicant'
@@ -60,7 +63,6 @@ class HrApplicantInherit(models.Model):
 
         for rec in self:
             rec.show_doj = rec.stage_id.id in allowed
-
 
     @api.model
     def _cron_move_not_shown_applicants(self):
@@ -140,33 +142,7 @@ class HrApplicantInherit(models.Model):
         old_stage_map = {rec.id: rec.stage_id.id for rec in self}
         res = super().write(vals)
         self._reorder_contract_proposal_stage()
-
-        if 'stage_id' in vals:
-            stage_offer_release = self.env.ref('hr_recruitment.stage_job4', raise_if_not_found=False)
-            stage_offer_accepted = self.env.ref('hr_recruitment.stage_job5', raise_if_not_found=False)
-
-            for rec in self:
-                old_stage = old_stage_map.get(rec.id)
-
-                # ---------------------------
-                # 1️⃣ Send Offer Release Mail to Candidate
-                # ---------------------------
-                if stage_offer_release and old_stage != stage_offer_release.id and rec.stage_id.id == stage_offer_release.id:
-                    template = self.env.ref(
-                        'approval_recruitment.mail_template_offer_release')
-                    template.sudo().send_mail(rec.id, force_send=True)
-
-                # ---------------------------
-                # 2️⃣ Send Offer Accepted Mail to Recruiter/HR (Optional)
-                # ---------------------------
-                if stage_offer_accepted and old_stage != stage_offer_accepted.id and rec.stage_id.id == stage_offer_accepted.id:
-                    # Example: send via another template if needed
-                    template = self.env.ref(
-                        'approval_recruitment.mail_template_offer_accepted')
-                    template.sudo().send_mail(rec.id, force_send=True)
-
         return res
-
 
     def _reorder_contract_proposal_stage(self):
         """Reorder applicants in Contract Proposal stage by highest mark first without recursion"""
@@ -263,3 +239,59 @@ class HrApplicantInherit(models.Model):
                     'hr.applicant.registration'
                 ) or 'New'
         return super().create(vals_list)
+
+    access_token = fields.Char(
+        string='Security Token',
+        copy=False,
+        readonly=True,
+        default=lambda self: str(uuid.uuid4())  # Automatically generates a secure random string
+    )
+
+    _sql_constraints = [
+        ('access_token_unique', 'unique(access_token)',
+         'The security token must be completely unique for each applicant!')
+    ]
+
+    def create_employee_from_applicant(self):
+        # 1. First, let Odoo create the basic employee record
+        res = super(HrApplicantInherit, self).create_employee_from_applicant()
+
+        # 2. Get the new Employee record ID
+        employee_id = res.get('res_id')
+
+        if employee_id:
+            employee = self.env['hr.employee'].browse(employee_id)
+
+            # 3. MAPPING: We take YOUR applicant data and put it in THEIR employee fields
+            employee.write({
+                'ls_employee_id': self.registration_no,
+                'father_name': self.father_name,
+                'mother_name': self.mother_name,
+                'birthday': self.date_of_birth,
+
+                # FIX: In hr.employee, the field is named 'sex', not 'gender'
+                'sex': self.gender,
+
+                # Check if these field names (aadhaar_no/pan_no) match your Applicant model
+                'ls_aadhar': getattr(self, 'aadhaar_no', False),
+                'ls_pan': getattr(self, 'pan_no', False),
+
+                'permanent_street': self.mailing_address,
+                'permanent_zip': self.pincode,
+                'image_1920': self.photograph,
+            })
+
+            # 4. Map the Education Table
+            if self.educational_qualification_ids:
+                # Clear existing lines if any (standard practice) then add new ones
+                edu_lines = []
+                for line in self.educational_qualification_ids:
+                    edu_lines.append((0, 0, {
+                        'ls_degree': 'other',
+                        'specialisation': line.exam_name,
+                        'college_university_name': line.university,
+                    }))
+                if edu_lines:
+                    employee.write({'education_ids': edu_lines})
+
+        return res

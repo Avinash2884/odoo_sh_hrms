@@ -8,7 +8,7 @@
         "web"
     ],
     'author': "Akshaya",
-    'category': 'Custom',
+    'category': 'Human Resource',
     'summary': "Recruitment Dashboard",
     'data': [
         # "views/assest.xml",

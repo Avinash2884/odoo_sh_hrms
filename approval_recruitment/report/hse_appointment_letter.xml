@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_hse_appointment_letter" model="ir.actions.report">
+        <field name="name">HSE Time Appointment Letter</field>
+        <field name="model">hr.contract.salary.offer</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">approval_recruitment.template_hse_appointment_letter</field>
+        <field name="report_file">approval_recruitment.template_hse_appointment_letter</field>
+        <field name="print_report_name">'HSE Appointment Letter'</field>
+        <field name="binding_model_id" ref="hr_contract_salary.model_hr_contract_salary_offer"/>
+        <field name="binding_type">report</field>
+    </record>
+    <template id="template_hse_appointment_letter">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="object">
+                <t t-call="web.external_layout">
+
+                    <div style="margin: 20px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+
+                        <!-- Title -->
+                        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
+                            Appointment Letter
+                        </h2>
+
+                        <!-- Date -->
+                        <p style="text-align:right; margin-bottom: 25px;">
+                            Date: <t t-esc="time.strftime('%d-%m-%Y')"/>
+                        </p>
+
+                        <!-- Address -->
+                        <p style="margin-bottom: 5px;">To,</p>
+
+                        <p style="margin-bottom: 20px;">
+                            <strong><t t-esc="object.applicant_id.partner_name"/></strong><br/>
+
+                            <t t-if="object.applicant_id.mailing_address">
+                                <span t-esc="object.applicant_id.mailing_address"/><br/>
+                            </t>
+
+                            <t t-if="object.applicant_id.permanent_address">
+                                <span t-esc="object.applicant_id.permanent_address"/><br/>
+                            </t>
+
+                            <t t-if="object.applicant_id.pincode">
+                                PIN: <span t-esc="object.applicant_id.pincode"/>
+                            </t>
+                        </p>
+
+                        <!-- Greeting -->
+                        <p style="margin-bottom: 20px;">
+                            Dear <strong><t t-esc="object.applicant_id.partner_name"/></strong>,
+                        </p>
+
+                        <!-- Intro -->
+                        <p style="text-align: justify; margin-bottom: 20px;">
+                            We are pleased to offer you a full-time employment of
+                            <strong><t t-esc="object.applicant_id.job_id.name"/></strong>
+                            at <strong><t t-esc="object.company_id.name"/></strong>,
+                            in its
+                            <t t-esc="object.company_id.street"/>
+                            <t t-esc="object.company_id.street2"/>
+                            <t t-esc="object.company_id.city"/>
+                            <t t-esc="object.company_id.state_id.name"/> -
+                            <t t-esc="object.company_id.zip"/>
+                            office based on the terms and conditions of employment
+                            contained in this letter. Further, your appointment will be
+                            effective from the date of your joining the Company.
+                        </p>
+
+                        <!-- Joining -->
+                        <p style="margin-bottom: 10px;">
+                            Your employment will begin on
+                            <strong><t t-esc="object.applicant_id.ls_date_of_joining"/></strong>
+                            and your annual salary will be Rs. Total CTC /- per annum
+                            paid in accordance with the company's payroll policies
+                        </p>
+
+                        <p style="margin-bottom: 10px;">
+                            You will be deputed to Hospital Name, located at Hospital City
+                            for this role.
+                        </p>
+
+                        <!-- Sections -->
+                        <!-- Compensation and Benefits section -->
+                        <p style="margin-bottom: 10px;">
+                            <strong>1. Compensation and Benefits:</strong>
+                        </p>
+
+                        <div style="margin-left: 20px; text-align: justify; margin-bottom: 20px;">
+
+                            <p style="margin-bottom: 12px;">
+                               a.	Your salary structure is described in the salary stack-up sheet attached as “Annexure – I” of this letter and is payable in accordance with the Company’s standard payroll practice and subject to applicable withholding taxes.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                b.	The Company has the right to modify the Compensation at any time, during the term of your employment. However, any such change in the Compensation will not affect the terms and conditions and the obligations and duties agreed by you in this letter.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                c.	Your individual remuneration is a matter purely between yourself and the Company and has been arrived at the basis of your job, skill specific background and professional merit. We expect you to maintain the details of your remuneration and any changes made thereto from time to time as personal and confidential.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                d.	Leaves &amp; Holidays: You will be entitled to Leave &amp; Holidays as applicable to your category of employees, location of posting and as per the Company’s policies from time to time.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                e.	Increment &amp; Promotions: Your growth and increase in salary will depend solely on your performance and contribution to the Company.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                f.	Insurance: Subject to your employment with us, the Company shall ensure that you are reasonably covered under relevant health insurance policies.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                g.	All payments made to you will be subject to deductions required by law including deductions in respect of tax and such other deductions and/or contributions as shall be required to be made pursuant to the applicable laws and policies and procedures of the Company.
+                            </p>
+
+                        </div>
+
+
+                        <p style="margin-bottom: 10px;"><strong>2. Probation:</strong></p>
+
+                        <div style="margin-left: 20px; text-align: justify; margin-bottom: 20px;">
+
+                            <p style="margin-bottom: 12px;">
+                                a.	a.	You will be on internship for 3 months from your date of joining. During this period, the Company may conduct evaluation(s) on functional and behavioral aspects of your role as deemed fit, to ascertain the suitability of the employment.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                b.	During this period, the engagement may be ended through a written notification, by giving 15 days prior notice, on either side. During such period, The Company is further entitled to terminate your employment at any time by providing a notice period of 15 days, or by paying you salary in lieu of notice.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                c.	On successful completion of internship or its extension, you will be intimated in writing about your confirmation of employment.
+                            </p>
+
+                        </div>
+
+
+                        <p style="margin-bottom: 10px;">
+                            <strong>3. Background Check:</strong>
+                        </p>
+
+                        <p style="margin-bottom: 20px; text-align: justify;">
+                            Your appointment is subject to the verification of your credentials, testimonials and other particulars mentioned by you in your application at the time of your appointment. If the particulars given by you are in any way found to be inaccurate or misleading, the Company shall be entitled to terminate your employment without notice or compensation in lieu thereof.
+                        </p>
+
+
+                        <p style="margin-bottom: 10px;">
+                            <strong>4. Policy and Practices:</strong>
+                        </p>
+
+                        <p style="margin-bottom: 20px; text-align: justify;">
+                            The employment terms contained in this letter are not exhaustive. In addition to this, you agree to abide by all the Company’s rules, regulations, instructions, policies, practices, and procedures. Any violation, non-compliance, or breach of any of the Company policies and regulations shall be considered as serious misconduct and dereliction of duty, which can call for immediate termination of employment. You hereby agree to indemnify the Company for any loss suffered as a consequence of a breach by you of the Company’s rules, regulations, instructions, policies, practices, and procedures and/or any representation warranty and obligation contained in this letter.
+                        </p>
+
+
+                        <p style="margin-bottom: 10px;">
+                            <strong>5. Resignation and Termination:</strong>
+                        </p>
+
+                        <div style="margin-left: 20px; text-align: justify; margin-bottom: 20px;">
+
+                            <p style="margin-bottom: 12px;">
+                                a.	You agree and acknowledge that your employment with the Company shall be valid from the date of joining and continue to be effective, unless otherwise terminated in the manner herein below.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                b.	You are required to give a notice of a of 15 days if you wish to resign from the service of the Company.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                c.	The Company shall be entitled to terminate the engagement by giving 15 days prior notice to you. However, the Company shall have the option, in its sole discretion, to make your termination effective at any time prior to the end of such notice period as long as the Company pays you the full salary to which you are entitled up to the last day of such reduced notice period.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                d.	The Company shall also be entitled to terminate with immediate effect, in the event of a just cause including misconduct by you such as (a) consistent non-performance of your duties/services; (b) disciplinary action; (c) causing damage to Company's property including without limitation to data in or under the control of the Company; (d) excessive uninformed absenteeism for more than 5 days and tardiness in relation to the hours of work; (e) In case of such termination due reasons listed above, you shall not be entitled to receive Compensation or any statutory payments in lieu of notice period to be served; (f) If you cease your employment without serving notice period or if the notice period is not served completely, the Company may withhold the relieving letter and the other documents, may recover the equivalent amount to the salary amount that you would have accrued during the notice period from you in lieu of the notice period, or even take legal action against you; (g) violation of any intellectual property rights, non-compete and non-disclosure of confidential information provisions, undertaking or any of the terms, conditions, policies and guidelines a s enumerated in this letter, Confidentiality and IP Assignment Agreement and/or in its policies, and/or any other conditions specifically provided to you relating to your service with Company; (h) wilful omission, negligent acts, suppression of facts, misrepresentation, any acts of fraud or forgery made by you including but not limited to any criminal proceedings instituted or any other legal actions (whatsoever in nature) enforced against you by any judicial and/or quasi-bodies, enforcement and/or governmental/regulatory/statutory authorities;
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                e.	You shall, following notice of termination of your employment, cooperate fully with the Company in all matters relating to the completion of your pending work and the orderly transition of such work to such other employees as the Company may designate.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                f.	Upon termination of your employment, you shall forthwith deliver to the Company all materials and other property of Company which may be in your possession or under your power or control and also will immediately surrender to the Company all notes, data, manuals, documents, records, databases, programs, blueprints, memoranda, specifications, research notes, customer lists, financial reports, and all other physical forms of expression incorporating or containing the trade secrets and any other confidential information, it being distinctly understood that all these writings, physical forms of expression and other things are Company’s exclusive property. You acknowledge that the unauthorised taking, use and / or publication of Company’s trade secrets may be a violation of applicable laws, including criminal laws. You further acknowledge that the unauthorised taking, use and/or publication of Company’s trade secrets could cause Company to move you in a civil action to recover whatever damages, awards and attorney’s fees that are by applicable law available to it.
+                            </p>
+
+                        </div>
+                        <p style="margin-bottom: 10px;"><strong>6. Confidentiality:</strong></p>
+
+                        <p style="margin-bottom: 20px; text-align: justify;">
+                            You agree and acknowledge that you shall execute a Non-Disclosure Agreement (“NDA”) with Company and the terms of which shall be binding on you. Further, you understand that the terms and conditions of the NDA shall be deemed to form, and be read and construed as, part of this Agreement.
+                        </p>
+
+
+                        <p style="margin-bottom: 10px;"><strong>7. Intellectual Property Rights:</strong></p>
+
+                        <div style="margin-left: 20px; text-align: justify; margin-bottom: 20px;">
+
+                            <p style="margin-bottom: 12px;">
+                                a.	You irrevocably and unconditionally, recognises, covenants, and agrees with and undertakes to the Company that all Intellectual Property Rights which arise in the course of Company’s Business in any manner whatsoever shall belong to, and is the sole property of the Company. Notwithstanding any originality, effort and skill originating from you during the term of his/her employment hereunder in relation to any Intellectual Property Rights (hereinafter referred to as “Work Product”), he/she shall not, at any time, (whether during the continuance of his/her employment hereunder or thereafter) have any right, title or interest in or to such Intellectual Property Rights (by himself/herself or in combination with any other work) and any goodwill arising through any use thereof, and that all such right, title or interest shall be vested legally and exclusively with Company.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                b.	You waive all moral rights, whatsoever available anywhere in the world, towards the aforementioned Intellectual Property Rights accruing to the Company’s Business and here by agrees that Company is the sole owner of all such Intellectual Property Rights on any such Work Products.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                               c.	All rights and obligations under this Clause 7 in respect of Intellectual Property Rights shall continue in full and stay in force after the termination of your employment with Company and shall be binding upon him, his personal representatives, and legal heirs.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                d.	You shall maintain and furnish to the Company complete and current records of all Work Products and Intellectual Property Rights accruing thereto and disclose to the Company in writing any such inventions/ Work Products and Intellectual Property Rights.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                e.	In the event any such Intellectual Property Rights shall vest or shall come to vest in you at any time as a result (whether directly or indirectly) of the operation of law or of anything done by him/her in pursuance of his employment with the Company under the laws of India or otherwise, you shall be deemed to have immediately assigned all such Intellectual Property Rights absolutely to Company and prior to such assignment becoming effective, you shall hold all such Intellectual Property Rights on trust absolutely for the benefit of Company.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                f.	You shall forthwith upon demand execute all documents and do all such acts and things required to vest or perfect any vesting of all such Intellectual Property Rights legally and exclusively in Company or any nominee or assignee of Company (as the Company may direct).
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                g.	For the purpose of this letter, "Intellectual Property Rights” means all present and future rights conferred by statute, common law or equity in any territory in or in relation to patents, rights in inventions, copyright and related rights, service marks, trade secrets, know how, inventions, moral rights, database rights, rights in designs, semi-conductor topography rights, trade-marks, proprietary rights, business and domain names, rights in goodwill or to sue for passing off, and other similar or equivalent rights or forms of protection (whether or not registered or capable of registration) and all applications (and rights to apply) for, and for renewals and extensions of, any such rights as may nor or in the future exist anywhere in the world.
+                            </p>
+
+                        </div>
+
+
+                        <p style="margin-bottom: 10px;">
+                            <strong>8. Non-Compete, Non-Circumvent and Non-Solicit</strong>
+                        </p>
+
+                        <div style="margin-left: 20px; text-align: justify; margin-bottom: 20px;">
+
+                            <p style="margin-bottom: 12px;">
+                                a.	During the term of your employment and for a period of one year from date of termination of your employment:
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                b.	You shall not carry on or engage in, directly or indirectly, whether as an individual, through a partnership or as a shareholder, joint venture partner, collaborator, consultant, advisor, contractor, director, trustee, committee member, office bearer or agent or in any other manner whatsoever, whether for profit or otherwise, by himself or through any other entities, any business which competes or actually circumvent or interfere with the whole or any part of the business of the Company or any other business that may be commenced by the Company and/or its subsidiaries
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                c.   You shall not solicit or take away or attempt to solicit or take away, directly or indirectly, any customer or prospective customer of the Company or any of its subsidiaries or affiliates for any reason and/or shall not solicit or take away or attempt to solicit or take away, directly or indirectly, any employee of Company or its subsidiaries or affiliates, either for your own purposes or for any other person or entity.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                d.   You shall not join, directly or indirectly, whether on a temporary or permanent basis, with any of the Company’s client, customers or competitors.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                e.   You shall not initiate, solicit, negotiate, contract with, or enter into any business transactions, agreements, or undertakings with the vendors, service providers, contractors of the Company, directly or indirectly and thereby, discontinue or reduce the business relationship of such vendors or service providers with the Company.
+                            </p>
+
+                        </div>
+
+
+                        <p style="margin-bottom: 10px;"><strong>9. Travel and other expenses</strong></p>
+
+                        <p style="margin-bottom: 20px; text-align: justify;">
+                                You may have to undertake inter-city travel on Company’s work for which you will be reimbursed travel expenses as per the Company policy applicable to you.
+                        </p>
+
+
+                        <p style="margin-bottom: 10px;"><strong>10. Other Conditions</strong></p>
+
+                        <div style="margin-left: 20px; text-align: justify; margin-bottom: 20px;">
+
+                            <p style="margin-bottom: 12px;">
+                                a.	The Company may, for business needs, transfer you to any other office location or function of the Company in India or overseas or to any of its affiliates. In such case, you shall also be bound by any policy of such other office or affiliate, in existence at the date of this Employment Agreement or that may be subsequently framed by the Company or the affiliate. You will also be expected to make visits and travel both within India and overseas, as may be necessary for the proper discharge of your duties.</p>
+
+                            <p style="margin-bottom: 12px;">
+                                b.	The Company expects you to work with a high standard of initiative, efficiency, and economy.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                c.	You will be responsible for the safekeeping and return in good condition and order all the property of the Company which is in your possession, use, or custody. You shall make good of any loss or damage that occurs to any Company property which is in your possession/custody.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                d.	You will be true and faithful to the Company in all your accounts, dealings and transactions relating to the business of the Company and if called upon, shall render a true and just account thereof to the Company or to such persons as shall be authorized to receive the same.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                e.	This employment offer is contingent to reference check and background verification done by the Company.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                f.	Your employment terms may be specifically enforced legally, if required. In this connection, if any of the provisions of this letter are declared or found to be void or unenforceable due to any reason whatsoever, the remaining provision of this letter shall continue in full force and effect.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                g.	As a standard practice, you would be required to observe 6 days’ work week, in line with your job requirement. However, the working days and hours may be according to the work projects and/ or client commitments and further, agrees to work on additional hours that are necessary for the proper performance of the work duties. The second and fourth Saturday will be considered as holiday.
+                            </p>
+
+                            <p style="margin-bottom: 12px;">
+                                h.	You have no right or the authority to make any representation, contract, or commitment for or on behalf of the Company without obtaining the prior written permission of Company in this regard.
+                            </p>
+
+                        </div>
+
+
+                        <p style="margin-top: 40px;">
+                            <strong>For <t t-esc="object.company_id.name"/></strong>
+                        </p>
+
+                        <p style="margin-top: 10px;">Koushalya R</p>
+                        <p style="margin-top: 0px;">Head – Human Resources </p>
+
+
+                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+
+                            <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">
+                                <strong>Annexure I</strong>
+                            </p>
+
+                            <!-- Employee Details -->
+                            <p>Name: </p>
+                            <p>Designation: </p>
+                            <p>Band: </p>
+                            <p>Level: </p>
+                            <p>Date of joining:</p>
+
+                            <br/>
+
+                            <p>The breakup of the Salary is given below:</p>
+
+                            <!-- Salary Table -->
+                            <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
+                                <thead>
+                                    <tr>
+                                        <th class="text-start">Particulars</th>
+                                        <th class="text-center">Monthly</th>
+                                        <th class="text-center">Annual CTC</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Basic Pay + DA</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>HRA</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Special Allowance</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total Gross Pay</strong></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Employer PF</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>CTC</strong></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>                            <br/>
+
+                            <!-- Notes -->
+                            <ul style="margin-top: 15px;">
+                                <li>
+                                    Taxation: The Income Tax Act as prevailing at the time of employment, will govern the taxation matters. The Company will deduct tax at source as per the prevailing income tax law.
+                                </li>
+                                <li>
+                                    Gratuity and Insurance is over and above CTC.
+                                </li>
+                            </ul>
+                        </div>
+                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+
+                            <!-- Title -->
+                            <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">
+                                <strong>ACKNOWLEDGEMENT AND ACCEPTANCE</strong>
+                            </p>
+
+                            <!-- Paragraph -->
+                            <p style="text-align: justify; line-height: 1.6;">
+                                I have read and understood thoroughly the rules of employment/obligations of my employment contained herein and all the terms of appointment of my employment, and I do hereby agree with all terms as above and I shall abide by all general rules of employment/service which are now or may hereafter to be in force, and accordingly I accept the appointment of my employment with you. Upon acceptance and execution, this letter will constitute the legally binding and enforceable employment agreement between self and Company.
+                            </p>
+
+                            <br/><br/>
+
+                            <p>Signature: ______________________</p>
+                            <p>Name: ______________________</p>
+                            <p>Date: ______________________</p>
+                        </div>
+
+
+                    </div>
+
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

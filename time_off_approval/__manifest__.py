@@ -1,7 +1,7 @@
 {
     'name': 'Time Off Approval',
     'version': '1.0.0',
-    'category': 'Human Resources',
+    'category': 'Human Resource',
     'summary': 'Time Off Approval Form',
     'author': 'Akshaya',
     'depends': ['hr'],

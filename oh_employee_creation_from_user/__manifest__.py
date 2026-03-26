@@ -1,7 +1,7 @@
 {
     'name': 'Employees From User',
     'version': '1.0.0',
-    'category': 'Human Resources',
+    'category': 'Human Resource',
     'summary': 'Automatically creates employee while creating user',
     'description': "This module facilitates the automatic creation of "
                    "employee records when users are being created.",

@@ -23,10 +23,6 @@ class ApprovalRequestInherit(models.Model):
     approval_start_date = fields.Date(string="Approval Start Date")
     approval_end_date = fields.Date(string="Approval End Date")
 
-    # hr_skill_type_id = fields.Many2one( comodel_name='hr.skill.type',string="HR Skill Types")
-    # hr_skill_ids = fields.One2many( 'hr.skill','approval_request_id',string="HR Skills")
-    # hr_skill_level_ids = fields.One2many( 'hr.skill.level','approval_request_id',string="HR Skill Levels")
-
     @api.depends('approver_ids.status', 'approver_ids.required')
     def _compute_request_status(self):
         super(ApprovalRequestInherit, self)._compute_request_status()

@@ -7,20 +7,18 @@ from . import hr_applicant_evaluation_form
 from . import hr_applicant_inherit
 from . import hr_appraisal_inherit
 from . import hr_employee_inherit
-from . import hr_employee_public_inherit
 from . import recruitment_approval_stage
 from . import hr_department_inherit
 from . import hr_recruitment_stage
 from . import res_users_inherit
-from . import employee_configuration
 from . import res_partner_bank_inherit
 from . import res_company_inherit
-from . import ls_public_holiday
-from . import ls_state_public_holiday
 from . import hr_employee_education
 from . import hr_contract_salary_offer_inherit
-from . import separation
-from . import policy
 from . import hr_applicant_education
 from . import hr_applicant_experience
 from . import hr_pre_onboarding
+
+from . import employee_configuration
+from . import separation
+from . import policy

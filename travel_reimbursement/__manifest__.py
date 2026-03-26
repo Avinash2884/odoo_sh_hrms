@@ -1,7 +1,7 @@
 {
     'name': 'Travel Reimbursement',
     'version': '1.0.0',
-    'category': 'Human Resources',
+    'category': 'Human Resource',
     'summary': 'Expenses',
     'author': 'Akshaya',
     'depends': ['hr','hr_expense'],

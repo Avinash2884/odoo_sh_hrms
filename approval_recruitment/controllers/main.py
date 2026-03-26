@@ -14,12 +14,16 @@ class JobApplicationController(http.Controller):
         _logger.info("=== JOB APPLICATION SUBMISSION STARTED ===")
 
         def safe_int(value):
-            try: return int(value) if value else False
-            except ValueError: return False
+            try:
+                return int(value) if value else False
+            except ValueError:
+                return False
 
         def safe_float(value):
-            try: return float(value) if value else 0.0
-            except ValueError: return 0.0
+            try:
+                return float(value) if value else 0.0
+            except ValueError:
+                return 0.0
 
         try:
             # 1. GENERATE NAME
@@ -28,7 +32,7 @@ class JobApplicationController(http.Controller):
             full_name = f"{first} {last}".strip() or "New Applicant"
 
             vals = {
-                # --- CORE ODOO FIELDS (Now using Defaults) ---
+                # --- CORE ODOO FIELDS ---
                 'partner_name': full_name,
                 'email_from': kwargs.get('email_from'),
                 'partner_phone': kwargs.get('partner_phone'),
@@ -73,8 +77,18 @@ class JobApplicationController(http.Controller):
                 vals['resume_filename'] = resume.filename
 
             # 4. CREATE APPLICANT
+            # (The access_token will be automatically generated here by the model default)
             applicant = request.env['hr.applicant'].sudo().create(vals)
             _logger.info("Applicant Created: ID %s", applicant.id)
+
+            if vals.get('resume_file'):
+                request.env['ir.attachment'].sudo().create({
+                    'name': vals.get('resume_filename') or 'Resume',
+                    'type': 'binary',
+                    'datas': vals['resume_file'],
+                    'res_model': 'hr.applicant',
+                    'res_id': applicant.id,
+                })
 
             # 5. HANDLE EDUCATION
             exams = request.httprequest.form.getlist('edu_exam_name[]')
@@ -125,57 +139,94 @@ class JobApplicationController(http.Controller):
 
 class PreOnboardingController(http.Controller):
 
-    @http.route('/job/pre_onboarding', type='http', auth='user', website=True)
-    def pre_onboarding_form(self, **kwargs):
-        user = request.env.user
-        # Find the applicant linked to this portal user
+    # 1. New Route: auth='public' and expects the <string:token>
+    @http.route('/job/pre_onboarding/<string:token>', type='http', auth='public', website=True)
+    def pre_onboarding_form(self, token, **kwargs):
+
+        # Search securely using ONLY the token
         applicant = request.env['hr.applicant'].sudo().search([
-            ('partner_id', '=', user.partner_id.id)
+            ('access_token', '=', token)
         ], limit=1)
 
-        if not applicant:
-            return request.redirect('/my/home')
+        # If invalid token, kick them to the homepage
+        if not applicant or not token:
+            _logger.warning("Invalid token attempted: %s", token)
+            return request.redirect('/')
 
-        # The 'applicant' object contains all the details they submitted earlier
-        return request.render('website_job_custom.pre_onboarding_template', {
-            'applicant': applicant
+        # Render the template and pass BOTH the applicant data and the token
+        return request.render('approval_recruitment.pre_onboarding_template', {
+            'applicant': applicant,
+            'token': token
         })
 
-    @http.route('/job/onboarding/save', type='http', auth='user', methods=['POST'], website=True, csrf=False)
+    # 2. Save Route: auth='public'
+    @http.route('/job/onboarding/save', type='http', auth='public', methods=['POST'], website=True, csrf=False)
     def save_onboarding_docs(self, **kwargs):
-        user = request.env.user
-        applicant = request.env['hr.applicant'].sudo().search([
-            ('partner_id', '=', user.partner_id.id)
-        ], limit=1)
+        _logger.info("=== ONBOARDING SAVE ATTEMPT STARTED ===")
+        token = kwargs.get('access_token')
 
+        if not token:
+            return request.redirect('/')
+
+        applicant = request.env['hr.applicant'].sudo().search([('access_token', '=', token)], limit=1)
         if not applicant:
-            return request.redirect('/my/home')
-
-        # 1. HANDLE TEXT FIELDS (Identity & Bank)
-        text_fields = [
-            'aadhaar_no', 'pan_no', 'bank_name',
-            'bank_acc_no', 'bank_ifsc', 'bank_branch'
-        ]
+            _logger.error("No applicant found for token: %s", token)
+            return request.redirect('/')
 
         vals = {}
-        for field in text_fields:
-            if kwargs.get(field):
-                vals[field] = kwargs.get(field)
+        try:
+            # 1. Handle Text Fields
+            text_fields = ['aadhaar_no', 'pan_no', 'bank_name', 'bank_acc_no', 'bank_ifsc', 'bank_branch']
+            for field in text_fields:
+                if kwargs.get(field):
+                    vals[field] = kwargs.get(field)
 
-        # 2. HANDLE FILE FIELDS
-        file_fields = [
-            'onboarding_photo', 'aadhaar_card', 'pan_card', 'bank_doc',
-            'marksheet_10', 'marksheet_12', 'diploma_cert', 'ug_degree', 'pg_degree',
-            'payslips', 'salary_revision_letter', 'relieving_letter', 'exp_appointment_letter'
-        ]
+            # 2. Handle File Fields (Using getlist for multiple files)
+            file_fields = [
+                'onboarding_photo', 'aadhaar_card', 'pan_card', 'bank_doc',
+                'marksheet_10', 'marksheet_12', 'diploma_cert', 'ug_degree', 'pg_degree',
+                'payslips', 'salary_revision_letter', 'relieving_letter', 'exp_appointment_letter'
+            ]
 
-        for field in file_fields:
-            file = request.httprequest.files.get(field)
-            if file and file.filename:
-                vals[field] = base64.b64encode(file.read())
+            for field in file_fields:
+                # Support multiple files if the user selected more than one
+                files = request.httprequest.files.getlist(field)
+                for file in files:
+                    if file and file.filename:
+                        _logger.info("Saving file: %s for field: %s", file.filename, field)
+                        file_data = base64.b64encode(file.read())
 
-        if vals:
-            applicant.sudo().write(vals)
+                        # Save the first file to the actual Binary field on the form
+                        if field not in vals:
+                            vals[field] = file_data
+                            if field == 'onboarding_photo':
+                                vals['photograph'] = file_data
 
-        return request.redirect('/contactus-thank-you')
+                        # Push EVERY file to the Paperclip/Chatter
+                        nice_name = field.replace('_', ' ').title()
+                        request.env['ir.attachment'].sudo().create({
+                            'name': f"{nice_name} - {file.filename}",
+                            'type': 'binary',
+                            'datas': file_data,
+                            'res_model': 'hr.applicant',
+                            'res_id': applicant.id,
+                        })
+
+            if vals:
+                # Destroy the token so the link expires after one successful use
+                vals['access_token'] = False
+                applicant.sudo().write(vals)
+                _logger.info("Successfully saved data for Applicant ID: %s", applicant.id)
+
+            return request.redirect('/contactus-thank-you')
+
+        except Exception as e:
+            # This will print the EXACT error in your PyCharm terminal
+            _logger.exception("FAILED TO SAVE ONBOARDING: %s", e)
+            return request.redirect('/jobs?error=internal_error')
+
+
+
+
+
 

@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_hse_offer_letter_template" model="ir.actions.report">
+        <field name="name">HSE Offer of Internship and Subsequent Appointment</field>
+        <field name="model">hr.contract.salary.offer</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">approval_recruitment.template_hse_offer_letter_template</field>
+        <field name="report_file">approval_recruitment.template_hse_offer_letter_template</field>
+        <field name="print_report_name">'HSE Offer of Internship and Subsequent Appointment'</field>
+        <field name="binding_model_id" ref="hr_contract_salary.model_hr_contract_salary_offer"/>
+        <field name="binding_type">report</field>
+    </record>
+    <template id="template_hse_offer_letter_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="object">
+                <t t-call="web.external_layout">
+
+                    <div style="margin: 20px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+
+                        <!-- Title -->
+                        <h3 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
+                            Offer of Internship and Subsequent Appointment
+                        </h3>
+
+                        <!-- Date -->
+                        <p style="text-align:right; margin-bottom: 25px;">
+                            Date: <t t-esc="time.strftime('%d-%m-%Y')"/>
+                        </p>
+
+                        <!-- Address -->
+                        <p style="margin-bottom: 5px;">To,</p>
+
+                        <p style="margin-bottom: 20px;">
+                            <strong><t t-esc="object.applicant_id.partner_name"/></strong><br/>
+
+                            <t t-if="object.applicant_id.permanent_address">
+                                <span t-esc="object.applicant_id.permanent_address"/><br/>
+                            </t>
+
+                            <t t-if="object.applicant_id.pincode">
+                                PIN: <span t-esc="object.applicant_id.pincode"/>
+                            </t>
+                        </p>
+
+                        <p style="margin-bottom: 20px;">
+                            Dear <strong><t t-esc="object.applicant_id.partner_name"/></strong>,
+                        </p>
+
+                        <p style="text-align: justify; margin-bottom: 20px;">
+                            We are pleased to offer you a position with
+                            <strong><t t-esc="object.company_id.name"/></strong>,
+                            in its <t t-esc="object.company_id.street"/>
+                            <t t-esc="object.company_id.street2"/>
+                            <t t-esc="object.company_id.city"/>
+                            <t t-esc="object.company_id.state_id.name"/> -
+                            <t t-esc="object.company_id.zip"/>
+                            on the following terms and conditions:
+                        </p>
+
+                        <p style="margin-bottom: 10px;">
+                            1. <t t-esc="object.applicant_id.job_id.name"/>
+                        </p>
+
+                        <p style="margin-bottom: 10px;">
+                            2. Designation
+                        </p>
+
+                        <p style="margin-bottom: 10px;">
+                            3.	We would appreciate you joining us on or before <t t-esc="object.applicant_id.ls_date_of_joining"/>
+                        </p>
+
+                        <p style="margin-bottom: 10px;">
+                            4.	Compensation: Your Annual Compensation will be INR: Total CTC Per Annum. Annexure 1 outlines the detailed component-wise stack up.
+                        </p>
+
+                        <p>
+                            5.	You will be on internship for the first 3 months of engagement. During this internship period you be provided with a stipend of INR 18,000 per month.
+                        </p>
+                        <p>
+                            6.	During this period you would be evaluated on standard performance criteria as per your published roles &amp; responsibilities. You are eligible for the full salary mentioned in Annexure 1, post confirmation after 3 months.
+                        </p>
+                        <p>
+                            7.	You will be deputed to Hospital Name, located at Hospital city for this role.
+                        </p>
+                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+                            <p>
+                                The offer stands automatically revoked, not joining as per the indicated timelines. Discussions or attempts to arrive at a revised joining date could be made, but in case no agreement on a date is arrived at, the date indicated in the offer (or last agreed in writing thereafter) would be considered as the date by which the you should join, failing which the offer would automatically stand revoked. While you are at liberty to reject the offer by indicating in writing, the offer can also be revoked at the discretion of the management, before your date of joining.
+                            </p>
+                            <p>
+                                Acceptance: Your formal acceptance of the terms &amp; conditions of this offer should be confirmed in writing (reply to email/countersigning this Offer Letter) within 3 calendar days.
+                            </p>
+                            <p>
+                                <strong>
+                                    Terms and Conditions of Association:
+                                </strong>
+                            </p>
+                            <p>
+                                The Company may, for business needs, may change your reporting manager, or transfer you to any other office location or function of the Company in India or overseas or to any of its affiliates.
+                            </p>
+
+                            <p>
+                                Verification: This offer may be subject to a positive reference check and background screening. In the event that background verification has not been completed to the satisfaction of the Company in its sole discretion or you have been found to have willfully suppressed or forged any piece of information during the course of the interview or employment, the Company reserves the right to cancel this offer letter and terminate any subsequent agreement with immediate effect with written notice to that effect.
+                            </p>
+                            <p>
+                                Notice period: During this period of internship, the Company may conduct evaluation(s) on functional and behavioral aspects of your role as deemed fit, to ascertain the suitability of the employment.
+                            </p>
+                            <p>
+                                During this period, the engagement may be ended through a written notification, by giving 15 days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
+                            </p>
+                            <p>
+                                As a confirmed full-time employee, the employment can be terminated by giving 15 days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
+                            </p>
+                            <p>
+                               A detailed agreement outlining the terms and conditions of your association with the Company will be issued as part of your joining formalities. During the course of employment with the company, you shall not enter the service or employment, consultancy, full or part time, for any other person or organization, nor shall you carry on or be interested in any business.
+                            </p>
+                            <p>
+                                You will be governed by the policies of the company as may be applicable from time to time.
+                            </p>
+                            <p>
+                                Your compensation details are personal and must be treated with absolute confidentiality
+                            </p>
+                            <p>
+                                Documents: On the date of joining, please provide self-attested and dated copies of below (digital version accepted):
+                            </p>
+                            <ul>
+                                <li>Aadhar card</li>
+                                <li>PAN card</li>
+                                <li>Driving license (if available) </li>
+                                <li>Current / latest employment: Acceptance of Resignation / Relieving letter</li>
+                                <li>Previous employment: Experience letters, relieving letters</li>
+                                <li>Educational certificates and mark sheets Degree/Diploma, X and XII).</li>
+                                <li>Passport-sized photographs</li>
+                            </ul>
+
+                            <p>
+                                Looking forward to having you on board and together creating a story!
+                            </p>
+
+                            <p>
+                                <strong>For <t t-esc="object.company_id.name"/></strong>
+                            </p>
+                            <p >Koushalya R</p>
+                            <p >Head – Human Resources </p>
+                        </div>
+                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+
+                            <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">
+                                <strong>Annexure I</strong>
+                            </p>
+                            <p>
+                                During this internship period you be provided with a stipend of INR 18,000 per month.
+                            </p>
+                            <p>
+                                Post confirmation of full-time employment, you will be eligible for the below:
+                            </p>
+
+                            <!-- Employee Details -->
+                            <p>Name: </p>
+                            <p>Designation: </p>
+                            <p>Band: </p>
+                            <p>Level: </p>
+                            <p>Date of joining:</p>
+
+                            <br/>
+
+                            <p>The breakup of the Salary is given below:</p>
+
+                            <!-- Salary Table -->
+                            <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
+                                <thead>
+                                    <tr>
+                                        <th class="text-start">Particulars</th>
+                                        <th class="text-center">Monthly</th>
+                                        <th class="text-center">Annual CTC</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Basic Pay + DA</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>HRA</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Special Allowance</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total Gross Pay</strong></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Employer PF</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>CTC</strong></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>                            <br/>
+
+                            <!-- Notes -->
+                            <ul style="margin-top: 15px;">
+                                <li>
+                                    Taxation: The Income Tax Act as prevailing at the time of employment, will govern the taxation matters. The Company will deduct tax at source as per the prevailing income tax law.
+                                </li>
+                                <li>
+                                    Gratuity and Insurance is over and above CTC.
+                                </li>
+                                <li>
+                                    Variable Performance Pay: Payable annually
+                                </li>
+                                <li>
+                                    Expectations to be measured against clearly defined and mutually agreed goals, reviewed Monthly with manager.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
