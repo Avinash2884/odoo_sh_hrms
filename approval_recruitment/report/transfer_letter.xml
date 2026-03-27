@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report Action -->
+    <record id="action_transfer_letter" model="ir.actions.report">
+        <field name="name">Transfer Letter</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">approval_recruitment.template_transfer_letter</field>
+        <field name="report_file">approval_recruitment.template_transfer_letter</field>
+        <field name="print_report_name">'Transfer Letter'</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Template -->
+    <template id="template_transfer_letter">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="object">
+                <t t-call="web.external_layout">
+
+                    <div style="margin: 30px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+
+                        <h3 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
+                            Transfer Letter
+                        </h3>
+
+                         <p style="text-align:right; margin-bottom: 25px;">
+                            Date: <t t-esc="time.strftime('%d-%m-%Y')"/>
+                        </p>
+
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            Name: <t t-esc="object.name"/>
+                        </p>
+
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            Employee Code: <t t-esc="object.ls_employee_id"/>
+                        </p>
+                        <p style="margin-top: 20px;">
+                            Dear, <t t-esc="object.name"/>
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.2;">
+                            As part of our ongoing organizational requirements and business plans, we are pleased to inform you that you are being transferred as per below details.
+                        </p>
+                        <p style="margin-top: 20px;">
+                            <strong>
+                                Effective Date of Transfer:
+                            </strong>
+                        </p>
+                        <p>
+                            <strong>
+                                Revised Role:
+                            </strong>
+                        </p>
+                        <p>
+                            <strong>
+                                Revised Department:
+                            </strong>
+                        </p>
+                        <p>
+                            <strong>
+                                Revised Deputation Location:
+                            </strong>
+                        </p>
+                        <p>
+                            <strong>
+                                Reporting Manager:
+                            </strong>
+                        </p>
+                        <p style="margin-top: 20px;">
+                            All others terms &amp; conditions of your employment continue to remain the same unless otherwise communicated.
+
+                        </p>
+                        <p style="margin-top: 20px;">
+                            We appreciate your cooperation and look forward to your continued contributions in your new role and location.
+
+                        </p>
+                        <p>
+                            Wishing you all the best for this transition!
+                        </p>
+
+                        <p style="margin-top: 40px;">
+                            For <t t-esc="object.company_id.name"/>
+                        </p>
+                        <br></br>
+
+                        <p style="margin: 2px 0; line-height: 1.5;">Koushalya R</p>
+                        <p style="margin: 2px 0; line-height: 1.5;">Head – Human Resources </p>
+
+                    </div>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

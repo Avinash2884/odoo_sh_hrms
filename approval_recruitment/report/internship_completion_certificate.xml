@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report Action -->
+    <record id="action_internship_completion_certificate" model="ir.actions.report">
+        <field name="name">Internship Completion Certificate</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">approval_recruitment.template_internship_completion_certificate</field>
+        <field name="report_file">approval_recruitment.template_internship_completion_certificate</field>
+        <field name="print_report_name">'Internship Completion Certificate'</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Template -->
+    <template id="template_internship_completion_certificate">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="object">
+                <t t-call="web.external_layout">
+
+                    <div style="margin: 30px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+
+                        <h3 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
+                            Internship Completion Certificate
+                        </h3>
+
+                         <p style="text-align:right; margin-bottom: 25px;">
+                            Date: <t t-esc="time.strftime('%d-%m-%Y')"/>
+                        </p>
+
+                        <p >
+                            This is to certify that <strong><t t-esc="object.name"/></strong>, residing at <span>
+                                    <t t-if="object.permanent_street">
+                                        <t t-esc="object.permanent_street"/>,
+                                    </t>
+                                    <t t-if="object.permanent_street2">
+                                        <t t-esc="object.permanent_street2"/>,
+                                    </t>
+                                    <t t-if="object.permanent_city">
+                                        <t t-esc="object.permanent_city"/>,
+                                    </t>
+                                    <t t-if="object.permanent_state_id">
+                                        <t t-esc="object.permanent_state_id.name"/>,
+                                    </t>
+                                    <t t-if="object.permanent_zip">
+                                        <t t-esc="object.permanent_zip"/>,
+                                    </t>
+                                </span>
+                            has successfully completed an internship with <t t-esc="object.company_id.name"/>, from <t t-esc="object.joining_date_recruit"/>
+                        </p>
+                        <p>
+                            During the internship period, the intern was assigned to work under the guidance of <strong><t t-esc="object.parent_id.name"/></strong>, in the <strong><t t-esc="object.department_id.name"/>Department</strong> and has demonstrated a keen interest in learning, maintained a professional attitude, and actively participated in the assigned tasks and projects. The intern’s performance during this period was found to be satisfactory.
+                        </p>
+                        <p>
+                            We wish the intern the best in future academic and professional endeavors.
+                        </p>
+
+                        <p style="margin-top: 40px;">
+                            For <t t-esc="object.company_id.name"/>
+                        </p>
+                        <br></br>
+
+                        <p style="margin: 2px 0; line-height: 1.5;">Koushalya R</p>
+                        <p style="margin: 2px 0; line-height: 1.5;">Head – Human Resources </p>
+
+                    </div>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

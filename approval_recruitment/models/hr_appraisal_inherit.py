@@ -21,6 +21,15 @@ class HrAppraisalInherit(models.Model):
         help="Number of times probation has been extended in this appraisal"
     )
 
+    employee_id = fields.Many2one('hr.employee', string="Employee")
+
+    hr_id = fields.Many2one(
+        'hr.employee',
+        string="HR",
+        related='employee_id.hr_id',
+        store=True,
+        readonly=True
+    )
 
     @api.onchange('manager_decision')
     def _onchange_manager_decision(self):
@@ -45,13 +54,14 @@ class HrAppraisalInherit(models.Model):
             contract = employee  # Odoo 19 uses employee fields directly
 
             today = fields.Date.today()
-            employee_email = employee.work_email
-            if not employee_email:
-                print(f"[Probation] No email set for employee: {employee.name}")
-                continue
+            hr = record.hr_id
+            if not hr or not hr.work_email:
+                raise UserError(f"HR email not configured for employee: {employee.name}")
+
+            hr_email = hr.work_email
 
             if record.manager_decision == 'extension':
-                # 🔹 Check extensions for THIS appraisal only
+                # 🔹 Max 2 extensions check
                 if record.probation_extension_count >= 2:
                     raise UserError(
                         f"Probation period for {employee.name} cannot be extended more than 2 times in this appraisal."
@@ -71,17 +81,18 @@ class HrAppraisalInherit(models.Model):
                 # Increment appraisal-level count
                 record.probation_extension_count += 1
 
-                # Send probation extension email
+                # 🔹 Mail to HR
                 body = f"""
-                <p>Dear {employee.name},</p>
-                <p>Your probation period has been extended for 1 month.</p>
+                <p>Dear {hr.name},</p>
+                <p>Probation period for employee <b>{employee.name}</b> has been extended for 1 month.</p>
                 <p><b>Reason:</b> {record.probation_reason}</p>
                 <p><b>New contract end date:</b> {contract.date_end}</p>
                 """
+
                 self.env['mail.mail'].sudo().create({
                     'subject': "Probation Extended",
                     'body_html': body,
-                    'email_to': employee_email,
+                    'email_to': hr_email,
                     'auto_delete': True,
                 }).send()
 
@@ -93,15 +104,16 @@ class HrAppraisalInherit(models.Model):
                 contract.probation_status = 'confirmed'
                 contract.probation_reason = record.probation_reason
 
-                # Send confirmation email
+                # 🔹 Mail to HR
                 body = f"""
-                <p>Dear {employee.name},</p>
-                <p>Congratulations! You have been confirmed as a permanent employee.</p>
+                <p>Dear {hr.name},</p>
+                <p>Employee <b>{employee.name}</b> has been confirmed as a permanent employee.</p>
                 <p><b>Contract start date:</b> {contract.probation_date_start}</p>
                 """
+
                 self.env['mail.mail'].sudo().create({
                     'subject': "Employee Confirmed",
                     'body_html': body,
-                    'email_to': employee_email,
+                    'email_to': hr_email,
                     'auto_delete': True,
                 }).send()

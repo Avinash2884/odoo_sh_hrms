@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report Action -->
+    <record id="action_employment_confirmation_letter" model="ir.actions.report">
+        <field name="name">Employment Confirmation Letter</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">approval_recruitment.template_employment_confirmation_letter</field>
+        <field name="report_file">approval_recruitment.template_employment_confirmation_letter</field>
+        <field name="print_report_name">'Employment Confirmation Letter'</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Template -->
+    <template id="template_employment_confirmation_letter">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="object">
+                <t t-call="web.external_layout">
+
+                    <div style="margin: 30px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+
+                        <h3 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
+                            Employment Confirmation Letter
+                        </h3>
+
+                        <!-- Date -->
+                        <p style="text-align:right; margin-bottom: 25px;">
+                            Date: <t t-esc="time.strftime('%d-%m-%Y')"/>
+                        </p>
+
+                        <!-- Header -->
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            Name :
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            Employee Code :
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            Designation :
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            Band :
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            Level :
+                        </p>
+                        <p style="margin-top: 40px;">
+                            Dear <strong><t t-esc="object.name"/></strong>,
+                        </p>
+
+                        <p>
+                            With reference to your internship with LS Device Private Limited, we are pleased to confirm your ongoing employment effective from Effective date.
+                        </p>
+
+                        <p>
+                            All other terms and conditions of your employment contract will continue to remain the same.
+                        </p>
+
+
+                        <p style="margin-top: 40px;">
+                            For <t t-esc="object.company_id.name"/>
+                        </p>
+                        <br></br>
+
+                        <p style="margin: 2px 0; line-height: 1.5;">Koushalya R</p>
+                        <p style="margin: 2px 0; line-height: 1.5;">Head – Human Resources </p>
+
+                    </div>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

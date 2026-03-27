@@ -40,6 +40,13 @@
         'report/offer_of_appointment.xml',
         'report/cmt_offer_letter_template.xml',
         'report/hse_offer_letter_template.xml',
+        'report/probation_extension_letter.xml',
+        'report/employment_confirmation_letter.xml',
+        'report/experience_certificate.xml',
+        'report/transfer_letter.xml',
+        'report/internship_completion_certificate.xml',
+        'report/internal_job_posting_selection_letter.xml',
+        'report/contract_engagement_letter.xml',
 
         # Employee Configuration
         "views/employee_configuration/employment_type.xml",

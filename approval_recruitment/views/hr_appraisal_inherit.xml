@@ -4,18 +4,22 @@
         <field name="model">hr.appraisal</field>
         <field name="inherit_id" ref="hr_appraisal.view_hr_appraisal_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='manager_ids']" position="after">
+                <field name="hr_id" options='{"no_open": True, "no_create": True}'/>
+            </xpath>
 
             <xpath expr="//field[@name='appraisal_template_id']" position="after">
                 <field name="manager_decision"
-                       readonly="state == 'done' or not is_manager"
+                       readonly="state in ('2_pending','3_done') or not is_manager"
                 groups="hr_appraisal.group_hr_appraisal_user"/>
                 <field name="probation_reason"
-                       readonly="state == 'done' or not is_manager"
+                       readonly="state in ('2_pending','3_done') or not is_manager"
                 groups="hr_appraisal.group_hr_appraisal_user"/>
 
 
                 <button name="action_apply_decision" string="Apply Decision" type="object"
                         class="oe_highlight"
+                        invisible="state in ('2_pending','3_done')"
                 groups="hr_appraisal.group_hr_appraisal_user"/>
             </xpath>
 

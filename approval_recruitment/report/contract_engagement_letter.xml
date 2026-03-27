@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report Action -->
+    <record id="action_contract_engagement_letter" model="ir.actions.report">
+        <field name="name">Contract Engagement Letter</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">approval_recruitment.template_contract_engagement_letter</field>
+        <field name="report_file">approval_recruitment.template_contract_engagement_letter</field>
+        <field name="print_report_name">'Contract Engagement Letter'</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Template -->
+    <template id="template_contract_engagement_letter">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="object">
+                <t t-call="web.external_layout">
+
+                    <div style="margin: 30px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+
+                        <h3 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
+                            Contract Engagement Letter
+                        </h3>
+
+                         <p style="margin: 2px 0; line-height: 1.5;">
+                            Date: <t t-esc="time.strftime('%d-%m-%Y')"/>
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            Name:
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            Address:
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            Mobile no: <t t-esc="object.private_phone"/>
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            Email: <t t-esc="object.private_email"/>
+                        </p>
+                        <p style="margin-top: 20px;">
+                            Dear, <t t-esc="object.name"/>
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.2;">
+                            We are pleased to engage you for a fixed term, in <strong><t t-esc="object.company_id.name"/> (“Company”)</strong>, based on the terms and conditions contained herein.
+                        </p>
+                        <br></br>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            <strong>
+                                Contract Period:
+                            </strong>
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            <strong>
+                                Start Date:
+                            </strong>
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            <strong>
+                                End Date:
+                            </strong>
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            <strong>
+                                Location:
+                            </strong>
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            <strong>
+                                Fee:
+                            </strong>
+                        </p>
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            <strong>
+                                Role:
+                            </strong>
+                        </p>
+                        <p style="margin-top: 20px;">
+                            The Company has decided to engage you in performing certain services pertaining to the specific project(s) undertaken by the Company, as described in Annexure – B (“Statement of Work”) in accordance with the terms and conditions hereinafter mentioned.
+
+                        </p>
+                        <p style="margin-top: 20px;">
+                            The terms of this offer shall come into effect from your first day of engagement with the Company.
+
+                        </p>
+                        <p>
+                            During the period this agreement is in force, either party could terminate this agreement by giving other party 15 days notice.
+                        </p>
+
+                        <p>
+                            You will be required to sign an undertaking containing the terms and conditions governing your engagement with the Company, as more fully described in <strong>Annexure – A</strong> of this Letter. You shall also be bound by such other policies which Company may introduce from time to time.
+                        </p>
+                        <p>
+                            You shall make necessary arrangements for your conveyance to the office during your engagement. The Company shall not be providing any facilities for the same or reimbursing any costs incurred by you for the same.
+                        </p>
+                        <p>
+                            We would ask you to review the contents of this engagement letter carefully. By accepting this letter, you also acknowledge, and agree that such terms and conditions are reasonable.
+                        </p>
+                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+
+                            <!-- Title -->
+                            <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">
+                                <strong>ANNEXURE A: UNDERTAKING</strong>
+                            </p>
+                            <p>
+                                I do hereby aware, assure, and undertake that:
+                            </p>
+
+                            <!-- Paragraph -->
+                            <p style="text-align: justify; line-height: 1.6;">
+                                1.	I will abide by the current and future policies and procedures of the Company in its entirety including but not limited to code of conduct or guidelines, issued if any. I undertake to demonstrate honesty, punctuality, courtesy, cooperative attitude, proper health and grooming habits and a willingness to learn and shall obey the policies, rules, and regulations of the Company and comply with its Company’s business practices and procedures.
+                            </p>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                2.	I have not signed any agreement, contract or bond that would disable, prohibit, and restrain me from engagement with the Company.
+                            </p>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                3.	I am not under the direct payroll of the Company and therefore I will not be receiving any other employee benefits.
+                            </p>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                4.	I shall make necessary arrangements for conveyance to the office during my engagement. The Company shall not be providing any facilities for the same or reimbursing any costs incurred by me for the same.
+                            </p>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                5. I shall abide by the following confidentiality obligations:
+                            </p>
+                            <br>
+                            </br>
+                            <div style="padding-left: 30px;">
+
+                                <p style="text-align: justify; line-height: 1.6;">
+                                    i.	I shall keep any and all information that are passed to me or gathered by virtue of my engagement with the Company (“Confidential Information”) as strictly confidential and will not divulge the same to any person or in any media including but not limited to the social media platforms, at any point of time.
+                                </p>
+
+                                <p style="text-align: justify; line-height: 1.6;">
+                                    ii.	I shall not disclose the Confidential Information passed to me during the period of engagement to third parties without the prior written authorization of my supervisor.
+                                </p>
+
+                                <p style="text-align: justify; line-height: 1.6;">
+                                    iii.I agree and acknowledge that the confidentiality obligation contained hereinunder is perpetual in nature and will continue even after termination of my relationship/ undertaking with the Company.
+                                </p>
+
+                                <p style="text-align: justify; line-height: 1.6;">
+                                    iv.	I shall not use any Confidential Information f the Company including but not limited to tangible materials containing Confidential Information, including without limitation drawings, schematics, written or printed documents, computer disks, pen drives, memory cards (USB), and compact disks (CD), whether machine or user readable for any purposes except as authorised by my supervisor.
+                                </p>
+
+                                <p style="text-align: justify; line-height: 1.6;">
+                                    v.	I shall exercise no lesser security and control measures and degree of care than those which I apply to my own Confidential Information (and which it warrants as providing adequate protection against any unauthorized access, erasure, disclosure, processing, transfer, copying or use). I understand that I may disclose Confidential Information only to the co-interns/co-trainees/co-workers/associates on a need-to-know basis.
+                                </p>
+
+                                <p style="text-align: justify; line-height: 1.6;">
+                                    vi.	I shall refrain from making unauthorized copies of documents, mails, forward attachments, download and transfer, SMS, mobile messaging, and/or any form of texts/messaging now known or in the future discovered, containing Confidential Information or records that are obtained by me from the Company, and further I shall instruct the co-interns/co-trainees/co-workers/associates to whom I have exchanged Confidential Information with to abide by the aforementioned obligation.
+                                </p>
+
+                                <p style="text-align: justify; line-height: 1.6;">
+                                    vii.I agree and acknowledge that the Confidential Information may be disclosed, reproduced, summarized, or distributed only in pursuance of my professional relationship with the Company, and only as otherwise provided hereunder. I shall keep all documents bearing or incorporating any Confidential Information separate from all other documents, records, data, and materials at the usual place of business of the Company.
+                                </p>
+
+                                <p style="text-align: justify; line-height: 1.6;">
+                                    viii.In the event there is a breach of confidentiality obligations as set forth hereinunder, I shall promptly indemnify the Company for all the costs, expenses, (including attorney costs), losses, liabilities, damages, etc., prejudice caused to the Company.
+                                </p>
+
+                                <p style="text-align: justify; line-height: 1.6;">
+                                    ix.	Further, I acknowledge that any breach of confidentiality obligations under this undertaking will cause irreparable damage and monetary damages may not be a sufficient remedy for damages resulting from the unauthorized disclosure of
+                                </p>
+
+                                <p style="text-align: justify; line-height: 1.6;">
+                                    Confidential Information and that the Company shall be entitled, without waiving any other rights or remedies, to seek such injunctive or equitable relief as may be deemed proper by a court of competent jurisdiction for any actual or threatened breach of confidentiality obligations set forth hereinunder.
+                                </p>
+                            </div>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                6.	I shall not divulge the contents of the deliberations, discussions pertaining to business strategies, business plans and other sensitive matters to anyone who has no business need to know them.
+                            </p>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                7.	I am working for the Company directly and for an adequate, lawful consideration and that the intellectual property rights of anything that I may invent, discover, design, or develop either alone or along with my co-workers will therefore be deemed to be work done for hire and that I shall have no claims over them.
+                            </p>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                8.	I will not misuse or abuse the assets of the Company, the facilities and allowances/ benefits extended to me by the Company.
+                            </p>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                9.	I shall furnish the respective supervisor with all necessary information pertaining to my engagement, including related assignments and reports.
+                            </p>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                10.	I shall fully co-operate with any authority appointed to inquire into any breach of this undertaking deed and abide by their decisions.
+                            </p>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                11.	I agree and acknowledge that this undertaking is legally binding upon it, enforceable in accordance with its terms.
+                            </p>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                12.	I agree to be subject to this declaration and undertaking and state that if I contravene any of the provisions of this undertaking, I agree that Company may end my contract without any notice and proceed at its options to seek legal relief against me for any breach of this undertaking. Further, the Company reserves the right to terminate my services at its convenience with or without any reasons.
+                            </p>
+                            <p style="text-align: justify; line-height: 1.6;">
+                                13.	I have signed this undertaking voluntarily after having first read, understood, and accepted the contents hereof. I have also taken a copy of this undertaking for my records for the purpose of reference and compliance.
+                            </p><p style="text-align: justify; line-height: 1.6;">
+                                14.	I shall keep my future employers and business partners notified of this binding undertaking I have executed.
+                            </p>
+                        </div>
+                        <div style="page-break-before: always; height: 100vh; display: table; width: 100%;">
+
+                            <div style="display: table-cell; vertical-align: middle; text-align: center;margin-top:100px;">
+
+                                <p style="text-decoration: underline; font-size: 18px;margin-top:100px;">
+                                    <strong>ANNEXURE B: STATEMENT OF WORK</strong>
+                                </p>
+
+                            </div>
+                        </div>
+                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+
+                            <!-- Title -->
+                            <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">
+                                <strong>Acknowledgement</strong>
+                            </p>
+                            <p>
+                                I have read and understood thoroughly the rules of service and all the terms of engagement of my service, and I do hereby agree with all terms as above and I shall abide by all general rules of service which are now or may hereafter to be in force and accordingly I accept the engagement of my service with you.
+                            </p>
+                            <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
+                                <thead>
+                                    <tr>
+                                        <th class="text-start">FOR COMPANY NAME</th>
+                                        <th class="text-center">CONTRACT DETAILS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Signature:</td>
+                                        <td>Signature:</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Print Name: HR HEAD NAME</td>
+                                        <td>Print Name:</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Date:</td>
+                                        <td>Date:</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                        </div>
+
+
+
+
+                        <p style="margin-top: 40px;">
+                            For <t t-esc="object.company_id.name"/>
+                        </p>
+                        <br></br>
+
+                        <p style="margin: 2px 0; line-height: 1.5;">Koushalya R</p>
+                        <p style="margin: 2px 0; line-height: 1.5;">Head – Human Resources </p>
+
+                    </div>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

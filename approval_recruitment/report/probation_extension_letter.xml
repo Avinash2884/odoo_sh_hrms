@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report Action -->
+    <record id="action_probation_extension_letter" model="ir.actions.report">
+        <field name="name">Probation Extension Letter</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">approval_recruitment.template_probation_extension_letter</field>
+        <field name="report_file">approval_recruitment.template_probation_extension_letter</field>
+        <field name="print_report_name">'Probation Extension Letter'</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Template -->
+    <template id="template_probation_extension_letter">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="object">
+                <t t-call="web.external_layout">
+
+                    <div style="margin: 30px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+
+                        <!-- Header -->
+                        <p>
+                            <strong>Date :</strong>
+                            <t t-esc="time.strftime('%d-%m-%Y')"/><br/>
+
+                            <strong>Employee Code :</strong>
+                            <t t-esc="object.ls_employee_id"/><br/>
+
+                            <strong>Employee Name :</strong>
+                            <t t-esc="object.name"/>
+                        </p>
+
+                        <!-- Title -->
+                        <p style="text-align: center; margin: 25px 0;">
+                            <strong>PROBATION EXTENSION LETTER</strong>
+                        </p>
+
+                        <!-- Body -->
+                        <p>
+                            Dear <strong><t t-esc="object.name"/></strong>,
+                        </p>
+
+                        <p>
+                            This letter is to notify you that your probation period is extended till
+                            <strong>
+                                <t t-esc="object.date_end or ''"/>
+                            </strong>
+                            for further performance review.
+                        </p>
+
+                        <p>
+                            This extension will provide you additional time to perform your responsibilities
+                            and demonstrate your ability to consistently meet the outlined expectation for this role.
+                        </p>
+
+                        <p>
+                            All the other terms and conditions of your employment contract will continue to remain the same.
+                        </p>
+
+                        <!-- Footer (DIV ONLY ✅) -->
+                        <div style="width: 100%; margin-top: 60px; font-size: 14px;">
+
+                            <!-- LEFT SIDE -->
+                            <div style="width: 49%; display: inline-block; vertical-align: top; text-align: left;">
+
+                                <!-- Company -->
+                                <div>
+                                    For <t t-esc="object.company_id.name"/>
+                                </div>
+
+                                <!-- Space -->
+                                <div style="height: 60px;"></div>
+
+                                <!-- HR Name -->
+                                <div>
+                                    <strong>Koushalya R</strong><br/>
+                                    Head – Human Resources
+                                </div>
+
+                            </div>
+
+                            <!-- RIGHT SIDE -->
+                            <div style="width: 49%; display: inline-block; vertical-align: top; text-align: right;">
+
+                                <!-- Signature -->
+                                <div>
+                                    Employee Signature
+                                </div>
+
+                                <!-- Space -->
+                                <div style="height: 60px;"></div>
+
+                                <!-- Employee Name -->
+                                <div>
+                                    Employee name
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

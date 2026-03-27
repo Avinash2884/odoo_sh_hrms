@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report Action -->
+    <record id="action_experience_certificate" model="ir.actions.report">
+        <field name="name">Experience Certificate</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">approval_recruitment.template_experience_certificate</field>
+        <field name="report_file">approval_recruitment.template_experience_certificate</field>
+        <field name="print_report_name">'Experience Certificate'</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Template -->
+    <template id="template_experience_certificate">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="object">
+                <t t-call="web.external_layout">
+
+                    <div style="margin: 30px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+
+                        <h3 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
+                            Experience Certificate
+                        </h3>
+
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            To
+                        </p>
+
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            <t t-esc="object.name"/>
+                        </p>
+
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            <t t-esc="object.ls_employee_id"/>
+                        </p>
+
+                        <p style="margin: 2px 0; line-height: 1.5;">
+                            <t t-if="object.permanent_street">
+                                <span t-esc="object.permanent_street"/><br/>
+                            </t>
+                            <t t-if="object.permanent_street2">
+                                <span t-esc="object.permanent_street2"/><br/>
+                            </t>
+
+                            <t t-if="object.permanent_city">
+                                <span t-esc="object.permanent_city"/>
+                            </t>
+
+                            <t t-if="object.permanent_zip">
+                                <span t-esc="object.permanent_zip"/>
+                            </t>
+                        </p>
+
+                        <p style="margin-top: 40px;">
+                            Dear <t t-esc="object.name"/>,
+                        </p>
+                        <p>
+                            Your resignation has been accepted, and your last working day is Last date of employment.
+                            Your service record is as follows:
+
+                        </p>
+                        <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+                            <tr>
+                                <td style="width: 30%;">Employee ID</td>
+                                <td style="width: 30%;"></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 30%;">Name</td>
+                                <td style="width: 30%;"></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 30%;">Role &amp; Designation</td>
+                                <td style="width: 30%;"></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 30%;">Department</td>
+                                <td style="width: 30%;"></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 30%;">Date of Joining</td>
+                                <td style="width: 30%;"></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 30%;">Date of Leaving</td>
+                                <td style="width: 30%;"></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 30%;">Base Location</td>
+                                <td style="width: 30%;"></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 30%;">Deputed Location</td>
+                                <td style="width: 30%;"></td>
+                            </tr>
+                        </table>
+                        <p style="margin-top: 20px;">
+                            We draw your attention to your continued obligation of confidentiality as per your employment contract.
+
+                        </p>
+                        <p>
+                            Thank you for your contribution to Lifesigns, and wishing you the best!
+                        </p>
+
+
+
+
+                        <p style="margin-top: 40px;">
+                            For <t t-esc="object.company_id.name"/>
+                        </p>
+                        <br></br>
+
+                        <p style="margin: 2px 0; line-height: 1.5;">Koushalya R</p>
+                        <p style="margin: 2px 0; line-height: 1.5;">Head – Human Resources </p>
+
+                    </div>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
