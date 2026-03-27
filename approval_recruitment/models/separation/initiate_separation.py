@@ -43,9 +43,9 @@ class InitiateSeparation(models.Model):
     ], required=True,tracking=True)
     detailed_reason = fields.Text(string="Detailed Reason", tracking=True)
     acknowledgement = fields.Boolean(tracking=True)
-    action_performed_manager = fields.Char(string="Action Performed",tracking=True)
+    action_performed_manager = fields.Char(string="Action Performed By Manager",tracking=True)
     action_by_manager = fields.Char(string="Action by Manager",tracking=True)
-    action_performed_hr = fields.Char(string="Action Performed",tracking=True)
+    action_performed_hr = fields.Char(string="Action Performed By HR",tracking=True)
     action_by_hr = fields.Char(string="Action by HR",tracking=True)
     company_id = fields.Many2one(
         'res.company',
@@ -89,28 +89,28 @@ class InitiateSeparation(models.Model):
     it_assets_clearance_dues_cleared_status = fields.Selection([
         ('cleared', 'Cleared'),
         ('pending', 'Pending'),
-    ], string='Dues Cleared Status',tracking=True)
-    it_assets_clearance_remarks = fields.Text(string="Remarks", tracking=True)
-    it_assets_clearance_approver_name = fields.Many2one('hr.employee', string='Approver Name', tracking=True)
-    it_assets_clearance_approval_date = fields.Date(string="Approval Date", tracking=True)
+    ], string='IT Asset Dues Cleared Status',tracking=True)
+    it_assets_clearance_remarks = fields.Text(string="Clerance Remarks", tracking=True)
+    it_assets_clearance_approver_name = fields.Many2one('hr.employee', string='IT Asset Approver Name', tracking=True)
+    it_assets_clearance_approval_date = fields.Date(string="IT Asset Approval Date", tracking=True)
 
     # Admin Clearance
     admin_clearance_dues_cleared_status = fields.Selection([
         ('cleared', 'Cleared'),
         ('pending', 'Pending'),
-    ], string='Dues Cleared Status', tracking=True)
-    admin_clearance_remarks = fields.Text(string="Remarks", tracking=True)
-    admin_clearance_approver_name = fields.Many2one('hr.employee', string='Approver Name', tracking=True)
-    admin_clearance_approval_date = fields.Date(string="Approval Date", tracking=True)
+    ], string='Admin Clearance Dues Cleared Status', tracking=True)
+    admin_clearance_remarks = fields.Text(string="Admin Clearance Remarks", tracking=True)
+    admin_clearance_approver_name = fields.Many2one('hr.employee', string='Admin Clearance Approver Name', tracking=True)
+    admin_clearance_approval_date = fields.Date(string="Admin Clearance Approval Date", tracking=True)
 
     # Payroll Clearance
     payroll_clearance_dues_cleared_status = fields.Selection([
         ('cleared', 'Cleared'),
         ('pending', 'Pending'),
-    ], string='Dues Cleared Status', tracking=True)
-    payroll_clearance_remarks = fields.Text(string="Remarks", tracking=True)
-    payroll_clearance_approver_names = fields.Char( string='Approver Name', tracking=True)
-    payroll_clearance_approval_date = fields.Date(string="Approval Date", tracking=True)
+    ], string='Payroll Dues Cleared Status', tracking=True)
+    payroll_clearance_remarks = fields.Text(string="Payroll Clearance Remarks", tracking=True)
+    payroll_clearance_approver_names = fields.Char( string='Payroll Approver Name', tracking=True)
+    payroll_clearance_approval_date = fields.Date(string="Payroll Approval Date", tracking=True)
 
     exit_acknowledgement = fields.Boolean(tracking=True)
     state = fields.Selection([

@@ -42,7 +42,7 @@ class HrEmployeeInherit(models.Model):
     region_id = fields.Many2one('region', 'Region',tracking=True)
     employee_status_id = fields.Many2one('employee.status', 'Employee Status',tracking=True)
     ls_designation_id = fields.Many2one('designation', 'Designation',tracking=True)
-    ls_role_id = fields.Many2one('ls.role', 'Roles',tracking=True)
+    ls_role_id = fields.Many2one('ls.role', 'Role',tracking=True)
     ls_source_of_hire_id = fields.Many2one('source.of.hire', 'Source of Hire',tracking=True)
     blood_group_id = fields.Many2one('blood.group', 'Blood Group',tracking=True)
 
@@ -71,7 +71,7 @@ class HrEmployeeInherit(models.Model):
     mother_mobile = fields.Char("Mother Mobile",tracking=True)
 
     # Guardian
-    guardian_relationship = fields.Char("Relationship",tracking=True)
+    guardian_relationship = fields.Char("Guardian Relationship",tracking=True)
     guardian_name = fields.Char("Guardian Name",tracking=True)
     guardian_mobile = fields.Char("Guardian Mobile",tracking=True)
     ls_aadhar = fields.Char(string="AADHAR",tracking=True)
