@@ -24,7 +24,9 @@
               inherit_id="website_hr_recruitment.detail">
 
         <!-- Remove the navbar only on job detail page -->
-        <xpath expr="//nav[contains(@class,'navbar')]" position="replace"/>
+        <xpath expr="//div[hasclass('navbar','job-detail')]" position="attributes">
+            <attribute name="invisible">1</attribute>
+        </xpath>
 
     </template>
 

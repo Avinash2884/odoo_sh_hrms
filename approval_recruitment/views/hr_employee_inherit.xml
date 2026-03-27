@@ -240,17 +240,16 @@
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.hr_kanban_view_employees"/> <!-- original kanban view -->
         <field name="arch" type="xml">
-            <!-- Replace job_title div with ls_designation_id -->
+            <!-- Replace job_title div with ls_role_id -->
             <xpath expr="//field[@name='job_title']/.." position="replace">
                 <div t-if="record.ls_role_id.raw_value" class="text-truncate">
-                    <i class="fa fa-fw me-2 fa-suitcase text-primary"/>
+                    <!-- Added title for accessibility -->
+                    <i class="fa fa-fw me-2 fa-suitcase text-primary" title="Role Icon"/>
                     <field name="ls_role_id"/>
                 </div>
             </xpath>
-
         </field>
-    </record>
-    <record id="hr_bank_account_inherit_partner" model="ir.ui.view">
+    </record>    <record id="hr_bank_account_inherit_partner" model="ir.ui.view">
         <field name="name">hr.bank.account.inherit.partner</field>
         <field name="model">res.partner.bank</field>
         <field name="inherit_id" ref="account.view_partner_bank_form_inherit_account"/>

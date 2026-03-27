@@ -9,27 +9,27 @@ class CompanyPolicy(models.Model):
 
     name = fields.Char(string='Policy Name', required=True)
 
-    revision_1_file_name = fields.Char("File Name", tracking=True)
+    revision_1_file_name = fields.Char("Revision 1 File Name", tracking=True)
     revision_1_file = fields.Binary(string='Revision 1')
     revision_1_date = fields.Datetime(string='Revision 1 Date', readonly=True)
     revision_1_published = fields.Boolean(string='Revision 1 Published', default=False)
 
-    revision_2_file_name = fields.Char("File Name", tracking=True)
+    revision_2_file_name = fields.Char("Revision 2 File Name", tracking=True)
     revision_2_file = fields.Binary(string='Revision 2')
     revision_2_date = fields.Datetime(string='Revision 2 Date', readonly=True)
     revision_2_published = fields.Boolean(string='Revision 2 Published', default=False)
 
-    revision_3_file_name = fields.Char("File Name", tracking=True)
+    revision_3_file_name = fields.Char("Revision 3 File Name", tracking=True)
     revision_3_file = fields.Binary(string='Revision 3')
     revision_3_date = fields.Datetime(string='Revision 3 Date', readonly=True)
     revision_3_published = fields.Boolean(string='Revision 3 Published', default=False)
 
-    revision_4_file_name = fields.Char("File Name", tracking=True)
+    revision_4_file_name = fields.Char("Revision 4 File Name", tracking=True)
     revision_4_file = fields.Binary(string='Revision 4')
     revision_4_date = fields.Datetime(string='Revision 4 Date', readonly=True)
     revision_4_published = fields.Boolean(string='Revision 4 Published', default=False)
 
-    revision_5_file_name = fields.Char("File Name", tracking=True)
+    revision_5_file_name = fields.Char("Revision 5 File Name", tracking=True)
     revision_5_file = fields.Binary(string='Revision 5')
     revision_5_date = fields.Datetime(string='Revision 5 Date', readonly=True)
     revision_5_published = fields.Boolean(string='Revision 5 Published', default=False)
