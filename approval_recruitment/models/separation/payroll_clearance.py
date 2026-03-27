@@ -3,6 +3,7 @@ from odoo import models, fields, api, _
 class PayrollClearance(models.Model):
     _name = 'payroll.clearance'
     _description = 'Payroll Clearance'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Many2one('payroll.component',string="Payroll Component",required=True)
     applicable = fields.Selection([

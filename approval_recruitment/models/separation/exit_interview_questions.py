@@ -5,6 +5,7 @@ class ExitInterviewQuestion(models.Model):
     _description = 'Exit Interview Question'
     _order = 'sequence, id'
     _copy = True
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string="Question", required=True)
     sequence = fields.Integer(string="Sequence", default=10)

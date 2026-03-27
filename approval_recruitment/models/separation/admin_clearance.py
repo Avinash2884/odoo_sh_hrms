@@ -3,6 +3,7 @@ from odoo import models, fields, api, _
 class AdminClearance(models.Model):
     _name = 'admin.clearance'
     _description = 'Admin Clearance'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Many2one('item.name',string="Item Name",required=True)
     issued = fields.Selection([

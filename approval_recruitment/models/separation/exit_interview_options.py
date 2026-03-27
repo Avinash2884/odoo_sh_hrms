@@ -5,6 +5,7 @@ class ExitInterviewOption(models.Model):
     _description = 'Exit Interview Option'
     _order = 'sequence, id'
     _copy = True
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string="Option", required=True)
     sequence = fields.Integer(string="Sequence", default=10)

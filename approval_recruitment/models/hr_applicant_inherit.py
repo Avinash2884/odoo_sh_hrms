@@ -247,10 +247,13 @@ class HrApplicantInherit(models.Model):
         default=lambda self: str(uuid.uuid4())  # Automatically generates a secure random string
     )
 
-    _sql_constraints = [
-        ('access_token_unique', 'unique(access_token)',
-         'The security token must be completely unique for each applicant!')
-    ]
+    @api.constrains('access_token')
+    def _check_access_token_unique(self):
+        for record in self:
+            if self.search([('access_token', '=', record.access_token), ('id', '!=', record.id)]):
+                raise ValidationError(
+                    'The security token must be completely unique for each applicant!'
+                )
 
     def create_employee_from_applicant(self):
         # 1. First, let Odoo create the basic employee record

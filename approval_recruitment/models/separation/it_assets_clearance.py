@@ -3,6 +3,7 @@ from odoo import models, fields, api, _
 class ItAssetsClearance(models.Model):
     _name = 'it.assets.clearance'
     _description = 'It Assets Clearance'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Many2one('device.type',string="Device type",required=True,ondelete="restrict")
     specification = fields.Char(string="Specification/ID")
