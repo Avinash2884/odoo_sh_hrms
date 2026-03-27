@@ -4,7 +4,7 @@ from odoo.http import request
 
 class RecruitmentDashboard(http.Controller):
 
-    @http.route('/recruitment/summary', auth='user', type='json')
+    @http.route('/recruitment/summary', auth='user', type='jsonrpc')
     def get_recruitment_summary(self):
         try:
             print("\n================ Recruitment Dashboard Debug Start ================\n")
