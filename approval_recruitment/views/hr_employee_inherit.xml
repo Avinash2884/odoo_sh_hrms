@@ -15,8 +15,7 @@
             <xpath expr="//field[@name='work_email']" position="attributes">
                 <attribute name="placeholder">Official Email Address</attribute>
             </xpath>
-            <xpath expr="//div[contains(@class,'oe_title')]//h1" position="after">
-
+            <xpath expr="//div[hasclass('oe_title')]//h1" position="after">
                 <!-- Employee ID -->
                 <h5 class="d-flex align-items-baseline mb-0">
                     <i class="fa fa-id-badge fa-fw me-1 text-primary" title="Employee ID"/>
