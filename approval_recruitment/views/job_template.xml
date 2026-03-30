@@ -21,15 +21,13 @@
     </template>
 
     <template id="hide_navbar_job_detail"
-              inherit_id="website_hr_recruitment.detail">
+          inherit_id="website_hr_recruitment.detail">
 
-        <!-- Remove the navbar only on job detail page -->
-        <xpath expr="//div[hasclass('navbar','job-detail')]" position="attributes">
-            <attribute name="invisible">1</attribute>
+        <xpath expr="//nav[contains(@class, 'navbar')]" position="attributes">
+            <attribute name="style">display:none !important;</attribute>
         </xpath>
 
     </template>
-
     <!-- 2. CUSTOM JOB PAGE -->
     <template id="custom_job_page"
               inherit_id="website_hr_recruitment.detail"

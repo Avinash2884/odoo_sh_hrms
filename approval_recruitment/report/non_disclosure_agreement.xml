@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_non_disclosure_agreement" model="ir.actions.report">
+        <field name="name">Non Disclosure Agreement</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">approval_recruitment.template_non_disclosure_agreement</field>
+        <field name="report_file">approval_recruitment.template_non_disclosure_agreement</field>
+        <field name="print_report_name">'Non Disclosure Agreement'</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+    </record>
+    <template id="template_non_disclosure_agreement">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="object">
+                <t t-call="web.external_layout">
+
+                    <div style="margin: 20px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+
+                        <!-- Title -->
+                        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
+                            NON-DISCLOSURE AGREEMENT
+                        </h2>
+
+                        <!-- Intro -->
+                        <p style="text-align: justify; margin-bottom: 20px;">
+                            This Non-Disclosure Agreement <strong>("Agreement")</strong> is made and entered into and effective from <strong>26th January 2026 (“Effective Date”)</strong>, at Chennai, India
+                        </p>
+
+                        <p style="margin-bottom: 10px;">
+                            <strong>BY AND BETWEEN</strong>
+                        </p>
+
+                        <p style="margin-bottom: 10px;">
+                            <strong><t t-esc="object.company_id.name"/></strong>, a company incorporated under the Companies Act, 2013 and having office at <t t-esc="object.company_id.street"/>
+                            <t t-esc="object.company_id.street2"/>
+                            <t t-esc="object.company_id.city"/>
+                            <t t-esc="object.company_id.state_id.name"/> -
+                            <t t-esc="object.company_id.zip"/> (hereinafter referred to as the <strong>“Company”)</strong> which expression unless repugnant to the context or meaning thereof shall be deemed to include its successors and permitted assigns of the <strong>First Part</strong>,
+                        </p>
+
+                        <p style="margin-bottom: 10px;">
+                            <strong>AND</strong>
+                        </p>
+
+                        <p style="margin-bottom: 10px;">
+                            <strong><t t-esc="object.name"/></strong>, <span>
+                                    <t t-if="object.permanent_street">
+                                        <t t-esc="object.permanent_street"/>,
+                                    </t>
+                                    <t t-if="object.permanent_street2">
+                                        <t t-esc="object.permanent_street2"/>,
+                                    </t>
+                                    <t t-if="object.permanent_city">
+                                        <t t-esc="object.permanent_city"/>,
+                                    </t>
+                                    <t t-if="object.permanent_state_id">
+                                        <t t-esc="object.permanent_state_id.name"/>,
+                                    </t>
+                                    <t t-if="object.permanent_zip">
+                                        <t t-esc="object.permanent_zip"/>,
+                                    </t>
+                                </span>. (hereinafter referred to as <strong>"Member"</strong>) which expression shall include, unless repugnant to or inconsistent with the subject or context thereof, his/her legal heirs, successors, administrators, and executors of the <strong>Second Part.</strong>
+                        </p>
+                        <p style="margin-bottom: 10px;">
+                            <strong>“Company”</strong> and <strong>“Member”</strong> are hereinafter collectively referred to as <strong>“Parties”</strong> and individually referred to as <strong>“Party”</strong> to this Agreement.
+                        </p>
+
+                        <p style="margin-bottom: 10px;">
+                            <strong>WHEREAS</strong>
+                        </p>
+                        <p style="text-indent: 40px;">
+                            1.	The Company is engaged in the business of providing remote patient monitoring solutions to its customers under the brand name “Lifesigns” <strong>(“Business”)</strong>, which is a registered propriety of the Company.
+                        </p>
+                        <p style="text-indent: 40px;">
+                            2.	The Company possesses competitively valuable Confidential Information (as hereinafter defined) regarding its business, products, goods, current trends and services, future products and services, research and development, market demands, clients, consulting, and general business operations.
+                        </p>
+                        <p style="text-indent: 40px;">
+                            3.	Whereas the Company has employed the Member vide an appointment letter date 26th January 2026. During employment, the Member shall be privy to various information pertaining to the products, processes, services, customers, affiliates, subsidiaries, group companies of the Company which are confidential.
+                        </p>
+                        <p style="text-indent: 40px;">
+                            4.	Whereas Member understands that intellectual property and the confidential/proprietary information of Company are the most important and valuable assets of Company to enable Company to achieve its overall business objectives. The protection of this valuable information is critical to Company’s business.
+                        </p>
+                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+                            <p style="margin-bottom: 10px;">
+                                <strong>
+                                IN CONSIDERATION OF THE PROMISES AND COVENANTS CONTAINED IN THIS AGREEMENT AND THE DISCLOSURE OF CONFIDENTIAL INFORMATION FROM THE COMPANY TO THE MEMBER, THE PARTIES HERETO AGREE AS FOLLOWS:
+                                </strong>
+                            </p>
+                            <p>
+                                <strong>
+                                    1.	DEFINITIONS
+                                </strong>
+                            </p>
+                            <p style="text-indent: 40px;">
+                                <strong>a.	“Confidential Information”</strong> shall mean and includes information which is confidential including Proprietary Information and other information related to the business of the Company, its affiliates or any third parties with which the Company associates, whether or not such information is expressly marked or designated as confidential information and includes but is not limited to:
+                                information of value or significance to the Company or its competitors (including potential competitors) such as: data of or about the Company or its vendors, customers, Employees, advisors, mentors, service providers or Employees, in particular, contact information and sales information; data about Company’s compliance with applicable law including data about licenses, permissions, approvals, permissions or consents applied for, requested by, granted to or denied to the Company or its promoters; data related to the Company’s business, its existing and upcoming products, services, business strategy, terms of engagement with its vendors or customers, pricing data, business plans; any data, documents, sketches, designs, plans, drawings, photographs, reports, communication, technical information, information about Intellectual Property Rights, user information, compilation, subscription details, asset information, know-how, research and development, internal policies; any information related to the Company’s technology, software, hardware, code, design, business strategy, business plan, internal systems, business architecture; financial data, in particular, concerning budgets, fees and revenue calculations, sales figures, financial statements, profit expectations and inventories of the Company; training data, particularly documents, videos, processes, multimedia files, presentations and any such training resources that the Member gains access to during his/her association with the Company; security information (including passwords, login credentials) used to access any resource owned or operated by the Company, its affiliates, clients or third party agents; client or user data, user credits, user analytics, user preferences, feedback information;
+                                any information which may be reasonably understood by its nature, or by the context of its disclosure, to be confidential; and
+                                any information derived from any of the above-mentioned information; and
+                                original information supplied by the Company or information provided to the Company by third parties which the Company is obligated to keep confidential.
+                            </p>
+                            <p style="text-indent: 40px;">
+                              b.	Confidential Information shall not include any materials or information which the Member shows: (i) at the time of disclosure generally known by or available to the public or became so known or available thereafter through no fault of the Member; or (ii) is legally known to the Member at the time of disclosure by the Company; or (iii) is furnished by the Company to third parties without restriction; or (iv) is furnished to the Member by a third party who legally obtained said information and the right to disclose it; or (v) is developed independently by the Member either before or after the term of the Member’s engagement as a Member or independent contractor to the Company where the Member can document such independent development.
+                            </p>
+                            <p style="text-indent: 40px;">
+                               c.	<strong>“Confidential Materials"</strong> shall mean all tangible materials containing Confidential Information, including without limitation to drawings, schematics, written or printed documents, computer disks, pen drives, hard disks, memory cards (USB), and compact disks (CD), whether machine or user readable.
+                            </p>
+                            <p>
+                                <strong>
+                                    2.	RESTRICTIONS
+                                </strong>
+                            </p>
+                            <p>
+                                Member shall not disclose any Confidential Information to third parties without the prior written authorization of the Company. Notwithstanding the foregoing, Member shall not at any time disclose to any third party any Confidential Information comprising a trade secret of the Company or any Confidential Information of any other party to whom the Company owes an obligation. However, Member may disclose Confidential Information in accordance with judicial or other governmental orders, provided Member shall give the Company reasonable notice prior to such disclosure and shall comply with any applicable protective order or equivalent.
+                            </p>
+                            <p style="text-indent: 40px;">
+                               a.	Member shall not use any Confidential Information of the Company for any purposes except those expressly contemplated hereby or as authorized by the Company.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                b.	The Member undertakes that he/she shall not manufacture or create designs of any products for any third parties based on the Confidential Information of the CompanyThe Member shall not make any public statements or announcements in connection with this Agreement unless the prior written approval of the Company is obtained.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                c.	Member shall take reasonable security precautions, which shall in any event be as great as the precautions it takes to protect its own confidential information, to keep confidential the Confidential Information. Member may disclose Confidential Information only to the company’s Member’s or Employees on a need-to-know basis in relation to the Purpose and not for any other purposes whatsoever. Company shall instruct all Employees given access to the information to maintain confidentiality and to refrain from making unauthorized copies. The Member shall not use the Confidential Information for any commercial exploitation or build or run any business or develop any products or modules or render services that competes with the business of the Company.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                d.	Confidential Information may be disclosed, reproduced, summarized, or distributed only in pursuance of Member's business relationship with the Company, and only as otherwise provided hereunder. Member agrees to segregate all such Confidential Information from the confidential information of others to prevent commingling.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                e.	Neither this Agreement nor the disclosure or receipt of Confidential Information will constitute or imply any promise or intention of any Party to enter into a business transaction, business relationship or any other agreements.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                f.	The Member shall afford the Company’s Confidential Information the same level of security and protection against unauthorized disclosure or use as the Member normally uses to protect its own information of a similar character, but in no event less than reasonable care.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                g.	The Member notify the Company promptly of any unauthorized use or disclosure of the Company’s Confidential Information, and cooperate with and assist the Company in every reasonable way to stop or minimize such unauthorized use or disclosure.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                h.	The Member shall not to reverse engineer, decompile, dissemble or not to use in any manner whatsoever, including but not limited any products, solutions, process, etc., disclosed to the company, except pursuant to any statutory right that cannot be excluded by contract. The Member expressly acknowledges and agrees that disclosure of Confidential Information could materially harm the Company. The Member further agrees that the restrictive covenants contained in this Agreement are reasonable and necessary for the protection of the Company.
+                            </p>
+                            <p style="text-indent: 40px;">
+                               i.	While the restrictions contained in this Agreement are considered by the Parties to be reasonable in all circumstances, it is recognized that restrictions of the nature in question may fail and it is hereby agreed and declared that if such restrictions shall be judged by mandatory law to be void as going beyond what is reasonable in all these circumstances for the protection of the interests of the Company,
+                            </p>
+                            <p style="text-indent: 40px;">
+                                j.	But would be valid if part of the wording thereof were deleted or the period were reduced, such restrictions shall apply with such modifications as may be necessary to make it valid and effective.
+                            </p>
+                            <p>
+                                <strong>
+                                3.	RIGHTS AND REMEDIES
+                                </strong>
+                            </p>
+                            <p style="text-indent: 40px;">
+                                a.	Member shall notify the Company immediately upon discovery of any unauthorized use or disclosure of Confidential Information, or any other breach of this Agreement by Member, and will cooperate with the Company in every reasonable way to help the Company regain possession of the Confidential Information and prevent further unauthorized use or disclosure.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                b.	The Member shall destroy all originals, copies including hard copies and soft copies, reproductions, and summaries of Confidential Information in possession, custody or control of the Member forthwith upon the receipt of written notification from the Company or termination of this Agreement or termination of business relationship between the Parties, whichever is earlier and certify destruction of the same in writing to the Member.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                c.	The Company's failure to exercise or delay in exercising a right or remedy provided by this Agreement or by law does not constitute a waiver of such right or remedy or a waiver of other rights or remedies. No single or partial exercise of a right or remedy provided by this Agreement or by law prevents further exercise by the Company of such right or remedy or the exercise of any other right or remedy. No waiver by the Company shall be effective unless made in writing and signed by the authorized signatory of the Company.
+                            </p>
+                            <p>
+                                <strong>
+                                4.	TERM
+                                </strong>
+                            </p>
+                            <p>
+                                This Agreement shall continue to be valid during the employment of the Member. Subject to the terms of this Agreement, the Member’s obligations under this Agreement shall continue to survive perpetually from the expiry/ termination of this Agreement and/or the termination of his/ her employment from the Company.
+                            </p>
+                            <p>
+                                <strong>
+                                5.	INDEMNIFICATION
+                                </strong>
+                            </p>
+                            <p style="text-indent: 40px;">
+                                a.	The Member shall indemnify and hold harmless the Company without any demand or protest or demur, from and against all actions, claims, proceedings, liabilities, losses, damages and costs and expenses (including, without limitation, reasonable attorneys’ fees, and court costs) suffered or incurred or accrued by the Company arising from the unauthorized disclosure, or use of Confidential Information or any other breach of terms and conditions under this Agreement by the Member.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                b.	Without prejudice to the foregoing and any other rights or remedies the Company may have, the Member acknowledges that monetary damages may not be a sufficient remedy for any breach of this Agreement by it or its affiliates. Accordingly, in the event of any such breach, the Company, in addition to any other remedies at law or in equity that they may have, shall be entitled, without the requirement of posting a bond or other security, to seek equitable relief, including injunctive relief or specific performance or both, as may be deemed proper by a court of competent jurisdiction.
+                            </p>
+                            <p>
+                                <strong>
+                                6.	MISCELLANEOUS
+                                </strong>
+                            </p>
+                            <p style="text-indent: 40px;">
+                                a.	All Confidential Information are and shall remain the sole and exclusive property of the Company. By disclosing information to Member, the Company does not grant any express or implied right/license to Member to or under the Company patents, copyrights, trademarks, or trade secret information.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                b.	All Confidential Information are provided "AS IS" and the Company makes no warranty regarding the accuracy or reliability of such information or materials. The Company does not warrant that it will release any product concerning which information has been disclosed as a part of the Confidential Information. The Company will not be liable for any expenses or losses incurred or any action undertaken by the Member as a result of the receipt of Confidential Information. The entire risk arising out of the use of the Confidential Information remains with the Member.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                c.	This Agreement constitutes the entire Agreement between the parties with respect to the subject matter hereof and shall supersede all prior agreements and understandings, oral or written, with respect to the subject matter under this Agreement. It shall not be modified except by a written agreement dated subsequent to the date of this Agreement and signed by both Parties.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                d.	This Agreement shall be construed and governed by the laws of India. Both Parties further consent to jurisdiction of the courts of Chennai, India.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                e.	All disputes, controversies or differences which may arise between the Parties out of or in connection with this Agreement or the breach thereof shall be settled amicably between the parties. In case an amicable settlement cannot be reached, the matter shall be finally settled under the Arbitration and Conciliation Act, 1996 as amended from time to time by one or more arbitrators appointed in accordance with the said Act. The venue of arbitration shall be Chennai, India. The language of arbitration shall be English.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                f.	Neither this Agreement nor any of the rights, interests or obligations hereunder shall be assigned by the Member hereto without the prior written consent of the Company.
+                            </p>
+                            <p style="text-indent: 40px;">
+                                g.	This Agreement shall govern all communications between the parties that are made during the period from the Effective Date of this Agreement to the date on which Member receives from Company written notice that subsequent communications shall not be so governed, provided however that all obligations created by this Agreement shall survive expiration of this Agreement or change or termination of the Parties' business relationship.
+                            </p>
+                            <p>
+                                <strong>IN WITNESS WHEREOF</strong>, the Parties hereto have executed this Agreement as on the date first set forth above.
+                            </p>
+                            <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
+                                <thead>
+                                    <tr>
+                                        <th class="text-start">FOR <strong><t t-esc="object.company_id.name"/></strong></th>
+                                        <th class="text-center"><strong>FOR MEMBER</strong></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Signature:</strong></td>
+                                        <td><strong>Signature:</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Print Name: HR HEAD NAME</strong></td>
+                                        <td><strong>Print Name:</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Date:</strong></td>
+                                        <td><strong>Date:</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

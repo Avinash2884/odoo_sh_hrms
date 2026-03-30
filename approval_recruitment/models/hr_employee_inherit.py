@@ -317,3 +317,45 @@ class HrEmployeeInherit(models.Model):
                 }
 
                 self.env['mail.mail'].create(employee_mail_values).send()
+
+    from odoo import models
+
+    class HrEmployee(models.Model):
+        _inherit = 'hr.employee'
+
+        def action_send_employee_email(self):
+            self.ensure_one()
+
+            partner = False
+
+            if self.work_email:
+                # Check if partner already exists
+                partner = self.env['res.partner'].search([
+                    ('email', '=', self.work_email)
+                ], limit=1)
+
+                # If not found → create new partner
+                if not partner:
+                    partner = self.env['res.partner'].create({
+                        'name': self.name,
+                        'email': self.work_email,
+                    })
+
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Send Email',
+                'res_model': 'mail.compose.message',
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {
+                    'default_model': 'hr.employee',
+                    'default_res_ids': self.ids,
+                    'default_composition_mode': 'comment',
+
+                    # முக்கியமானது 👇
+                    'default_partner_ids': [(6, 0, [partner.id])] if partner else [],
+
+                    # optional
+                    'default_email_to': self.work_email,
+                }
+            }

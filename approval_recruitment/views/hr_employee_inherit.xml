@@ -6,6 +6,10 @@
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
+                <button name="action_send_employee_email"
+                        type="object"
+                        string="Send Email"
+                        class="oe_highlight"/>
                 <button
                     name="action_assign_buddy"
                     type="object"
