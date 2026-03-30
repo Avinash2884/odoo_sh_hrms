@@ -23,7 +23,7 @@
     <template id="hide_navbar_job_detail"
           inherit_id="website_hr_recruitment.detail">
 
-        <xpath expr="//nav[contains(@class,'navbar')]" position="attributes" optional="1">
+        <xpath expr="//nav[hasclass('navbar')]" position="attributes" optional="1">
             <attribute name="style">display:none !important;</attribute>
         </xpath>
 
