@@ -62,7 +62,7 @@ class ApprovalCategoryInherit(models.Model):
             approver_commands.append((0, 0, {
                 'user_id': department.manager_id.user_id.id,
                 'required': True,
-                'sequence': sequence,
+                'approver_sequence': sequence,
             }))
             sequence += 1
 
@@ -71,7 +71,7 @@ class ApprovalCategoryInherit(models.Model):
             approver_commands.append((0, 0, {
                 'user_id': department.approval_hr_id.user_id.id,
                 'required': True,
-                'sequence': sequence,
+                'approver_sequence': sequence,
             }))
 
         return vals, approver_commands
