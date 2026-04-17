@@ -14,7 +14,7 @@ from . import res_users_inherit
 from . import res_partner_bank_inherit
 from . import res_company_inherit
 from . import hr_employee_education
-from . import hr_contract_salary_offer_inherit
+# from . import hr_contract_salary_offer_inherit
 from . import hr_applicant_education
 from . import hr_applicant_experience
 from . import hr_pre_onboarding
