@@ -55,7 +55,7 @@
                 <field name="daily_total_hours" widget="float_time" decoration-bf="1" string="Daily Grand Total (All Sessions)"/>
 
                 <separator string="Extra Time &amp; Pay"/>
-                <field name="extra_hours" widget="float_time" readonly="1" string="Extra Hours"/>
+                <field name="extra_hours" widget="float_time" readonly="1" string="OverTime Hours"/>
                 <field name="approved_extra_hours" widget="float_time" readonly="1" string="Approved Extra Hours"/>
                 <field name="total_hours" widget="float_time" readonly="1" string="Total Payable Hours"/>
                 <field name="late_checkout_reason" placeholder="Reason for working beyond shift" readonly="1"/>
