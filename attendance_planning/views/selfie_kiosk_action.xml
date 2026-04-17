@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_attendance_selfie_kiosk" model="ir.actions.client">
+        <field name="name">Selfie Kiosk</field>
+        <field name="tag">attendance_selfie_kiosk</field>
+        <field name="target">fullscreen</field>
+    </record>
+
+    <menuitem id="menu_selfie_kiosk"
+              name=" Selfie Kiosk"
+              parent="hr_attendance.menu_hr_attendance_root"
+              action="action_attendance_selfie_kiosk"
+              sequence="10"/>
+</odoo>

@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_planning_department_wizard,access_planning_department_wizard,model_planning_department_wizard,base.group_user,1,1,1,1
+access_planning_wizard_line,access_planning_wizard_line,model_planning_wizard_line,base.group_user,1,1,1,1
+access_hr_attendance_permission_user,hr.attendance.permission.user,model_hr_attendance_permission,base.group_user,1,1,1,0
+access_hr_attendance_permission_manager,hr.attendance.permission.manager,model_hr_attendance_permission,hr_attendance.group_hr_attendance_manager,1,1,1,1
+

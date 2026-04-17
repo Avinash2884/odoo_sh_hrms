@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_planning_department_wizard_form" model="ir.ui.view">
+        <field name="name">planning.department.wizard.form</field>
+        <field name="model">planning.department.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Schedule by Department">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="start_date" widget="date"/>
+                            <field name="end_date" widget="date"/>
+                        </group>
+                        <group>
+                            <field name="department_id" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Assign Shift Templates">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="employee_id" options="{'no_create': True}" readonly="1" force_save="1"/>
+                                    <field name="calendar_id" options="{'no_create': True}" required="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                    <div class="text-muted mt-2">
+                        <i class="fa fa-info-circle me-1"/> This will create ONE continuous, easy-to-manage shift block per employee across the selected dates!
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_generate_shifts" type="object" string="Generate Shifts" class="btn btn-primary"/>
+                    <button string="Cancel" class="btn btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_planning_department_wizard" model="ir.actions.act_window">
+        <field name="name">Schedule by Department</field>
+        <field name="res_model">planning.department.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_planning_department_wizard"
+              name="Schedule by Dept"
+              parent="planning.planning_menu_schedule"
+              sequence="99"
+              action="action_planning_department_wizard"/>
+</odoo>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<odoo>-->
+<!--    <record id="view_planning_department_wizard_form" model="ir.ui.view">-->
+<!--        <field name="name">planning.department.wizard.form</field>-->
+<!--        <field name="model">planning.department.wizard</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <form string="Schedule by Department">-->
+<!--                <sheet>-->
+<!--                    <group>-->
+<!--                        <group>-->
+<!--                            <field name="start_date"/>-->
+<!--                            <field name="end_date"/>-->
+<!--                        </group>-->
+<!--                        <group>-->
+<!--                            <field name="department_id" options="{'no_create': True}"/>-->
+<!--                        </group>-->
+<!--                    </group>-->
+
+<!--                    <notebook>-->
+<!--                        <page string="Assign Shift Templates">-->
+<!--                            <field name="line_ids">-->
+<!--                                <list editable="bottom">-->
+<!--                                    <field name="employee_id" options="{'no_create': True}" readonly="1" force_save="1"/>-->
+<!--                                    <field name="calendar_id" options="{'no_create': True}" required="1"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
+<!--                    </notebook>-->
+<!--                    <div class="text-muted mt-2">-->
+<!--                        <i class="fa fa-info-circle me-1"/> The system will automatically slice the date range into individual daily shifts based on the exact hours inside your selected templates!-->
+<!--                    </div>-->
+<!--                </sheet>-->
+<!--                <footer>-->
+<!--                    <button name="action_generate_shifts" type="object" string="Generate Shifts" class="btn btn-primary"/>-->
+<!--                    <button string="Cancel" class="btn btn-secondary" special="cancel"/>-->
+<!--                </footer>-->
+<!--            </form>-->
+<!--        </field>-->
+<!--    </record>-->
+
+<!--    <record id="action_planning_department_wizard" model="ir.actions.act_window">-->
+<!--        <field name="name">Schedule by Department</field>-->
+<!--        <field name="res_model">planning.department.wizard</field>-->
+<!--        <field name="view_mode">form</field>-->
+<!--        <field name="target">new</field>-->
+<!--    </record>-->
+
+<!--    <menuitem id="menu_planning_department_wizard"-->
+<!--              name="Schedule by Dept"-->
+<!--              parent="planning.planning_menu_schedule"-->
+<!--              sequence="99"-->
+<!--              action="action_planning_department_wizard"/>-->
+<!--</odoo>-->

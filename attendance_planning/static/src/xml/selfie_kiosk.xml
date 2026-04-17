@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="attendance_planning.SelfieKioskScreen" owl="1">
+        <div class="o_selfie_kiosk_container d-flex flex-column align-items-center justify-content-center h-100 w-100" style="background-color: #111827; color: white; min-height: 100vh;">
+
+            <h1 class="mb-2" style="color: #10B981; font-weight: bold;">AI Attendance Kiosk</h1>
+            <p t-esc="state.statusMessage" class="mb-4 text-warning" style="font-size: 1.5rem;"/>
+
+            <div class="video-container mb-4" style="border: 5px solid #374151; border-radius: 15px; overflow: hidden; background: #000; position: relative;">
+                <video t-ref="videoElement" autoplay="1" playsinline="1" style="width: 100%; max-width: 700px; height: auto; transform: scaleX(-1);"></video>
+                <canvas t-ref="canvasElement" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1);"></canvas>
+            </div>
+
+            <div t-if="state.successName" class="alert alert-success mt-3 text-center" style="font-size: 2rem; border-radius: 10px; width: 100%; max-width: 700px;">
+                <i class="fa fa-check-circle me-2"/> Welcome, <t t-esc="state.successName"/>! <br/>
+                <small style="font-size: 1.2rem;">Attendance Logged Successfully.</small>
+            </div>
+
+            <button class="btn btn-secondary btn-lg mt-4" t-on-click="_onCloseClick">
+                <i class="fa fa-sign-out me-2"/> Exit Kiosk
+            </button>
+
+        </div>
+    </t>
+</templates>

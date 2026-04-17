@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_attendance_tree_management_custom" model="ir.ui.view">
+        <field name="name">hr.attendance.tree.management.custom</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.view_attendance_tree_management"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='worked_hours']" position="replace">
+                <field name="worked_hours_custom" string="Worked Time" widget="float_time"/>
+            </xpath>
+
+            <xpath expr="//button[@name='action_approve_overtime']" position="replace"/>
+            <xpath expr="//button[@name='action_refuse_overtime']" position="replace"/>
+
+            <xpath expr="//field[@name='overtime_hours']" position="replace">
+                <field name="approved_extra_hours" string="Approved Extra Hours" widget="float_time"/>
+            </xpath>
+
+            <xpath expr="//field[@name='validated_overtime_hours']" position="replace">
+                <field name="total_hours" string="Total Hours" widget="float_time"/>
+            </xpath>
+
+            <xpath expr="//field[@name='total_hours']" position="after">
+                <field name="late_checkout_reason" string="Late Checkout Reason"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

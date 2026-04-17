@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="your_module.FaceRegisterScreen" owl="1">
+        <div class="o_face_register_container d-flex flex-column align-items-center justify-content-center h-100 w-100" style="background-color: #1a1a1a; color: white; min-height: 100vh;">
+
+            <h2 class="mb-3 text-info">Face Registration</h2>
+            <p t-esc="state.statusMessage" class="mb-4 text-warning" style="font-size: 1.2rem;"/>
+
+            <div class="video-container mb-4" style="border: 4px solid #00A09D; border-radius: 10px; overflow: hidden; background: #000; position: relative;">
+                <video t-ref="videoElement" autoplay="1" playsinline="1" style="width: 100%; max-width: 600px; height: auto; transform: scaleX(-1);"></video>
+                <canvas t-ref="canvasElement" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1);"></canvas>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button class="btn btn-success btn-lg" t-on-click="_onCaptureClick" t-att-disabled="!state.isReady">
+                    <i class="fa fa-camera me-2"/> Capture &amp; Save Face
+                </button>
+                <button class="btn btn-danger btn-lg" t-on-click="_onCancelClick">
+                    Cancel
+                </button>
+            </div>
+
+        </div>
+    </t>
+</templates>
