@@ -3,6 +3,7 @@
     'version': '1.0',
     'category': 'Human Resources',
     'summary': 'Advanced late policies, exact worked hours, and shift templates',
+    'author': "Unisas ITBusiness Solutions Private Limited",
     'depends': [
         'base',
         'hr_attendance',
@@ -46,4 +47,5 @@
     },
     'installable': True,
     'application': False,
+    'license': 'LGPL-3',
 }
