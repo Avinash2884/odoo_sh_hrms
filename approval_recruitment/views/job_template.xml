@@ -20,14 +20,14 @@
 
     </template>
 
-    <template id="hide_navbar_job_detail"
-          inherit_id="website_hr_recruitment.detail">
+<!--    <template id="hide_navbar_job_detail"-->
+<!--          inherit_id="website_hr_recruitment.detail">-->
 
-        <xpath expr="//nav[hasclass('navbar')]" position="attributes" optional="1">
-            <attribute name="style">display:none !important;</attribute>
-        </xpath>
+<!--        <xpath expr="//nav[hasclass('navbar')]" position="attributes" optional="1">-->
+<!--            <attribute name="style">display:none !important;</attribute>-->
+<!--        </xpath>-->
 
-    </template>
+<!--    </template>-->
     <!-- 2. CUSTOM JOB PAGE -->
     <template id="custom_job_page"
               inherit_id="website_hr_recruitment.detail"

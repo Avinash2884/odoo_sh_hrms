@@ -4,58 +4,24 @@ from odoo.exceptions import ValidationError
 class ResUsers(models.Model):
     _inherit = 'res.users'
 
-    @api.model
+    @api.model_create_multi
     def create(self, vals_list):
 
-        employee_id = self.env.context.get('default_create_employee_id')
-        employee = False
+        # Create user normally
+        users = super().create(vals_list)
 
-        # ---------------------------------
-        # 1️⃣ Employee Validation
-        # ---------------------------------
+        # Get employee from context
+        employee_id = self.env.context.get('default_create_employee_id')
+
         if employee_id:
             employee = self.env['hr.employee'].browse(employee_id)
 
-            if not employee.exists():
-                raise ValidationError(_("Invalid Employee reference."))
+            # Link user (only if not already linked)
+            if not employee.user_id:
+                employee.user_id = users[0].id
 
-            if not employee.parent_id:
-                raise ValidationError(
-                    _("Reporting Manager is not set for this Employee.")
-                )
-
-            if 'hr_id' in employee._fields and not employee.hr_id:
-                raise ValidationError(
-                    _("HR Manager is not set for this Employee.")
-                )
-
-        # ---------------------------------
-        # 2️⃣ Prevent duplicate login
-        # ---------------------------------
-        for vals in vals_list:
-            login = vals.get('login')
-
-            if login:
-                existing_user = self.search(
-                    [('login', '=', login)], limit=1
-                )
-
-                if existing_user:
-                    raise ValidationError(
-                        _("User with this login already exists.")
-                    )
-
-        # ---------------------------------
-        # 3️⃣ Create Users (default flow)
-        # ---------------------------------
-        users = super().create(vals_list)
-
-        # ---------------------------------
-        # 4️⃣ Send mail after success
-        # ---------------------------------
-        if employee:
+            # Send mail
             manager = employee.parent_id
-
             if manager and manager.work_email:
                 self._send_manager_mail(employee, manager)
 

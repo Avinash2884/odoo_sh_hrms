@@ -18,6 +18,7 @@ from . import hr_contract_salary_offer_inherit
 from . import hr_applicant_education
 from . import hr_applicant_experience
 from . import hr_pre_onboarding
+from . import hr_employee_public
 
 from . import employee_configuration
 from . import separation

@@ -22,6 +22,7 @@
                         </thead>
                         <tbody>
                             <t t-set="sno" t-value="1"/>
+<!--                            Interview Stage 1, Interview Stage 2, Culture fit assessment-->
                             <t t-set="stage_ids" t-value="[env.ref('hr_recruitment.stage_job2').id, env.ref('hr_recruitment.stage_job3').id,env.ref('approval_recruitment.stage_job6').id,]"/>
 
                             <t t-foreach="job.env['hr.applicant'].search([('job_id','=',job.id), ('stage_id','in', stage_ids)])" t-as="candidate">

@@ -351,11 +351,7 @@ class HrEmployeeInherit(models.Model):
                     'default_model': 'hr.employee',
                     'default_res_ids': self.ids,
                     'default_composition_mode': 'comment',
-
-                    # முக்கியமானது 👇
                     'default_partner_ids': [(6, 0, [partner.id])] if partner else [],
-
-                    # optional
                     'default_email_to': self.work_email,
                 }
             }
