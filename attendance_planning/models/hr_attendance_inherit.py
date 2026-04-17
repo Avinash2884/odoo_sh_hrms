@@ -48,7 +48,7 @@ class HrAttendance(models.Model):
     effective_check_in = fields.Datetime(compute="_compute_effective", store=True)
     worked_hours_custom = fields.Float(compute="_compute_worked", store=True)
     scheduled_hours = fields.Float(compute="_compute_scheduled", store=True)
-    extra_hours = fields.Float(compute="_compute_extra", store=True)
+    extra_hours = fields.Float(string="Extra Hours",compute="_compute_extra", store=True)
     total_hours = fields.Float(compute="_compute_total", store=True)
 
     # ----------------------------------------------------------
@@ -58,6 +58,7 @@ class HrAttendance(models.Model):
         compute='_compute_native_overtime', store=True
     )
     validated_overtime_hours = fields.Float(
+        string="Validated Extra Hours",
         compute='_compute_native_overtime', store=True
     )
 
