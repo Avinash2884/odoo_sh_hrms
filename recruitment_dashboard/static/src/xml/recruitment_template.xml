@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!-- Root component -->
+    <t t-name="RecruitmentDashboard">
+        <div class="oh_dashboards container-fluid py-3">
+
+            <!-- KPI cards -->
+            <div class="row g-3 mb-4">
+                <!-- Total Applicants -->
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="card shadow-sm border-0 text-center" style="background:#FFB3C1; padding:20px; border-radius:12px;">
+                        <div class="small text-uppercase fw-semibold mb-2">Total Applicants</div>
+                        <div class="fs-3 fw-bold"><t t-esc="state.total_applicants"/></div>
+                    </div>
+                </div>
+
+                <!-- Total Jobs -->
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="card shadow-sm border-0 text-center" style="background:#BDE0FE; padding:20px; border-radius:12px;">
+                        <div class="small text-uppercase fw-semibold mb-2">Total Jobs</div>
+                        <div class="fs-3 fw-bold"><t t-esc="state.total_jobs"/></div>
+                    </div>
+                </div>
+
+                <!-- Total Offers -->
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="card shadow-sm border-0 text-center" style="background:#D4F1BE; padding:20px; border-radius:12px;">
+                        <div class="small text-uppercase fw-semibold mb-2">Total Offers</div>
+                        <div class="fs-3 fw-bold"><t t-esc="state.total_offers"/></div>
+                    </div>
+                </div>
+
+                <!-- Refused Count -->
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="card shadow-sm border-0 text-center" style="background:#FFE6A7; padding:20px; border-radius:12px;">
+                        <div class="small text-uppercase fw-semibold mb-2">Refused</div>
+                        <div class="fs-3 fw-bold"><t t-esc="state.refused_count"/></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job summary + Doughnut chart -->
+            <div class="row g-4">
+
+                <!-- Job summary table -->
+                    <div class="col-md-12">
+                        <div class="card shadow-sm border-0 h-100"
+                             style="border-radius:16px; background:#ffffff; min-height:460px;">
+                            <div class="card-header fw-semibold bg-white border-bottom"
+                                 style="border-top-left-radius:16px; border-top-right-radius:16px;">
+                                Job-wise Recruitment Summary
+                            </div>
+                            <div class="table-responsive"
+                                 style="max-height: 360px; overflow-y: auto; overflow-x: auto;">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light sticky-top"
+                                           style="top: 0; z-index: 1; border-bottom: 2px solid #ccc;">
+                                        <tr>
+                                            <th>Job Positions</th>
+                                            <th class="text-center">Total Vacancies</th>
+                                            <th class="text-center">Total Applicants</th>
+                                            <th class="text-center text-success">Contract Offered</th>
+                                            <th class="text-center text-success">Contract Accepted</th>
+                                            <th class="text-center text-success">Contract Expired</th>
+                                            <th class="text-center text-success">Contract Refused</th>
+                                            <th class="text-center text-success">Contract Cancelled</th>
+                                            <th class="text-center">Joined</th>
+                                            <th class="text-center">Department</th>
+                                            <th class="text-center text-danger">No Shown</th>
+                                            <th class="text-center text-danger fw-semibold">Applicant Refused</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="state.job_summary" t-as="job" t-key="job.job_name">
+                                            <tr>
+                                                <!--Job Position-->
+                                                <td class="fw-semibold"><t t-esc="job.job_name"/></td>
+
+                                                <!--Total Vacancies-->
+                                                <td class="text-center"><t t-esc="job.target"/></td>
+
+                                                <!--Total Applicants-->
+                                                <td class="text-center"><t t-esc="job.total_applicants"/></td>
+
+                                                <!--Contract Offered-->
+                                                <td class="text-center text-success fw-semibold"><t t-esc="job.contract_offered"/></td>
+
+                                                <!--Contract Accepted-->
+                                                <td class="text-center text-danger fw-semibold"><t t-esc="job.contract_accepted"/></td>
+
+                                                <!--Contract Expired-->
+                                                <td class="text-center"><t t-esc="job.total_offers"/><t t-esc="job.contract_expired"/></td>
+
+                                                <!--Contract Refused-->
+                                                <td class="text-center"><t t-esc="job.total_offers"/><t t-esc="job.contract_refused"/></td>
+
+                                                <!--Contract Cancelled-->
+                                                <td class="text-center"><t t-esc="job.total_offers"/><t t-esc="job.contract_cancelled"/></td>
+
+                                                <!--Joined-->
+                                                <td class="text-center text-danger fw-semibold"></td>
+
+                                                <!--Department-->
+                                                <td class="text-center text-danger fw-semibold"></td>
+
+                                                <!--No Shown-->
+                                                <td class="text-center text-danger fw-semibold"><t t-esc="job.not_shown"/></td>
+
+                                                <!--Refused-->
+                                                <td class="text-center text-danger fw-semibold"><t t-esc="job.refused_offers"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Doughnut chart -->
+<!--                <div class="col-md-4">-->
+<!--                    <div class="card shadow-sm border-0 h-100"-->
+<!--                         style="border-radius:16px; background:#ffffff;">-->
+<!--                        <div class="card-header fw-semibold bg-white border-bottom"-->
+<!--                             style="border-top-left-radius:16px; border-top-right-radius:16px;">-->
+<!--                            Selection Overview-->
+<!--                        </div>-->
+<!--                        <div class="card-body d-flex justify-content-center align-items-center" style="padding: 2rem; min-height: 400px;">-->
+<!--                            <canvas t-ref="jobPieChart" style="max-width: 100%; max-height: 300px;"></canvas>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+            </div>
+        </div>
+    </t>
+</templates>

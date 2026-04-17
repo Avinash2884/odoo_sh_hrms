@@ -1,0 +1,10 @@
+<odoo>
+    <data>
+        <template id="assets_backend" name="TimeOff Color Assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" type="text/css"
+                      href="/attendance_regularisation/static/src/css/timeoff_css.css"/>
+            </xpath>
+        </template>
+    </data>
+</odoo>
