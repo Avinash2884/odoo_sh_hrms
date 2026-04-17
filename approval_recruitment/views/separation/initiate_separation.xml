@@ -12,7 +12,7 @@
                         string="Revoke"
                         class="btn-danger"
                         groups="approval_recruitment.group_separation_employee"
-                        invisible="state != 'submitted"/>
+                        invisible="state != 'submitted'"/>
                     <button
                         name="action_submit"
                         type="object"
