@@ -1,6 +1,7 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from datetime import timedelta
 
 
 class InitiateSeparation(models.Model):
@@ -28,7 +29,7 @@ class InitiateSeparation(models.Model):
     admin_head_id = fields.Many2one('hr.employee', 'Admin Head',related='employee_id.admin_head_id',tracking=True)
     payroll_head_id = fields.Many2one('hr.employee', 'Payroll Head',related='employee_id.payroll_head_id',tracking=True)
     joining_date_recruit = fields.Date(string="Date of Joining", copy=False,related='employee_id.joining_date_recruit', tracking=True)
-    last_working_date = fields.Date(string="Last Working Date", copy=False, tracking=True)
+    last_working_date = fields.Date(string="Last Working Date", copy=False, tracking=True,default=lambda self: fields.Date.today() + timedelta(days=30))
     reason_for_resignation = fields.Char(string="Reason For Resignation", copy=False, tracking=True)
     resignation_reason = fields.Selection([
         ('career', 'Better Career Opportunity'),
@@ -318,8 +319,11 @@ class InitiateSeparation(models.Model):
 
     def action_it_assets_approve(self):
         for record in self:
+            employee = self.env['hr.employee'].search([
+                ('user_id', '=', self.env.user.id)
+            ], limit=1)
             record.it_assets_clearance_ids.it_assets_state = 'approved'
-            record.it_assets_clearance_approver_name = self.env.user.id
+            record.it_assets_clearance_approver_name = employee.id
             record.it_assets_clearance_approval_date = fields.Date.today()
             record.it_assets_state = 'approved'
             record._send_it_asset_head_approve_mail()
