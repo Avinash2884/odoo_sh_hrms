@@ -163,6 +163,71 @@ class InitiateSeparation(models.Model):
         string="Employee Editable Acknowledge",
         compute="_compute_acknowledgement_editable"
     )
+    is_request_owner = fields.Boolean(compute="_compute_is_request_owner")
+    is_only_manager = fields.Boolean(compute="_compute_is_only_manager")
+    is_only_hr_head = fields.Boolean(compute="_compute_is_only_hr_head")
+    is_only_it_assets_head = fields.Boolean(compute="_compute_is_only_it_assets_head")
+    is_only_admin_head = fields.Boolean(compute="_compute_is_only_admin_head")
+    is_only_payroll_head = fields.Boolean(compute="_compute_is_only_payroll_head")
+
+    def _compute_is_request_owner(self):
+        for rec in self:
+            rec.is_request_owner = rec.create_uid == self.env.user
+
+    def _compute_is_only_manager(self):
+        for rec in self:
+            user = self.env.user
+
+            rec.is_only_manager = (
+                    user.has_group('approval_recruitment.group_separation_reporting_manager')
+                    and not user.has_group('approval_recruitment.group_separation_hr')
+                    and rec.reporting_manager_id.user_id == user
+                    and rec.create_uid != user
+            )
+
+    def _compute_is_only_hr_head(self):
+        for rec in self:
+            user = self.env.user
+
+            rec.is_only_hr_head = (
+                    user.has_group('approval_recruitment.group_separation_hr_head')
+                    and not user.has_group('approval_recruitment.group_separation_it_assets_clearance_head')
+                    and rec.hr_head_id.user_id == user
+                    and rec.create_uid != user
+            )
+
+    def _compute_is_only_it_assets_head(self):
+        for rec in self:
+            user = self.env.user
+
+            rec.is_only_it_assets_head = (
+                    user.has_group('approval_recruitment.group_separation_it_assets_clearance_head')
+                    and rec.it_asset_head_id
+                    and rec.it_asset_head_id.user_id == user
+                    and rec.create_uid != user
+            )
+
+    def _compute_is_only_admin_head(self):
+        for rec in self:
+            user = self.env.user
+
+            rec.is_only_admin_head = (
+                    user.has_group('approval_recruitment.group_separation_admin_clearance_head')
+                    and rec.admin_head_id
+                    and rec.admin_head_id.user_id == user
+                    and rec.create_uid != user
+            )
+
+    def _compute_is_only_payroll_head(self):
+        for rec in self:
+            user = self.env.user
+
+            rec.is_only_payroll_head = (
+                    user.has_group('approval_recruitment.group_separation_payroll_clearance_head')
+                    and rec.payroll_clearance_approver_ids  # or payroll_head_id if you have
+                    and user.id in rec.payroll_clearance_approver_ids.mapped('user_id').ids
+                    and rec.create_uid != user
+            )
 
     def _compute_acknowledgement_editable(self):
         for rec in self:
@@ -273,10 +338,15 @@ class InitiateSeparation(models.Model):
 
     def action_admin_approve(self):
         for record in self:
+            employee = self.env['hr.employee'].search([
+                ('user_id', '=', self.env.user.id)
+            ], limit=1)
+
             record.admin_clearance_ids.admin_state = 'approved'
-            record.admin_clearance_approver_name = self.env.user.id
+            record.admin_clearance_approver_name = employee.id
             record.admin_clearance_approval_date = fields.Date.today()
             record.admin_state = 'approved'
+
             record._send_admin_head_approve_mail()
 
     def action_admin_resubmitted(self):

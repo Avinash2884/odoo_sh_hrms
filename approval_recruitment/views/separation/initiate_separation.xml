@@ -12,7 +12,7 @@
                         string="Revoke"
                         class="btn-danger"
                         groups="approval_recruitment.group_separation_employee"
-                        invisible="state != 'submitted'"/>
+                        invisible="state != 'submitted' or not is_request_owner"/>
                     <button
                         name="action_submit"
                         type="object"
@@ -25,32 +25,28 @@
                         type="object"
                         string="Manager Approve"
                         class="oe_highlight"
-                        invisible="internal_state in (False,'manager_approved','manager_rejected','hr_approved','hr_rejected','revoked')"
-                        groups="approval_recruitment.group_separation_reporting_manager"/>
+                        invisible="internal_state in (False,'manager_approved','manager_rejected','hr_approved','hr_rejected','revoked') or not is_only_manager"/>
 
                     <button
                         name="action_manager_reject"
                         type="object"
                         string="Manager Reject"
                         class="oe_highlight"
-                        invisible="internal_state in (False,'manager_approved','manager_rejected','hr_approved','hr_rejected')"
-                        groups="approval_recruitment.group_separation_reporting_manager"/>
+                        invisible="internal_state in (False,'manager_approved','manager_rejected','hr_approved','hr_rejected') or not is_only_manager"/>
 
                     <button
                         name="action_hr_approve"
                         type="object"
                         string="HR Approve"
                         class="oe_highlight"
-                        invisible="internal_state in (False,'submitted','hr_approved','hr_rejected')"
-                        groups="approval_recruitment.group_separation_hr_head"/>
+                        invisible="internal_state in (False,'submitted','hr_approved','hr_rejected') or not is_only_hr_head"/>
 
                     <button
                         name="action_hr_reject"
                         type="object"
                         string="HR Reject"
                         class="oe_highlight"
-                        invisible="internal_state in (False,'submitted','hr_approved','hr_rejected')"
-                        groups="approval_recruitment.group_separation_hr_head"/>
+                        invisible="internal_state in (False,'submitted','hr_approved','hr_rejected') or not is_only_hr_head"/>
 
                     <field name="state" widget="statusbar"/>
                 </header>
@@ -133,21 +129,19 @@
                                             type="object"
                                             string="Submit"
                                             class="oe_highlight"
-                                            invisible="key_state in ('submitted','approved')"/>
+                                            invisible="key_state in ('submitted','approved') or not is_request_owner"/>
 
                                 <button name="action_handover_approve"
                                             type="object"
                                             string="Approve"
                                             class="oe_highlight"
-                                            invisible="key_state in (False,'approved','resubmitted')"
-                                            groups="approval_recruitment.group_separation_reporting_manager"/>
+                                            invisible="key_state in (False,'approved','resubmitted') or not is_only_manager"/>
 
                                 <button name="action_handover_reject"
                                         type="object"
                                         string="Resubmit"
                                         class="oe_highlight"
-                                        invisible="key_state in (False,'approved','resubmitted')"
-                                        groups="approval_recruitment.group_separation_reporting_manager"/>
+                                        invisible="key_state in (False,'approved','resubmitted') or not is_only_manager"/>
                             </form>
                         </page>
                         <page string="Clearance" name="clearance"
@@ -191,19 +185,19 @@
                                 string="Submit"
                                 type="object"
                                 class="btn-primary"
-                                invisible="it_assets_state in ('submitted','approved')"/>
+                                invisible="it_assets_state in ('submitted','approved') or not is_request_owner"/>
                                 <button name="action_it_assets_approve"
                                 string="Approve"
                                 type="object"
                                 class="btn-primary"
                                 groups="approval_recruitment.group_separation_it_assets_clearance_head"
-                                invisible="it_assets_state in (False,'approved','resubmitted')"/>
+                                invisible="it_assets_state in (False,'approved','resubmitted') or not is_only_it_assets_head"/>
                                 <button name="action_it_assets_resubmitted"
                                 string="Resubmitted"
                                 type="object"
                                 class="btn-primary"
                                 groups="approval_recruitment.group_separation_it_assets_clearance_head"
-                                invisible="it_assets_state in (False,'approved','resubmitted')"/>
+                                invisible="it_assets_state in (False,'approved','resubmitted') or not is_only_it_assets_head"/>
                             </group>
                             <group string="Admin Clearance" invisible="it_assets_state != 'approved'">
                                 <field name="admin_clearance_ids" string="">
@@ -236,19 +230,19 @@
                                 string="Submit"
                                 type="object"
                                 class="btn-primary"
-                                invisible="admin_state in ('submitted','approved')"/>
+                                invisible="admin_state in ('submitted','approved') or not is_request_owner"/>
                                 <button name="action_admin_approve"
                                 string="Approve"
                                 type="object"
                                 class="btn-primary"
                                 groups="approval_recruitment.group_separation_admin_clearance_head"
-                                invisible="admin_state in (False,'approved','resubmitted')"/>
+                                invisible="admin_state in (False,'approved','resubmitted') or not is_only_admin_head"/>
                                 <button name="action_admin_resubmitted"
                                 string="Resubmitted"
                                 type="object"
                                 class="btn-primary"
                                 groups="approval_recruitment.group_separation_admin_clearance_head"
-                                invisible="admin_state in (False,'approved','resubmitted')"/>
+                                invisible="admin_state in (False,'approved','resubmitted') or not is_only_admin_head"/>
                             </group>
                             <group string="Payroll Clearance" groups="approval_recruitment.group_separation_payroll_clearance_head"
                             invisible="not can_show_payroll">
@@ -307,7 +301,7 @@
                                 string="Submit"
                                 type="object"
                                 class="btn-primary"
-                                invisible="exit_state in ('submitted')"/>
+                                invisible="exit_state in ('submitted') or not is_request_owner"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -342,5 +336,18 @@
         <field name="name">Initiate Separation</field>
         <field name="res_model">initiate.separation</field>
         <field name="view_mode">list,form</field>
+        <field name="domain">
+            [('create_uid', '=', uid)]
+        </field>
+    </record>
+    <record id="action_separation_approval" model="ir.actions.act_window">
+        <field name="name">Separation Approval</field>
+        <field name="res_model">initiate.separation</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">
+            [
+                ('create_uid', '!=', uid)
+            ]
+        </field>
     </record>
 </odoo>

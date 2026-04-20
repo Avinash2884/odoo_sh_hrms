@@ -55,23 +55,20 @@ class ApprovalCategoryInherit(models.Model):
             'hr_employee_id': department.approval_hr_id.id if department.approval_hr_id else False,
         })
 
-        sequence = 1
-
         # Manager approver
         if department.manager_id and department.manager_id.user_id:
             approver_commands.append((0, 0, {
                 'user_id': department.manager_id.user_id.id,
                 'required': True,
-                'approver_sequence': sequence,
+                'approver_sequence': True,
             }))
-            sequence += 1
 
         # HR approver
         if department.approval_hr_id and department.approval_hr_id.user_id:
             approver_commands.append((0, 0, {
                 'user_id': department.approval_hr_id.user_id.id,
                 'required': True,
-                'approver_sequence': sequence,
+                'approver_sequence': True,
             }))
 
         return vals, approver_commands

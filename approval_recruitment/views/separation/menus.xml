@@ -7,6 +7,10 @@
           name="Initiate Separation"
           parent="menu_separation_root"
           action="action_initiate_separation"/>
+    <menuitem id="menu_separation_approval"
+          name="Separation Approval"
+          parent="menu_separation_root"
+          action="action_separation_approval"/>
 <!--    configuration-->
     <menuitem id="menu_separation_configuration"
           name="Separation"
