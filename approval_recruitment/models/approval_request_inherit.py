@@ -50,15 +50,20 @@ class ApprovalRequestInherit(models.Model):
                     # --------------------------------------
                     # CREATE NEW HR JOB
                     # --------------------------------------
-                    job = self.env['hr.job'].create({
+                    job_vals = {
                         'name': request.approval_job_position,
                         'approval_experience_minimum': request.approval_experience_minimum,
                         'approval_experience_maximum': request.approval_experience_maximum,
                         'approval_overall_budget_for_all_posting': request.approval_overall_budget_for_all_posting,
                         'approval_budget_for_each_employee_position': request.approval_budget_for_each_employee_position,
                         'no_of_recruitment': request.no_of_position,
-                    })
+                    }
 
+                    # ✅ Copy interviewer_ids from category
+                    if request.category_id.interviewer_ids:
+                        job_vals['interviewer_ids'] = [(6, 0, request.category_id.interviewer_ids.ids)]
+
+                    job = self.env['hr.job'].create(job_vals)
                     print(f"✅ HR Job created: {job.name} (Positions: {job.no_of_recruitment})")
                 else:
                     print("⚠ No skill selected — skipping skill mapping")

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<odoo>
+<data noupdate="1">
+    <record id="refuse_reason_9" model="hr.applicant.refuse.reason">
+        <field name="name">Application Rejection: Before Interview</field>
+        <field name="template_id" ref="email_template_data_applicant_reject_before_interview"/>
+        <field name="sequence">12</field>
+    </record>
+    <record id="refuse_reason_10" model="hr.applicant.refuse.reason">
+        <field name="name">Interviewed Candidate : Rejection</field>
+        <field name="template_id" ref="mail_template_reject_after_interview"/>
+        <field name="sequence">12</field>
+    </record>
+</data>
+</odoo>

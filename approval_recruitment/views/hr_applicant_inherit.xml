@@ -8,6 +8,9 @@
             <xpath expr="//field[@name='stage_id']" position="attributes">
                 <attribute name="domain">[('job_ids','in',job_id)]</attribute>
             </xpath>
+            <xpath expr="//field[@name='interviewer_ids']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
             <xpath expr="//field[@name='partner_phone']" position="after">
                 <field name="ls_date_of_joining" invisible="not show_doj"/>
             </xpath>
@@ -20,7 +23,7 @@
                     </group>
                     <field name="evaluation_ids">
                         <list editable="bottom" create="False">
-                            <field name="interviewer_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="interviewer_id" options="{'no_open': True, 'no_create': True}" readonly="1"/>
                             <field name="education"/>
                             <field name="professional"/>
                             <field name="personality"/>

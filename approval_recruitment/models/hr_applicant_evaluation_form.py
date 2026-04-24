@@ -39,12 +39,6 @@ class HrApplicantEvaluation(models.Model):
                 if value > 10:
                     raise ValidationError(f"{field.replace('_', ' ').title()} cannot be more than 10.")
 
-    # @api.model
-    # def create(self, vals):
-    #     rec = super().create(vals)
-    #     rec.applicant_id._update_stage_based_on_mark()  # only for mark → stage_job3
-    #     return rec
-
     def write(self, vals):
         for rec in self:
 

@@ -13,6 +13,7 @@
                 <field name="approval_overall_budget_for_all_posting"/>
                 <field name="approval_budget_for_each_employee_position"/>
                 <field name="hr_head"/>
+                <field name="interviewer_ids" widget="many2many_tags"/>
             </xpath>
         </field>
     </record>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="mail_template_probation_extension_hr" model="mail.template">
+            <field name="name">HR: Probation Extension</field>
+
+            <!-- FIXED -->
+            <field name="model_id" ref="hr_appraisal.model_hr_appraisal"/>
+
+            <field name="subject">Probation Extended - {{ object.employee_id.name }}</field>
+
+            <!-- HR email (safe via related field) -->
+            <field name="email_to">{{ object.hr_id.work_email }}</field>
+
+            <field name="auto_delete" eval="True"/>
+
+            <field name="body_html" type="html">
+                <div style="margin:0px;padding:0px;font-family:Arial;">
+
+                    <h3 style="text-align:center;text-decoration:underline;">
+                        Probation Extension Notice
+                    </h3>
+
+                    <p>Date: <t t-esc="time.strftime('%Y-%m-%d')"/></p>
+
+                    <p>Dear <t t-out="object.hr_id.name"/>,</p>
+
+                    <p>
+                        Probation period for employee
+                        <strong><t t-out="object.employee_id.name"/></strong>
+                        has been extended for <strong>1 month</strong>.
+                    </p>
+
+                    <p>
+                        <strong>Reason:</strong><br/>
+                        <t t-out="object.probation_reason"/>
+                    </p>
+
+                    <p>
+                        <strong>New Contract End Date:</strong><br/>
+                        <t t-out="object.employee_id.date_end"/>
+                    </p>
+
+                    <br/>
+
+                    <p>Regards,<br/>HR Team</p>
+
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_employee_confirmation_hr" model="mail.template">
+            <field name="name">HR: Employee Confirmation Letter</field>
+
+            <!-- FIXED -->
+            <field name="model_id" ref="hr_appraisal.model_hr_appraisal"/>
+
+            <field name="subject">Employee Confirmation - {{ object.employee_id.name }}</field>
+
+            <field name="email_to">{{ object.hr_id.work_email }}</field>
+
+            <field name="auto_delete" eval="True"/>
+
+            <field name="body_html" type="html">
+                <div style="margin:0px;padding:0px;font-family:Arial;">
+
+                    <h3 style="text-align:center;text-decoration:underline;">
+                        Employee Confirmation Letter
+                    </h3>
+
+                    <p>Date: <t t-esc="time.strftime('%Y-%m-%d')"/></p>
+
+                    <p>Dear <t t-out="object.hr_id.name"/>,</p>
+
+                    <p>
+                        Employee
+                        <strong><t t-out="object.employee_id.name"/></strong>
+                        has been confirmed as a
+                        <strong>Permanent Employee</strong>.
+                    </p>
+
+                    <p>
+                        <strong>Contract Start Date:</strong><br/>
+                        <t t-out="object.employee_id.probation_date_start"/>
+                    </p>
+
+                    <br/>
+
+                    <p>Regards,<br/>HR Team</p>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

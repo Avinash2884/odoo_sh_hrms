@@ -26,24 +26,6 @@ class HrApplicantInherit(models.Model):
         store=False
     )
 
-    @api.onchange('interviewer_ids')
-    def _onchange_interviewer_ids(self):
-
-        if not self.interviewer_ids:
-            self.evaluation_ids = [(5, 0, 0)]
-            return
-
-        commands = [(5, 0, 0)]  # clear all lines
-
-        for user in self.interviewer_ids:
-            commands.append((0, 0, {
-                'interviewer_id': user.id
-            }))
-
-        self.evaluation_ids = commands
-        artists = ['interviewer_ids1', 'interviewer_ids2', 'interviewer_ids3']
-        print(artists(1))
-
     def _compute_show_evaluation_page(self):
         stage_1 = self.env.ref('hr_recruitment.stage_job0', raise_if_not_found=False)
         stage_2 = self.env.ref('hr_recruitment.stage_job1', raise_if_not_found=False)
@@ -231,14 +213,39 @@ class HrApplicantInherit(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if not vals.get('registration_no') or \
-                    vals.get('registration_no') == 'New':
-                vals['registration_no'] = self.env[
-                                              'ir.sequence'
-                                          ].next_by_code(
+
+            # ✅ EXISTING LOGIC (registration number)
+            if not vals.get('registration_no') or vals.get('registration_no') == 'New':
+                vals['registration_no'] = self.env['ir.sequence'].next_by_code(
                     'hr.applicant.registration'
                 ) or 'New'
-        return super().create(vals_list)
+
+            # ----------------------------------------
+            # ✅ COPY INTERVIEWERS FROM JOB
+            # ----------------------------------------
+            if vals.get('job_id'):
+                job = self.env['hr.job'].browse(vals['job_id'])
+
+                if job.interviewer_ids:
+                    vals['interviewer_ids'] = [(6, 0, job.interviewer_ids.ids)]
+
+        applicants = super().create(vals_list)
+
+        # ----------------------------------------
+        # 🔥 CREATE EVALUATION LINES
+        # ----------------------------------------
+        for applicant in applicants:
+            if applicant.interviewer_ids:
+                applicant.evaluation_ids = [(5, 0, 0)]
+
+                applicant.evaluation_ids = [
+                    (0, 0, {
+                        'interviewer_id': user.id
+                    })
+                    for user in applicant.interviewer_ids
+                ]
+
+        return applicants
 
     access_token = fields.Char(
         string='Security Token',
