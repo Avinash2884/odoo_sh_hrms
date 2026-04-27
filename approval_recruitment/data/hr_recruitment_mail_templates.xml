@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<odoo>
+    <data noupdate="1">
+        <record id="email_template_data_applicant_application_rejection" model="mail.template">
+            <field name="name">Application Rejection : Before Interview</field>
+            <field name="model_id" ref="hr_recruitment.model_hr_applicant"/>
+            <field name="subject">Your Job Application: {{ object.job_id.name }}</field>
+            <field name="email_to" eval="False"/>
+            <field name="partner_to" eval="False"/>
+            <field name="use_default_to" eval="True"/>
+            <field name="description">When you refuse an application, you can choose this template</field>
+            <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <div style="font-size: 13px; margin: 0px; padding: 0px;">
+                    Dear <t t-out="object.partner_name"/>,<br/><br/>
+                    Thank you for your interest in the <b><t t-out="object.job_id.name"/></b>Position at <b><t t-out="user.company_id.name"/></b>.
+                    <br/><br/>
+                    After reviewing your application, We regret to inform you that we will not be moving forward at this stage.<br/><br/>
+                    We appreciate the time taken to apply and encourage you to explore future openings with <b><t t-out="user.company_id.name"/></b>.<br/><br/>
+                    Best Regards<br/>
+                    <div style="font-size: 11px; color: grey;">
+                        <t t-if="object.user_id">
+                            <br/>
+                            <strong t-out="object.user_id.name or ''">Marc Demo</strong><br/>
+                            Email: <t t-out="object.user_id.email or ''">mark.brown23@example.com</t><br/>
+                            Phone: <t t-out="object.user_id.phone or ''">+1 650-123-4567</t>
+                        </t>
+                        <t t-else="">
+                            <br/>
+                            <t t-out="object.company_id.name or ''">YourCompany</t><br/>
+                            The HR Team<br/>
+                        </t>
+                    </div>
+                </div>
+            </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+        <record id="email_template_data_applicant_interview_candidate_rejection" model="mail.template">
+            <field name="name">Interviewed Candidate : Rejection</field>
+            <field name="model_id" ref="hr_recruitment.model_hr_applicant"/>
+            <field name="subject">Your Job Application: {{ object.job_id.name }}</field>
+            <field name="email_to" eval="False"/>
+            <field name="partner_to" eval="False"/>
+            <field name="use_default_to" eval="True"/>
+            <field name="description">When you refuse an application, you can choose this template</field>
+            <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <div style="font-size: 13px; margin: 0px; padding: 0px;">
+                    Dear <t t-out="object.partner_name"/>,<br/><br/>
+                    Thank you for your interest in the <b><t t-out="object.job_id.name"/></b>Position at <b><t t-out="user.company_id.name"/></b> and for taking the time to participate in our interview process.
+                    <br/><br/>
+                    After careful consideration, We regret to inform you that we will not be proceeding with your application at this time.<br/><br/>
+                    We appreciate your interest in <b><t t-out="user.company_id.name"/></b> and encourage you to apply for future opportunities that match your experience.<br/><br/>
+                    We wish you success in your job search.<br/><br/>
+                    Best Regards<br/>
+                    <div style="font-size: 11px; color: grey;">
+                        <t t-if="object.user_id">
+                            <br/>
+                            <strong t-out="object.user_id.name or ''">Marc Demo</strong><br/>
+                            Email: <t t-out="object.user_id.email or ''">mark.brown23@example.com</t><br/>
+                            Phone: <t t-out="object.user_id.phone or ''">+1 650-123-4567</t>
+                        </t>
+                        <t t-else="">
+                            <br/>
+                            <t t-out="object.company_id.name or ''">YourCompany</t><br/>
+                            The HR Team<br/>
+                        </t>
+                    </div>
+                </div>
+            </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+        <record id="mail_template_applicant_on_hold" model="mail.template">
+            <field name="name">HR - Applicant On Hold / Under Review</field>
+            <field name="model_id" ref="hr_recruitment.model_hr_applicant"/>
+            <field name="email_from">{{ object.user_id.email_formatted or '' }}</field>
+            <field name="email_to">{{ object.email_from }}</field>
+            <field name="subject">Application Status Update – {{ object.job_id.name }}</field>
+
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
+
+                    <p>
+                        Dear <t t-out="object.partner_name"/>,
+                    </p>
+
+                    <p>
+                        Thank you for taking the time to interview for the
+                        <b><t t-out="object.job_id.name"/></b> position at
+                        <b><t t-out="object.company_id.name"/></b>.
+                    </p>
+
+                    <p>
+                        We would like to inform you that your application is currently
+                        <b>under review</b>.
+                    </p>
+
+                    <p>
+                        While no final decision has been made at this stage,
+                        we will keep you informed of any updates as soon as they are available.
+                    </p>
+
+                    <p>
+                        We appreciate your patience and continued interest in opportunities with
+                        <b><t t-out="object.company_id.name"/></b>.
+                    </p>
+
+                    <br/>
+
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.user_id.name or 'HR Team'"/><br/>
+                        <t t-out="object.company_id.name"/>
+                    </p>
+
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_hr_recruitments_positions_filled" model="mail.template">
+            <field name="name">HR - Position Filled</field>
+            <field name="model_id" ref="hr_recruitment.model_hr_applicant"/>
+            <field name="email_from">{{ object.user_id.email_formatted or '' }}</field>
+            <field name="email_to">{{ object.email_from }}</field>
+            <field name="subject">Application Status Update – {{ object.job_id.name }}</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
+                    <p>Dear <t t-esc="object.partner_name or 'Candidate'"/>,</p>
+                    <p>
+                        Thank you for your interest in the <strong><t t-esc="object.job_id.name"/></strong> position at <strong><t t-esc="object.company_id.name"/></strong> and for your participation in our selection process.
+                    </p>
+                    <p>
+                        We would like to inform you that the position has now been filled, and we will not be moving forward with your application.
+                    </p>
+                    <p>
+                        We appreciate your time and interest in <t t-esc="object.company_id.name"/> and encourage you to explore future opportunities with us.
+                    </p>
+                    <br/>
+                    <p>
+                        Regards,<br/>
+                        <t t-esc="object.user_id.name"/><br/>
+                        <t t-esc="object.company_id.name"/>
+                    </p>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

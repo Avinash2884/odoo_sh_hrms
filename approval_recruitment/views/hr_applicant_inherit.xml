@@ -5,6 +5,28 @@
         <field name="model">hr.applicant</field>
         <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <!-- HOLD button -->
+                <button name="action_hold_applicant"
+                        type="object"
+                        string="Hold"
+                        class="btn-secondary"
+                        invisible="is_hold == True"/>
+
+                <!-- UNHOLD button -->
+                <button name="action_unhold_applicant"
+                        type="object"
+                        string="Unhold"
+                        class="btn-secondary"
+                        invisible="is_hold == False"/>
+
+                <button name="action_position_filled"
+                        type="object"
+                        string="Position Filled"
+                        class="btn-secondary"/>
+
+            </xpath>
+
             <xpath expr="//field[@name='stage_id']" position="attributes">
                 <attribute name="domain">[('job_ids','in',job_id)]</attribute>
             </xpath>
@@ -13,6 +35,8 @@
             </xpath>
             <xpath expr="//field[@name='partner_phone']" position="after">
                 <field name="ls_date_of_joining" invisible="not show_doj"/>
+                <field name="is_hold" invisible="1"/>
+
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Evaluation" invisible="show_evaluation_page">

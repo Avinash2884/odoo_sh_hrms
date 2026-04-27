@@ -25,6 +25,7 @@ class HrApplicantInherit(models.Model):
         compute="_compute_show_doj",
         store=False
     )
+    is_hold = fields.Boolean(default=False)
 
     def _compute_show_evaluation_page(self):
         stage_1 = self.env.ref('hr_recruitment.stage_job0', raise_if_not_found=False)
@@ -305,3 +306,20 @@ class HrApplicantInherit(models.Model):
                     employee.write({'education_ids': edu_lines})
 
         return res
+
+    def action_hold_applicant(self):
+        template = self.env.ref('approval_recruitment.mail_template_applicant_on_hold', raise_if_not_found=False)
+        for rec in self:
+            rec.is_hold = True
+            if template:
+                template.send_mail(rec.id, force_send=True)
+
+    def action_unhold_applicant(self):
+        for rec in self:
+            rec.is_hold = False
+
+    def action_position_filled(self):
+        template = self.env.ref('approval_recruitment.mail_template_hr_recruitments_positions_filled', raise_if_not_found=False)
+        for rec in self:
+            if template:
+                template.send_mail(rec.id, force_send=True)

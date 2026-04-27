@@ -24,13 +24,13 @@
         <record id="hr_recruitment.stage_job4"
                 model="hr.recruitment.stage">
             <field name="name">Offer Release</field>
-            <field name="sequence">6</field>
+            <field name="sequence">7</field>
 
         </record>
         <record id="hr_recruitment.stage_job5"
                 model="hr.recruitment.stage">
             <field name="name">Offer Accepted</field>
-            <field name="sequence">7</field>
+            <field name="sequence">8</field>
         </record>
         <record model="hr.recruitment.stage" id="stage_job6">
             <field name="name">Culture-fit Assessment</field>
@@ -40,9 +40,13 @@
             <field name="name">Pre-Offer Release</field>
             <field name="sequence">5</field>
         </record>
+        <record model="hr.recruitment.stage" id="stage_job10">
+            <field name="name">Offer Letter Approval</field>
+            <field name="sequence">6</field>
+        </record>
         <record model="hr.recruitment.stage" id="stage_job8">
             <field name="name">No Shown</field>
-            <field name="sequence">8</field>
+            <field name="sequence">9</field>
         </record>
     </data>
 </odoo>
