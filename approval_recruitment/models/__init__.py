@@ -7,7 +7,6 @@ from . import hr_applicant_evaluation_form
 from . import hr_applicant_inherit
 from . import hr_appraisal_inherit
 from . import hr_employee_inherit
-from . import recruitment_approval_stage
 from . import hr_department_inherit
 from . import hr_recruitment_stage
 from . import res_users_inherit

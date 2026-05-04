@@ -83,9 +83,6 @@ class ApprovalCategoryInherit(models.Model):
 
         return vals, approver_commands
 
-    # -----------------------------
-    # CREATE
-    # -----------------------------
     @api.model
     def create(self, vals_list):
         if isinstance(vals_list, dict):
@@ -98,15 +95,14 @@ class ApprovalCategoryInherit(models.Model):
                 dept_vals, approvers = self._prepare_department_data(department)
 
                 vals.update(dept_vals)
-                vals['approver_ids'] = [(5, 0, 0)] + approvers
+
+                # ✅ ONLY add auto approvers (no reset)
+                if approvers:
+                    vals['approver_ids'] = approvers
 
         return super().create(vals_list)
 
-    # -----------------------------
-    # WRITE
-    # -----------------------------
     def write(self, vals):
-        # جلوگیری recursion
         if self.env.context.get('skip_auto_update'):
             return super().write(vals)
 
@@ -118,12 +114,24 @@ class ApprovalCategoryInherit(models.Model):
 
                 dept_vals, approvers = rec._prepare_department_data(department)
 
+                # ✅ Existing users
+                existing_user_ids = rec.approver_ids.mapped('user_id').ids
+
+                new_commands = []
+
+                for app in approvers:
+                    user_id = app[2]['user_id']
+                    if user_id not in existing_user_ids:
+                        new_commands.append(app)
+
                 update_vals = {
-                    **dept_vals,
-                    'approver_ids': [(5, 0, 0)] + approvers
+                    **dept_vals
                 }
 
-                # ✅ Prevent recursion using context
+                # ✅ Only add missing approvers
+                if new_commands:
+                    update_vals['approver_ids'] = new_commands
+
                 rec.with_context(skip_auto_update=True).write(update_vals)
 
         return res

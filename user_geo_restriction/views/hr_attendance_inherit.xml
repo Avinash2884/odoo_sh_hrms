@@ -1,0 +1,15 @@
+<odoo>
+    <record id="view_hr_attendance_form_geo" model="ir.ui.view">
+        <field name="name">hr.attendance.form.geo.restriction</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.hr_attendance_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add after employee -->
+            <xpath expr="//field[@name='employee_id']" position="after">
+                <field name="geo_restriction_id" readonly="1"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

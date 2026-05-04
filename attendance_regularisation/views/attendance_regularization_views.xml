@@ -85,8 +85,9 @@
     <!-- Menu item for Attendance Regularization in the HR Attendance menu -->
     <menuitem id="attendance_regular_menu_root"
               name="Attendance Regularization"
-              parent="hr.menu_hr_root"
-              groups="base.group_user"/>
+              parent="approvals.approvals_menu_root"
+              groups="base.group_user"
+              sequence="12"/>
     <!-- Submenu item for Attendance Regularization -->
     <menuitem id="attendance_regular_menu_regularization"
               name="Attendance Regularization"

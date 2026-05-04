@@ -59,14 +59,9 @@
     <menuitem
         id="menu_geo_restriction_root"
         name="Geo Restriction"
-        parent="hr_attendance.menu_hr_attendance_root"
+        action="action_geo_restriction"
+        parent="hr.menu_hr_root"
         sequence="90"/>
 
-    <menuitem
-        id="menu_geo_restriction"
-        name="Configuration"
-        parent="menu_geo_restriction_root"
-        action="action_geo_restriction"
-        sequence="1"/>
 
 </odoo>

@@ -13,6 +13,7 @@
         "security/ir.model.access.csv",
         "security/approval_recruitment.xml",
         "security/separation/separation_security.xml",
+
         "data/approval_category_data_inherit.xml",
         "data/hr_data_inherit.xml",
         "data/hr_recruitment_data_inherit.xml",
@@ -23,13 +24,13 @@
         "data/hr_recruitment_mail_templates.xml",
         "data/hr_applicant_refuse_reason.xml",
         "data/calendar_mail_template.xml",
+
         "views/approval_category_inherit.xml",
         "views/approval_request_inherit.xml",
         "views/hr_job_inherit.xml",
         "views/hr_applicant_inherit.xml",
         "views/hr_appraisal_inherit.xml",
         "views/hr_employee_inherit.xml",
-        "views/recruitment_approval_stage.xml",
         "views/hr_department_inherit_views.xml",
         "views/hr_recruitment_stages_views.xml",
         "views/res_company_inherit.xml",
@@ -37,6 +38,7 @@
         'views/job_template.xml',
         'views/pre_onboarding_template.xml',
         'views/calendar_event_inherit.xml',
+
         'report/evaluation_report_template.xml',
         'report/evaluation_report.xml',
         'report/cmt_full_time_appointment_letter.xml',

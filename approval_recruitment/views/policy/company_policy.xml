@@ -4,8 +4,8 @@
         <field name="name">company.policy.list</field>
         <field name="model">company.policy</field>
         <field name="arch" type="xml">
-            <list string="Company Policy">
-                <field name="name"/>
+            <list string="Company Policy" duplicate="0">
+                <field name="name" />
                 <field name="revision_1_date"/>
                 <field name="revision_2_date"/>
                 <field name="revision_3_date"/>
@@ -22,63 +22,121 @@
             <form string="Company Policy">
                 <header>
                     <button
-                        name="action_submit"
+                        name="action_revision_1_publish"
                         type="object"
-                        string="Submit"
+                        string="Publish 1"
                         class="oe_highlight"
-                        invisible="state in ('submit','publish')"/>
+                        invisible="state in ('revision_1_publish','revision_2_publish','revision_3_publish','revision_4_publish','revision_5_publish')"/>
+
+                    <button name="action_preview_revision"
+                            type="object"
+                            string="Preview"
+                            class="btn-primary"
+                            context="{'revision_no': 1}" invisible="state in ('revision_1_publish','revision_2_publish','revision_3_publish','revision_4_publish','revision_5_publish')"/>
                     <button
-                        name="action_publish"
+                        name="action_revision_2_publish"
                         type="object"
-                        string="Publish"
+                        string="Publish 2"
                         class="oe_highlight"
-                        invisible="state in (False)"/>
+                        invisible="state in (False,'revision_2_publish','revision_3_publish','revision_4_publish','revision_5_publish')"/>
+                    <button name="action_preview_revision"
+                            type="object"
+                            string="Preview"
+                            class="btn-primary"
+                            context="{'revision_no': 2}" invisible="state in (False,'revision_2_publish','revision_3_publish','revision_4_publish','revision_5_publish')"/>
+                    <button
+                        name="action_revision_3_publish"
+                        type="object"
+                        string="Publish 3"
+                        class="oe_highlight"
+                        invisible="state in (False,'revision_1_publish','revision_3_publish','revision_4_publish','revision_5_publish')"/>
+                    <button name="action_preview_revision"
+                            type="object"
+                            string="Preview"
+                            class="btn-primary"
+                            context="{'revision_no': 3}" invisible="state in (False,'revision_1_publish','revision_3_publish','revision_4_publish','revision_5_publish')"/>
+                    <button
+                        name="action_revision_4_publish"
+                        type="object"
+                        string="Publish 4"
+                        class="oe_highlight"
+                        invisible="state in (False,'revision_1_publish','revision_2_publish','revision_4_publish','revision_5_publish')"/>
+                    <button name="action_preview_revision"
+                            type="object"
+                            string="Preview"
+                            class="btn-primary"
+                            context="{'revision_no': 4}" invisible="state in (False,'revision_1_publish','revision_2_publish','revision_4_publish','revision_5_publish')"/>
+                    <button
+                        name="action_revision_5_publish"
+                        type="object"
+                        string="Publish 5"
+                        class="oe_highlight"
+                        invisible="state in (False,'revision_1_publish','revision_2_publish','revision_3_publish','revision_5_publish')"/>
+                    <button name="action_preview_revision"
+                            type="object"
+                            string="Preview"
+                            class="btn-primary"
+                            context="{'revision_no': 5}" invisible="state in (False,'revision_1_publish','revision_2_publish','revision_3_publish','revision_5_publish')"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <field name="warning_message" readonly="1" nolabel="1"/>
                     <group>
-                        <field name="name"/>
+                        <field name="name" readonly="state in ('revision_1_publish','revision_2_publish','revision_3_publish','revision_4_publish','revision_5_publish')"/>
                     </group>
                     <notebook>
                         <page string="Revisions">
                             <group>
                                 <group string="Revision 1">
                                     <field name="revision_1_file_name" string="File Name" invisible="1"/>
-                                    <field name="revision_1_file" filename="revision_1_file_name" string="Upload"/>
-                                    <field name="revision_1_date" readonly="1" string="Uploaded On"/>
-                                    <field name="revision_1_published" widget="boolean_toggle"/>
+                                    <field name="revision_1_file" filename="revision_1_file_name" string="Upload" readonly="state in ('revision_1_publish','revision_2_publish','revision_3_publish','revision_4_publish','revision_5_publish')" options="{'preview_image': true}"/>
+                                    <field name="revision_1_date" readonly="1" string="Uploaded On" />
+                                    <field name="revision_1_published" widget="boolean_toggle" invisible="1"/>
                                 </group>
                                 <group string="Revision 2">
                                     <field name="revision_2_file_name" string="File Name" invisible="1"/>
-                                    <field name="revision_2_file" filename="revision_2_file_name" string="Upload"/>
+                                    <field name="revision_2_file" filename="revision_2_file_name" string="Upload" readonly="state in (False,'revision_2_publish','revision_3_publish','revision_4_publish','revision_5_publish')" options="{'preview_image': true}"/>
                                     <field name="revision_2_date" readonly="1" string="Uploaded On"/>
-                                    <field name="revision_2_published" widget="boolean_toggle"/>
+                                    <field name="revision_2_published" widget="boolean_toggle" invisible="1"/>
                                 </group>
                             </group>
 
                             <group>
                                 <group string="Revision 3">
                                     <field name="revision_3_file_name" string="File Name" invisible="1"/>
-                                    <field name="revision_3_file" filename="revision_3_file_name" string="Upload"/>
+                                    <field name="revision_3_file" filename="revision_3_file_name" string="Upload" readonly="state in (False,'revision_1_publish','revision_3_publish','revision_4_publish','revision_5_publish')" options="{'preview_image': true}"/>
                                     <field name="revision_3_date" readonly="1" string="Uploaded On"/>
-                                    <field name="revision_3_published" widget="boolean_toggle"/>
+                                    <field name="revision_3_published" widget="boolean_toggle" invisible="1"/>
                                 </group>
                                 <group string="Revision 4">
                                     <field name="revision_4_file_name" string="File Name" invisible="1"/>
-                                    <field name="revision_4_file" filename="revision_4_file_name" string="Upload"/>
+                                    <field name="revision_4_file" filename="revision_4_file_name" string="Upload" readonly="state in (False,'revision_1_publish','revision_2_publish','revision_4_publish','revision_5_publish')" options="{'preview_image': true}"/>
                                     <field name="revision_4_date" readonly="1" string="Uploaded On"/>
-                                    <field name="revision_4_published" widget="boolean_toggle"/>
+                                    <field name="revision_4_published" widget="boolean_toggle" invisible="1"/>
                                 </group>
                             </group>
 
                             <group>
                                 <group string="Revision 5">
                                     <field name="revision_5_file_name" string="File Name" invisible="1"/>
-                                    <field name="revision_5_file" filename="revision_5_file_name" string="Upload"/>
+                                    <field name="revision_5_file" filename="revision_5_file_name" string="Upload" readonly="state in (False,'revision_1_publish','revision_2_publish','revision_3_publish','revision_5_publish')" options="{'preview_image': true}"/>
                                     <field name="revision_5_date" readonly="1" string="Uploaded On"/>
-                                    <field name="revision_5_published" widget="boolean_toggle"/>
+                                    <field name="revision_5_published" widget="boolean_toggle" invisible="1"/>
                                 </group>
                             </group>
+                        </page>
+                        <page string="Acknowledgements">
+
+                            <field name="acknowledged_user_ids">
+                                <list>
+                                    <field name="name"/>
+                                </list>
+                            </field>
+
+                            <separator string="Acknowledgement History"/>
+
+                            <field name="acknowledged_log" readonly="1"/>
+
                         </page>
                     </notebook>
                 </sheet>
