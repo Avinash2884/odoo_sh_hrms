@@ -1,5 +1,5 @@
 from odoo import models, api, _, fields
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from geopy.distance import geodesic
 
 
@@ -41,7 +41,7 @@ class HrAttendance(models.Model):
             geo_locations = attendance.employee_id.geo_restriction_ids
 
             if not geo_locations:
-                raise UserError(_("No office locations configured for this employee."))
+                raise ValidationError(_("No office locations configured for this employee."))
 
             # -------------------------
             # ✅ CHECK-IN
