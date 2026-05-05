@@ -126,17 +126,8 @@
                             </group>
                         </page>
                         <page string="Acknowledgements">
-
-                            <field name="acknowledged_user_ids">
-                                <list>
-                                    <field name="name"/>
-                                </list>
-                            </field>
-
                             <separator string="Acknowledgement History"/>
-
                             <field name="acknowledged_log" readonly="1"/>
-
                         </page>
                     </notebook>
                 </sheet>

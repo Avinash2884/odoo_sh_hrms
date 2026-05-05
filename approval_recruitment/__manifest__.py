@@ -13,6 +13,7 @@
         "security/ir.model.access.csv",
         "security/approval_recruitment.xml",
         "security/separation/separation_security.xml",
+        "security/policy/policy_security.xml",
 
         "data/approval_category_data_inherit.xml",
         "data/hr_data_inherit.xml",

@@ -68,3 +68,13 @@ class EmployeePolicy(models.Model):
                 company_policy.acknowledged_log = (
                     (company_policy.acknowledged_log or "") + log_line
                 )
+
+    def write(self, vals):
+        if 'active' in vals:
+            # ✅ Allow only HR & Administrator
+            if not self.env.user.has_group('approval_recruitment.group_policy_hr'):
+                raise ValidationError(
+                    "You are not allowed to archive or unarchive policies."
+                )
+
+        return super(EmployeePolicy, self).write(vals)

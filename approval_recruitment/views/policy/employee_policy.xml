@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <record id="view_employee_policy_search" model="ir.ui.view">
+        <field name="name">employee.policy.search</field>
+        <field name="model">employee.policy</field>
+        <field name="arch" type="xml">
+            <search string="Search Policies">
+                <filter name="archived"
+                        string="Archived"
+                        domain="[('active','=',False)]"
+                        groups="approval_recruitment.group_policy_hr,approval_recruitment.group_policy_administrator"/>
+            </search>
+        </field>
+    </record>
     <record id="view_employee_policy_list" model="ir.ui.view">
         <field name="name">employee.policy.list</field>
         <field name="model">employee.policy</field>

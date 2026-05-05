@@ -227,3 +227,4 @@ class CompanyPolicy(models.Model):
             'url': f'/web/content/{attachment.id}?download=false',
             'target': 'self',
         }
+

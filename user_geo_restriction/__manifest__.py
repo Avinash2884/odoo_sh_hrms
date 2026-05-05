@@ -11,7 +11,7 @@
         "security/ir.model.access.csv",
         "views/geo_restriction.xml",
         "views/hr_attendance_inherit.xml",
-        "wizard/hr_attendance_pop_up.xml",
+        "views/hr_employee.xml",
     ],
     'installable': True,
     'application': True,

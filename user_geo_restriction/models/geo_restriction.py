@@ -21,8 +21,3 @@ class GeoRestriction(models.Model):
         string='Allowed Distance (Meters)',
         digits=(16, 2)
     )
-
-    employee_ids = fields.Many2many(
-        'hr.employee',
-        string="Employees"
-    )

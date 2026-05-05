@@ -8,6 +8,7 @@
             <!-- Add after employee -->
             <xpath expr="//field[@name='employee_id']" position="after">
                 <field name="geo_restriction_id" readonly="1"/>
+                <field name="check_out_geo_restriction_id" readonly="1"/>
             </xpath>
 
         </field>

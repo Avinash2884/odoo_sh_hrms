@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_company_policy_configuration"
-          name="Policy"
-          parent="hr.menu_human_resources_configuration"
-          sequence="1"/>
+              name="Policy"
+              parent="hr.menu_human_resources_configuration"
+              sequence="1"
+              groups="approval_recruitment.group_policy_hr,approval_recruitment.group_policy_administrator"/>
 
     <menuitem id="menu_company_policy"
               name="Company Policy"
               parent="menu_company_policy_configuration"
               action="action_company_policy"
-              sequence="1"/>
+              sequence="1"
+              groups="approval_recruitment.group_policy_hr,approval_recruitment.group_policy_administrator"/>
 
     <menuitem id="menu_employee_policy"
               name="Company Policies"
               parent="hr.menu_hr_root"
-              action="action_employee_policy"/>
+              action="action_employee_policy"
+              groups="approval_recruitment.group_policy_employee"/>
 </odoo>

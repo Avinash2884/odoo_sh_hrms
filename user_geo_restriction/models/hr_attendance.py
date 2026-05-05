@@ -10,6 +10,10 @@ class HrAttendance(models.Model):
         'geo.restriction',
         string="Check-in Location"
     )
+    check_out_geo_restriction_id = fields.Many2one(
+        'geo.restriction',
+        string="Check-out Location"
+    )
 
     @api.model
     def create(self, vals_list):
@@ -34,12 +38,10 @@ class HrAttendance(models.Model):
 
         for attendance in self:
 
-            geo_locations = self.env['geo.restriction'].search([
-                ('employee_ids', 'in', attendance.employee_id.id)
-            ])
+            geo_locations = attendance.employee_id.geo_restriction_ids
 
             if not geo_locations:
-                return
+                raise UserError(_("No office locations configured for this employee."))
 
             # -------------------------
             # ✅ CHECK-IN
@@ -52,6 +54,8 @@ class HrAttendance(models.Model):
                 if not lat or not lon:
                     raise UserError(_("Location required for check-in."))
 
+                matched_geo = False
+
                 for geo in geo_locations:
                     distance = geodesic(
                         (geo.company_latitude, geo.company_longitude),
@@ -59,10 +63,11 @@ class HrAttendance(models.Model):
                     ).meters
 
                     if distance <= geo.allowed_distance:
-                        # 🔥 முக்கியம்: matched geo save
                         attendance.geo_restriction_id = geo.id
+                        matched_geo = True
                         break
-                else:
+
+                if not matched_geo:
                     raise UserError(_("Outside allowed location (Check-in)."))
 
             # -------------------------
@@ -76,44 +81,18 @@ class HrAttendance(models.Model):
                 if not lat or not lon:
                     raise UserError(_("Location required for check-out."))
 
-                if not attendance.geo_restriction_id:
-                    raise UserError(_("Check-in location not found."))
+                matched_geo = False
 
-                geo = attendance.geo_restriction_id
+                for geo in geo_locations:
+                    distance = geodesic(
+                        (geo.company_latitude, geo.company_longitude),
+                        (lat, lon)
+                    ).meters
 
-                distance = geodesic(
-                    (geo.company_latitude, geo.company_longitude),
-                    (lat, lon)
-                ).meters
+                    if distance <= geo.allowed_distance:
+                        attendance.check_out_geo_restriction_id = geo.id
+                        matched_geo = True
+                        break
 
-                # 🔥 same location check
-                if distance > geo.allowed_distance:
-                    raise UserError(_(
-                        "You must check-out from the same location as check-in."
-                    ))
-
-    def _attendance_action_change(self, geo_ip_response=None):
-
-        res = super()._attendance_action_change(geo_ip_response)
-
-        attendance = self.env['hr.attendance'].search([
-            ('employee_id', '=', self.id)
-        ], order="id desc", limit=1)
-
-        if attendance:
-            if attendance.check_out:
-                message = "✅ Check-out successful"
-            else:
-                message = "✅ Check-in successful"
-
-            return {
-                'type': 'ir.actions.act_window',
-                'res_model': 'attendance.popup',
-                'view_mode': 'form',
-                'target': 'new',
-                'context': {
-                    'default_message': message
-                }
-            }
-
-        return res
+                if not matched_geo:
+                    raise UserError(_("You must check-out from an assigned location."))

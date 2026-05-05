@@ -13,7 +13,6 @@
                 <field name="company_latitude"/>
                 <field name="company_longitude"/>
                 <field name="allowed_distance"/>
-                <field name="employee_ids" widget="many2many_tags"/>
             </list>
         </field>
     </record>
@@ -34,7 +33,6 @@
                             <field name="company_latitude"/>
                             <field name="company_longitude"/>
                             <field name="allowed_distance"/>
-                            <field name="employee_ids" widget="many2many_tags"/>
                         </group>
                     </group>
                 </sheet>

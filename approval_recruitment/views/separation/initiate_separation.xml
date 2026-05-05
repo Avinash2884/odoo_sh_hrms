@@ -11,7 +11,6 @@
                         type="object"
                         string="Revoke"
                         class="btn-danger"
-                        groups="approval_recruitment.group_separation_employee"
                         invisible="state != 'submitted' or not is_request_owner"/>
                     <button
                         name="action_submit"

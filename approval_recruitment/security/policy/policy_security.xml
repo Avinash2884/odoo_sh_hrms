@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--Groups-->
+    <record model="res.groups.privilege" id="res_groups_privilege_company_policy">
+        <field name="name">Company Policy</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="sequence">10</field>
+    </record>
+    <record id="group_policy_employee" model="res.groups">
+        <field name="name">Employee</field>
+        <field name="privilege_id" ref="res_groups_privilege_company_policy"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="group_policy_hr" model="res.groups">
+        <field name="name">HR</field>
+        <field name="privilege_id" ref="res_groups_privilege_company_policy"/>
+        <field name="implied_ids" eval="[(4, ref('group_policy_employee'))]"/>
+    </record>
+    <record id="group_policy_administrator" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="res_groups_privilege_company_policy"/>
+        <field name="implied_ids" eval="[(4, ref('group_policy_hr'))]"/>
+    </record>
+
+<!--    Record Rules-->
+
+    <!-- Employee: Read Only -->
+    <record id="rule_employee_policy_readonly" model="ir.rule">
+        <field name="name">Employee Policy Read Only</field>
+        <field name="model_id" ref="model_employee_policy"/>
+        <field name="groups" eval="[(4, ref('group_policy_employee'))]"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="0"/>
+        <field name="perm_create" eval="0"/>
+        <field name="perm_unlink" eval="0"/>
+    </record>
+
+    <record id="rule_employee_policy_hr_full" model="ir.rule">
+        <field name="name">HR Full Access Policy</field>
+        <field name="model_id" ref="model_employee_policy"/>
+        <field name="groups" eval="[(4, ref('group_policy_hr'))]"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="1"/>
+    </record>
+
+    <record id="rule_employee_policy_admin_full" model="ir.rule">
+        <field name="name">Admin Full Access Policy</field>
+        <field name="model_id" ref="model_employee_policy"/>
+        <field name="groups" eval="[(4, ref('group_policy_administrator'))]"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="1"/>
+    </record>
+
+
+</odoo>
