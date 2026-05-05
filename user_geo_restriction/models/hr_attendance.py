@@ -38,13 +38,21 @@ class HrAttendance(models.Model):
 
         for attendance in self:
 
+            # ✅ Skip if no check-in / check-out (demo safe)
+            if not attendance.check_in and not attendance.check_out:
+                continue
+
+            # ✅ Skip if no GPS data (demo safe)
+            if not attendance.in_latitude and not attendance.out_latitude:
+                continue
+
             geo_locations = attendance.employee_id.geo_restriction_ids
 
             if not geo_locations:
                 raise ValidationError(_("No office locations configured for this employee."))
 
             # -------------------------
-            # ✅ CHECK-IN
+            # CHECK-IN
             # -------------------------
             if vals.get('check_in'):
 
@@ -71,7 +79,7 @@ class HrAttendance(models.Model):
                     raise UserError(_("Outside allowed location (Check-in)."))
 
             # -------------------------
-            # ✅ CHECK-OUT
+            # CHECK-OUT
             # -------------------------
             if vals.get('check_out'):
 
