@@ -38,18 +38,18 @@
                 </h5>
             </xpath>
             <xpath expr="//field[@name='department_id']" position="before">
-                <field name="entity_name_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="ls_role_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="band_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="level_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="vertical_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="function_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="parent_account_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="account_office_name_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="region_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="employee_status_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="ls_designation_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="ls_source_of_hire_id" options="{'no_open': True, 'no_create': True}"/>
+                <field name="entity_name_id" />
+                <field name="ls_role_id" />
+                <field name="band_id" />
+                <field name="level_id" />
+                <field name="vertical_id" />
+                <field name="function_id" />
+                <field name="parent_account_id" />
+                <field name="account_office_name_id" />
+                <field name="region_id" />
+                <field name="employee_status_id" />
+                <field name="ls_designation_id" />
+                <field name="ls_source_of_hire_id" />
             </xpath>
 
             <!-- Insert custom fields after parent_id -->
@@ -265,7 +265,7 @@
             </xpath>
             <xpath expr="//field[@name='bank_id']" position="after">
                 <field name="ls_ifsc_code"/>
-                <field name="ls_account_type_id" options="{'no_open': True, 'no_create': True}"/>
+                <field name="ls_account_type_id" />
             </xpath>
         </field>
     </record>
