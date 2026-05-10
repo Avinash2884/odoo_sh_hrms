@@ -13,6 +13,7 @@ class ApprovalRequestInherit(models.Model):
     has_budget_for_each_employee_position = fields.Selection(related="category_id.has_budget_for_each_employee_position")
     has_start_date = fields.Selection(related="category_id.has_start_date")
     has_end_date = fields.Selection(related="category_id.has_end_date")
+    hr_department_id = fields.Many2one('hr.department',related="category_id.hr_department_id",store=True,readonly=True)
 
     no_of_position = fields.Integer(string="No of Position")
     approval_job_position = fields.Char(string="Approval Job Position")
@@ -57,12 +58,8 @@ class ApprovalRequestInherit(models.Model):
                         'approval_overall_budget_for_all_posting': request.approval_overall_budget_for_all_posting,
                         'approval_budget_for_each_employee_position': request.approval_budget_for_each_employee_position,
                         'no_of_recruitment': request.no_of_position,
+                        'department_id': request.hr_department_id.id,
                     }
-
-                    # ✅ Copy interviewer_ids from category
-                    if request.category_id.interviewer_ids:
-                        job_vals['interviewer_ids'] = [(6, 0, request.category_id.interviewer_ids.ids)]
-
                     job = self.env['hr.job'].create(job_vals)
                     print(f"✅ HR Job created: {job.name} (Positions: {job.no_of_recruitment})")
                 else:

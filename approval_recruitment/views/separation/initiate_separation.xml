@@ -176,10 +176,10 @@
                                 </field>
                             </group>
                             <group>
-                                <field name="it_assets_clearance_dues_cleared_status" readonly="it_assets_state =='approved'" required="it_assets_state == 'submitted'" groups="approval_recruitment.group_separation_it_assets_clearance_head"/>
-                                <field name="it_assets_clearance_remarks" readonly="it_assets_state =='approved'" required="it_assets_state == 'submitted'" groups="approval_recruitment.group_separation_it_assets_clearance_head"/>
-                                <field name="it_assets_clearance_approver_name" options="{'no_create': True, 'no_open': True}" readonly="1" groups="approval_recruitment.group_separation_it_assets_clearance_head"/>
-                                <field name="it_assets_clearance_approval_date" readonly="1" groups="approval_recruitment.group_separation_it_assets_clearance_head"/>
+                                <field name="it_assets_clearance_dues_cleared_status" readonly="it_assets_state =='approved'" required="it_assets_state == 'submitted'" groups="approval_recruitment.group_separation_it_assets_clearance_head" invisible="not is_only_it_assets_head"/>
+                                <field name="it_assets_clearance_remarks" readonly="it_assets_state =='approved'" required="it_assets_state == 'submitted'" groups="approval_recruitment.group_separation_it_assets_clearance_head" invisible="not is_only_it_assets_head"/>
+                                <field name="it_assets_clearance_approver_name" options="{'no_create': True, 'no_open': True}" readonly="1" groups="approval_recruitment.group_separation_it_assets_clearance_head" invisible="not is_only_it_assets_head"/>
+                                <field name="it_assets_clearance_approval_date" readonly="1" groups="approval_recruitment.group_separation_it_assets_clearance_head" invisible="not is_only_it_assets_head"/>
                                 <button name="action_it_assets_submit"
                                 string="Submit"
                                 type="object"
@@ -219,10 +219,11 @@
                                 </field>
                             </group>
                             <group invisible="it_assets_state != 'approved'">
-                                <field name="admin_clearance_dues_cleared_status" readonly="admin_state =='approved'" required="admin_state == 'submitted'" groups="approval_recruitment.group_separation_admin_clearance_head"/>
-                                <field name="admin_clearance_remarks" readonly="admin_state =='approved'" required="admin_state == 'submitted'" groups="approval_recruitment.group_separation_admin_clearance_head"/>
-                                <field name="admin_clearance_approver_name" options="{'no_create': True, 'no_open': True}" readonly="1" groups="approval_recruitment.group_separation_admin_clearance_head"/>
-                                <field name="admin_clearance_approval_date" readonly="1" groups="approval_recruitment.group_separation_admin_clearance_head"/>
+                                <field name="admin_clearance_dues_cleared_status" readonly="admin_state =='approved'" required="admin_state == 'submitted'" groups="approval_recruitment.group_separation_admin_clearance_head"
+                                invisible="not is_only_admin_head"/>
+                                <field name="admin_clearance_remarks" readonly="admin_state =='approved'" required="admin_state == 'submitted'" groups="approval_recruitment.group_separation_admin_clearance_head" invisible="not is_only_admin_head"/>
+                                <field name="admin_clearance_approver_name" options="{'no_create': True, 'no_open': True}" readonly="1" groups="approval_recruitment.group_separation_admin_clearance_head" invisible="not is_only_admin_head"/>
+                                <field name="admin_clearance_approval_date" readonly="1" groups="approval_recruitment.group_separation_admin_clearance_head" invisible="not is_only_admin_head"/>
                                 <button name="action_admin_submit"
                                 string="Submit"
                                 type="object"

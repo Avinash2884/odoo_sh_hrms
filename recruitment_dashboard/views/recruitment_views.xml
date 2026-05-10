@@ -10,5 +10,6 @@
               name="Dashboard"
               parent="hr_recruitment.menu_hr_recruitment_root"
               action="recruitment_dashboard_action"
+              groups="hr_recruitment.group_hr_recruitment_user,hr_recruitment.group_hr_recruitment_manager"
               sequence="-1"/>
 </odoo>

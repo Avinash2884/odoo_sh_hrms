@@ -41,14 +41,6 @@ class ApprovalCategoryInherit(models.Model):
         readonly=True
     )
 
-    interviewer_ids = fields.Many2many(
-        'res.users',
-        'approval_category_interviewer_rel',
-        'category_id',
-        'user_id',
-        string="Interviewers"
-    )
-
     def _prepare_department_data(self, department):
         vals = {}
         approver_commands = []
