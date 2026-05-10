@@ -53,9 +53,11 @@ class JobApplicationController(http.Controller):
                 'gender': kwargs.get('gender'),
                 'category': kwargs.get('category'),
 
-                # CONTACT
+                # CONTACT & ADDRESS
                 'phone_with_std': kwargs.get('phone_with_std'),
-                'mailing_address': kwargs.get('mailing_address'),
+                'applicant_street': kwargs.get('applicant_street'),
+                'applicant_city': kwargs.get('applicant_city'),
+                'applicant_state': kwargs.get('applicant_state'),
                 'pincode': kwargs.get('pincode'),
 
                 # OTHER
@@ -77,7 +79,6 @@ class JobApplicationController(http.Controller):
                 vals['resume_filename'] = resume.filename
 
             # 4. CREATE APPLICANT
-            # (The access_token will be automatically generated here by the model default)
             applicant = request.env['hr.applicant'].sudo().create(vals)
             _logger.info("Applicant Created: ID %s", applicant.id)
 
@@ -139,27 +140,22 @@ class JobApplicationController(http.Controller):
 
 class PreOnboardingController(http.Controller):
 
-    # 1. New Route: auth='public' and expects the <string:token>
     @http.route('/job/pre_onboarding/<string:token>', type='http', auth='public', website=True)
     def pre_onboarding_form(self, token, **kwargs):
 
-        # Search securely using ONLY the token
         applicant = request.env['hr.applicant'].sudo().search([
             ('access_token', '=', token)
         ], limit=1)
 
-        # If invalid token, kick them to the homepage
         if not applicant or not token:
             _logger.warning("Invalid token attempted: %s", token)
             return request.redirect('/')
 
-        # Render the template and pass BOTH the applicant data and the token
         return request.render('approval_recruitment.pre_onboarding_template', {
             'applicant': applicant,
             'token': token
         })
 
-    # 2. Save Route: auth='public'
     @http.route('/job/onboarding/save', type='http', auth='public', methods=['POST'], website=True, csrf=False)
     def save_onboarding_docs(self, **kwargs):
         _logger.info("=== ONBOARDING SAVE ATTEMPT STARTED ===")
@@ -175,13 +171,11 @@ class PreOnboardingController(http.Controller):
 
         vals = {}
         try:
-            # 1. Handle Text Fields
             text_fields = ['aadhaar_no', 'pan_no', 'bank_name', 'bank_acc_no', 'bank_ifsc', 'bank_branch']
             for field in text_fields:
                 if kwargs.get(field):
                     vals[field] = kwargs.get(field)
 
-            # 2. Handle File Fields (Using getlist for multiple files)
             file_fields = [
                 'onboarding_photo', 'aadhaar_card', 'pan_card', 'bank_doc',
                 'marksheet_10', 'marksheet_12', 'diploma_cert', 'ug_degree', 'pg_degree',
@@ -189,20 +183,17 @@ class PreOnboardingController(http.Controller):
             ]
 
             for field in file_fields:
-                # Support multiple files if the user selected more than one
                 files = request.httprequest.files.getlist(field)
                 for file in files:
                     if file and file.filename:
                         _logger.info("Saving file: %s for field: %s", file.filename, field)
                         file_data = base64.b64encode(file.read())
 
-                        # Save the first file to the actual Binary field on the form
                         if field not in vals:
                             vals[field] = file_data
                             if field == 'onboarding_photo':
                                 vals['photograph'] = file_data
 
-                        # Push EVERY file to the Paperclip/Chatter
                         nice_name = field.replace('_', ' ').title()
                         request.env['ir.attachment'].sudo().create({
                             'name': f"{nice_name} - {file.filename}",
@@ -213,7 +204,6 @@ class PreOnboardingController(http.Controller):
                         })
 
             if vals:
-                # Destroy the token so the link expires after one successful use
                 vals['access_token'] = False
                 applicant.sudo().write(vals)
                 _logger.info("Successfully saved data for Applicant ID: %s", applicant.id)
@@ -221,12 +211,5 @@ class PreOnboardingController(http.Controller):
             return request.redirect('/contactus-thank-you')
 
         except Exception as e:
-            # This will print the EXACT error in your PyCharm terminal
             _logger.exception("FAILED TO SAVE ONBOARDING: %s", e)
             return request.redirect('/jobs?error=internal_error')
-
-
-
-
-
-

@@ -1,11 +1,13 @@
 from datetime import date, timedelta
 import uuid
-from odoo.exceptions import ValidationError
+
+from markupsafe import Markup
+
+from odoo.exceptions import ValidationError, UserError
 import logging
 _logger = logging.getLogger(__name__)
 
 from odoo import models, fields, api, _
-
 
 class HrApplicantInherit(models.Model):
     _inherit = 'hr.applicant'
@@ -124,7 +126,66 @@ class HrApplicantInherit(models.Model):
     def write(self, vals):
         old_stage_map = {rec.id: rec.stage_id.id for rec in self}
         res = super().write(vals)
+        stage_pre_offer = self.env.ref(
+            'approval_recruitment.stage_job9',
+            raise_if_not_found=False
+        )
+        template = self.env.ref(
+            'approval_recruitment.mail_template_pre_offer_documents',
+            raise_if_not_found=False
+        )
+        for rec in self:
+            old_stage = old_stage_map.get(rec.id)
+            if (
+                    stage_pre_offer
+                    and template
+                    and rec.stage_id.id == stage_pre_offer.id
+                    and old_stage != stage_pre_offer.id
+            ):
+                template.send_mail(rec.id, force_send=True)
+
+        for rec in self:
+            if rec.job_id:
+
+                job_interviewers = set(rec.job_id.hr_interviewer_ids.ids)
+                applicant_interviewers = set(rec.interviewer_ids.ids)
+
+                # ➕ ADD new interviewers
+                to_add = job_interviewers - applicant_interviewers
+
+                # ➖ REMOVE deleted interviewers
+                to_remove = applicant_interviewers - job_interviewers
+
+                # =========================
+                # REMOVE INTERVIEWERS
+                # =========================
+                if to_remove:
+                    print("❌ Removing interviewers from applicant:", to_remove)
+
+                    rec.interviewer_ids = [(3, user_id) for user_id in to_remove]
+
+                    # delete related evaluations too
+                    self.env['hr.applicant.evaluation'].search([
+                        ('applicant_id', '=', rec.id),
+                        ('interviewer_id', 'in', list(to_remove))
+                    ]).unlink()
+
+                # =========================
+                # ADD INTERVIEWERS
+                # =========================
+                if to_add:
+                    print("✅ Adding new interviewers:", to_add)
+
+                    rec.interviewer_ids = [(4, user_id) for user_id in to_add]
+
+                    for user_id in to_add:
+                        self.env['hr.applicant.evaluation'].create({
+                            'applicant_id': rec.id,
+                            'interviewer_id': user_id,
+                        })
+
         self._reorder_contract_proposal_stage()
+
         return res
 
     def _reorder_contract_proposal_stage(self):
@@ -215,26 +276,22 @@ class HrApplicantInherit(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
 
-            # ✅ EXISTING LOGIC (registration number)
+            # EXISTING LOGIC (registration number)
             if not vals.get('registration_no') or vals.get('registration_no') == 'New':
                 vals['registration_no'] = self.env['ir.sequence'].next_by_code(
                     'hr.applicant.registration'
                 ) or 'New'
 
-            # ----------------------------------------
-            # ✅ COPY INTERVIEWERS FROM JOB
-            # ----------------------------------------
+            # COPY INTERVIEWERS FROM JOB
             if vals.get('job_id'):
                 job = self.env['hr.job'].browse(vals['job_id'])
 
-                if job.interviewer_ids:
-                    vals['interviewer_ids'] = [(6, 0, job.interviewer_ids.ids)]
+                if job.hr_interviewer_ids:
+                    vals['interviewer_ids'] = [(6, 0, job.hr_interviewer_ids.ids)]
 
         applicants = super().create(vals_list)
 
-        # ----------------------------------------
-        # 🔥 CREATE EVALUATION LINES
-        # ----------------------------------------
+        # CREATE EVALUATION LINES
         for applicant in applicants:
             if applicant.interviewer_ids:
                 applicant.evaluation_ids = [(5, 0, 0)]
@@ -323,3 +380,43 @@ class HrApplicantInherit(models.Model):
         for rec in self:
             if template:
                 template.send_mail(rec.id, force_send=True)
+
+    def action_send_pre_onboarding_mail(self):
+        self.ensure_one()
+        template = self.env.ref(
+            'approval_recruitment.mail_template_pre_onboarding',
+            raise_if_not_found=False
+        )
+        if not template:
+            raise UserError("Pre-Onboarding mail template not found.")
+        if not self.email_from:
+            raise UserError("Candidate email (Email ID) is missing on this application.")
+        if not self.access_token:
+            raise UserError("Security Token is missing. Please save the record first.")
+
+        template.send_mail(self.id, force_send=True, email_values={
+            'email_to': self.email_from,
+            'email_from': (
+                    self.job_id.hr_head.work_email
+                    or self.job_id.hr_head.private_email
+                    or self.env.user.email
+            ),
+        })
+
+        self.message_post(
+            body=Markup(f" Pre-Onboarding form link sent to <b>{self.email_from}</b> by {self.env.user.name}."),
+            subtype_xmlid="mail.mt_note",
+        )
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Mail Sent!',
+                'message': f'Pre-Onboarding form link sent to {self.email_from}.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+

@@ -18,9 +18,9 @@
             <attribute name="required">required</attribute>
         </xpath>
 
-
         <xpath expr="//input[@name='linkedin_profile']/../.." position="before">
 
+            <!-- Registration No + Discipline -->
             <div class="col-12 mb-4">
                 <div class="row g-3">
                     <div class="col-md-6">
@@ -30,12 +30,13 @@
                     </div>
                     <div class="col-md-6">
                         <label class="fw-bold">Discipline Applied</label>
-                        <input type="text" class="form-control"
-                               name="discipline_applied" placeholder="e.g., Computer Science"/>
+                        <input type="text" class="form-control" name="discipline_applied"
+                               placeholder="e.g., Computer Science"/>
                     </div>
                 </div>
             </div>
 
+            <!-- Photograph -->
             <div class="col-12 mb-4">
                 <h5 class="fw-bold border-bottom pb-2">Photograph</h5>
                 <div class="row align-items-start mt-3">
@@ -43,19 +44,20 @@
                         <div id="photo_preview_box"
                              onclick="document.getElementById('photo_upload').click();"
                              style="width:110px;height:135px;border:2px dashed #ccc;display:flex;align-items:center;justify-content:center;background:#f9f9f9;cursor:pointer;">
-                            <span id="photo_placeholder" class="text-muted text-center" style="font-size:11px;">Passport<br/>Photo</span>
+                            <span class="text-muted text-center" style="font-size:11px;">Passport<br/>Photo
+                            </span>
                         </div>
                     </div>
                     <div class="col">
                         <label class="fw-bold">Upload Photograph</label>
-                        <input type="file" class="form-control" name="photograph" id="photo_upload" accept="image/jpeg,image/png"/>
+                        <input type="file" class="form-control" name="photograph" id="photo_upload"
+                               accept="image/jpeg,image/png"/>
                         <small class="text-muted">JPG, PNG · Max 2MB</small>
-                        <br/>
-                        <button type="button" id="remove_photo" class="btn btn-sm btn-outline-danger mt-2" style="display:none;">Remove Photo</button>
                     </div>
                 </div>
             </div>
 
+            <!-- Personal Information -->
             <div class="col-12 mb-4">
                 <h5 class="fw-bold border-bottom pb-2">Personal Information</h5>
                 <div class="row g-3 mt-2">
@@ -69,7 +71,9 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="fw-bold">First Name *</label>
+                        <label class="fw-bold">First Name
+                            <span class="text-danger">*</span>
+                        </label>
                         <input type="text" class="form-control" name="first_name" required="required"/>
                     </div>
                     <div class="col-md-4">
@@ -77,7 +81,9 @@
                         <input type="text" class="form-control" name="middle_name"/>
                     </div>
                     <div class="col-md-3">
-                        <label class="fw-bold">Last Name *</label>
+                        <label class="fw-bold">Last Name
+                            <span class="text-danger">*</span>
+                        </label>
                         <input type="text" class="form-control" name="last_name" required="required"/>
                     </div>
                     <div class="col-md-6">
@@ -89,11 +95,17 @@
                         <input type="text" class="form-control" name="mother_name"/>
                     </div>
                     <div class="col-md-4">
-                        <label class="fw-bold">Date of Birth *</label>
-                        <input type="date" class="form-control" name="date_of_birth" required="required"/>
+                        <label class="fw-bold">Date of Birth
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" class="form-control" name="date_of_birth" id="date_of_birth"
+                               min="1900-01-01" max="2099-12-31" required="required"/>
+                        <div class="invalid-feedback">Please enter a valid date of birth (year 1900-2099).</div>
                     </div>
                     <div class="col-md-4">
-                        <label class="fw-bold">Gender *</label>
+                        <label class="fw-bold">Gender
+                            <span class="text-danger">*</span>
+                        </label>
                         <select class="form-select" name="gender" required="required">
                             <option value="">Select</option>
                             <option value="male">Male</option>
@@ -113,32 +125,67 @@
                 </div>
             </div>
 
+            <!-- Contact Information -->
             <div class="col-12 mb-4">
                 <h5 class="fw-bold border-bottom pb-2">Contact Information</h5>
                 <div class="row g-3 mt-2">
                     <div class="col-md-6">
-                        <label class="fw-bold">Email *</label>
+                        <label class="fw-bold">Email
+                            <span class="text-danger">*</span>
+                        </label>
                         <input type="email" class="form-control" name="email_from" required="required"/>
                     </div>
                     <div class="col-md-6">
-                        <label class="fw-bold">Mobile Number *</label>
-                        <input type="tel" class="form-control" name="partner_phone" required="required"/>
+                        <label class="fw-bold">Mobile Number
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="tel" class="form-control" name="partner_phone" id="partner_phone"
+                               inputmode="numeric" pattern="[0-9]{10}" maxlength="10"
+                               placeholder="10-digit number" required="required"/>
+                        <div class="invalid-feedback">Enter a valid 10-digit mobile number.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="fw-bold">Phone (with STD Code)</label>
-                        <input type="text" class="form-control" name="phone_with_std"/>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="fw-bold">Pin Code</label>
-                        <input type="text" class="form-control" name="pincode" required="required"/>
-                    </div>
-                    <div class="col-12">
-                        <label class="fw-bold">Mailing Address</label>
-                        <textarea class="form-control" name="mailing_address" rows="2"></textarea>
+                        <input type="text" class="form-control" name="phone_with_std"
+                               inputmode="numeric" maxlength="15"/>
                     </div>
                 </div>
             </div>
 
+            <!-- Address -->
+            <div class="col-12 mb-4">
+                <h5 class="fw-bold border-bottom pb-2">Address Details</h5>
+                <div class="row g-3 mt-2">
+                    <div class="col-12">
+                        <label class="fw-bold">Street Address
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" name="applicant_street" required="required"/>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="fw-bold">City
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" name="applicant_city" required="required"/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="fw-bold">State</label>
+                        <input type="text" class="form-control" name="applicant_state"
+                               placeholder="e.g., Tamil Nadu"/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="fw-bold">Pin Code
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="tel" class="form-control" name="pincode" id="pincode"
+                               inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                               placeholder="6-digit PIN" required="required"/>
+                        <div class="invalid-feedback">Enter a valid 6-digit PIN code.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Educational Qualification -->
             <div class="col-12 mt-2">
                 <h5 class="fw-bold border-bottom pb-2">Educational Qualification</h5>
             </div>
@@ -147,9 +194,13 @@
                     <table class="table table-bordered align-middle" id="edu_table">
                         <thead class="table-secondary text-center">
                             <tr>
-                                <th style="min-width:180px;">Exam / Qualification</th>
+                                <th style="min-width:180px;">Exam / Qualification
+                                    <span class="text-danger">*</span>
+                                </th>
                                 <th style="min-width:120px;">Passing Date</th>
-                                <th style="min-width:180px;">University / Institution</th>
+                                <th style="min-width:180px;">University / Institution
+                                    <span class="text-danger">*</span>
+                                </th>
                                 <th style="min-width:90px;">% / CGPA</th>
                                 <th style="min-width:150px;">Main Subject</th>
                                 <th style="width:45px;"></th>
@@ -160,8 +211,12 @@
                             <tr>
                                 <td colspan="6" class="bg-light">
                                     <button type="button" class="btn btn-sm btn-outline-primary" id="add_edu_row">
-                                        <i class="fa fa-plus me-1"/> Add a Line
+                                        <i class="fa fa-plus me-1"/>Add a Line
                                     </button>
+                                    <span id="edu_error" class="text-danger ms-2"
+                                          style="font-size:0.85rem;display:none;">
+                                        Please fill all required fields in the current row first.
+                                    </span>
                                 </td>
                             </tr>
                         </tfoot>
@@ -169,9 +224,11 @@
                 </div>
             </div>
 
+            <!-- Work Experience -->
             <div class="col-12 mt-2">
                 <h5 class="fw-bold border-bottom pb-2">
-                    Work Experience <small class="fw-normal text-muted">(Starting from present employment)</small>
+                    Work Experience
+                    <small class="fw-normal text-muted">(Starting from present employment)</small>
                 </h5>
             </div>
             <div class="col-12 mb-4">
@@ -179,10 +236,14 @@
                     <table class="table table-bordered align-middle" id="exp_table">
                         <thead class="table-secondary text-center">
                             <tr>
-                                <th style="min-width:160px;">Employer Name &amp; Address</th>
+                                <th style="min-width:160px;">Employer Name
+                                    <span class="text-danger">*</span>
+                                </th>
                                 <th style="min-width:110px;">From</th>
                                 <th style="min-width:110px;">To</th>
-                                <th style="min-width:130px;">Designation</th>
+                                <th style="min-width:130px;">Designation
+                                    <span class="text-danger">*</span>
+                                </th>
                                 <th style="min-width:160px;">Nature of Duties</th>
                                 <th style="min-width:110px;">Gross Salary</th>
                                 <th style="min-width:90px;">Pay Scale</th>
@@ -194,37 +255,47 @@
                             <tr>
                                 <td colspan="8" class="bg-light">
                                     <button type="button" class="btn btn-sm btn-outline-primary" id="add_exp_row">
-                                        <i class="fa fa-plus me-1"/> Add a Line
+                                        <i class="fa fa-plus me-1"/>Add a Line
                                     </button>
+                                    <span id="exp_error" class="text-danger ms-2"
+                                          style="font-size:0.85rem;display:none;">
+                                        Please fill all required fields in the current row first.
+                                    </span>
                                 </td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
             </div>
+
         </xpath>
 
-
+        <!-- Declaration -->
         <xpath expr="//textarea[@name='short_introduction']/../.." position="after">
-
             <div class="col-12 mt-4 mb-3">
                 <div class="card border-secondary">
                     <div class="card-body">
                         <h6 class="fw-bold">Declaration</h6>
                         <p class="mb-2 text-muted">
-                            I hereby declare that all the information provided above is true and correct to the
-                            best of my knowledge. Any false information may lead to disqualification.
+                            I hereby declare that all the information provided above is true and correct
+                            to the best of my knowledge. Any false information may lead to disqualification.
                         </p>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="declaration" id="declaration" required="required"/>
+                            <input class="form-check-input" type="checkbox" name="declaration"
+                                   id="declaration" required="required"/>
                             <label class="form-check-label fw-bold" for="declaration">
-                                I agree to the above declaration *
+                                I agree to the above declaration
+                                <span class="text-danger">*</span>
                             </label>
                         </div>
                     </div>
                 </div>
             </div>
+        </xpath>
 
+        <!-- Submit button renamed -->
+        <xpath expr="//a[hasclass('s_website_form_send')]" position="replace">
+            <a href="#" role="button" class="btn btn-primary btn-lg s_website_form_send">Submit</a>
         </xpath>
 
     </template>

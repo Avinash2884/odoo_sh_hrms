@@ -19,12 +19,18 @@
                         string="Unhold"
                         class="btn-secondary"
                         invisible="is_hold == False"/>
-
                 <button name="action_position_filled"
                         type="object"
                         string="Position Filled"
                         class="btn-secondary"/>
 
+            </xpath>
+
+            <xpath expr="//form/sheet" position="inside">
+                <widget name="web_ribbon"
+                        title="On Hold"
+                        bg_color="text-bg-warning"
+                        invisible="is_hold != True"/>
             </xpath>
 
             <xpath expr="//field[@name='stage_id']" position="attributes">
@@ -46,7 +52,7 @@
                         <field name="application_status" invisible="1"/>
                     </group>
                     <field name="evaluation_ids">
-                        <list editable="bottom" create="False">
+                        <list editable="bottom" create="False" delete="False">
                             <field name="interviewer_id" options="{'no_open': True, 'no_create': True}" readonly="1"/>
                             <field name="education"/>
                             <field name="professional"/>
@@ -91,7 +97,14 @@
             <xpath expr="//group//field[@name='partner_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-
+            <xpath expr="//button[@name='archive_applicant']" position="before">
+                <button
+                        name="action_send_pre_onboarding_mail"
+                        string="Send Pre-Onboarding Form"
+                        type="object"
+                        class="btn-primary"
+                />
+            </xpath>
             <xpath expr="//div[hasclass('oe_title')]" position="before">
                 <div style="width: 100%; display: inline-block; margin-bottom: 20px;">
                     <field name="photograph" widget="image"
@@ -232,7 +245,22 @@
                     </div>
                 </page>
             </xpath>
-
+        </field>
+    </record>
+    <record id="hr_applicant_kanban_inherit_hold" model="ir.ui.view">
+        <field name="name">hr.applicant.kanban.inherit.hold</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_kanban_view_applicant"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="inside">
+                <field name="is_hold"/>
+            </xpath>
+            <xpath expr="//t[@t-name='card']" position="inside">
+                <widget name="web_ribbon"
+                        title="ON HOLD"
+                        bg_color="text-bg-warning"
+                        invisible="not is_hold"/>
+            </xpath>
         </field>
     </record>
 </odoo>

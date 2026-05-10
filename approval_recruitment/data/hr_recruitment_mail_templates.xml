@@ -34,7 +34,6 @@
                 </div>
             </div>
             </field>
-            <field name="auto_delete" eval="True"/>
         </record>
         <record id="email_template_data_applicant_interview_candidate_rejection" model="mail.template">
             <field name="name">Interviewed Candidate : Rejection</field>
@@ -70,7 +69,6 @@
                 </div>
             </div>
             </field>
-            <field name="auto_delete" eval="True"/>
         </record>
         <record id="mail_template_applicant_on_hold" model="mail.template">
             <field name="name">HR - Applicant On Hold / Under Review</field>
@@ -115,6 +113,43 @@
                         <t t-out="object.company_id.name"/>
                     </p>
 
+                </div>
+            </field>
+        </record>
+        <record id="mail_template_pre_offer_documents" model="mail.template">
+            <field name="name">HR - Pre Offer Document Request</field>
+            <field name="model_id" ref="hr_recruitment.model_hr_applicant"/>
+            <field name="email_from">{{ object.user_id.email_formatted or '' }}</field>
+            <field name="email_to">{{ object.email_from }}</field>
+            <field name="subject">Document Request - {{ object.job_id.name }}</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
+                    <p>Dear <t t-out="object.partner_name"/>,</p>
+                    <p>
+                        You have reached the <b>Pre Offer Release stage</b>
+                        for the position of <b><t t-out="object.job_id.name"/></b> at
+                        <b><t t-out="object.company_id.name"/></b>.
+                    </p>
+                    <p>
+                        As part of the next step, please share the following documents:
+                    </p>
+                    <p><b>Required Documents:</b></p>
+                    <ul>
+                        <li>10th Marksheet</li>
+                        <li>12th Marksheet</li>
+                        <li>Degree Certificate (if available)</li>
+                        <li>Last 3 months salary slips (if experienced)</li>
+                        <li>Experience / Relieving letter (if applicable)</li>
+                    </ul>
+                    <p>
+                        Kindly submit the above documents as soon as possible to proceed further.
+                    </p>
+                    <br/>
+                    <p>
+                        Regards,<br/>
+                        <t t-out="object.user_id.name or 'HR Team'"/><br/>
+                        <t t-out="object.company_id.name"/>
+                    </p>
                 </div>
             </field>
         </record>

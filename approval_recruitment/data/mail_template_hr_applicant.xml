@@ -36,8 +36,73 @@
             <field name="lang">{{ object.employee_version_id.employee_id.lang }}</field>
             <field name="auto_delete" eval="True"/>
         </record>
+        <!--pre onboarding      -->
+        <record id="mail_template_pre_onboarding" model="mail.template">
+            <field name="name">Pre-Onboarding Form – Fill &amp; Submit</field>
+            <field name="model_id" ref="hr_recruitment.model_hr_applicant"/>
+            <field name="subject">Action Required: Complete Your Pre-Onboarding Form – {{ object.company_id.name }}
+            </field>
+            <field name="partner_to" eval="False"/>
+            <field name="email_to">{{ object.email_from }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="email_from">{{ object.job_id.hr_head.work_email or object.job_id.hr_head.private_email or
+                user.email }}
+            </field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p>Hi<t t-out="object.partner_name"/>,
+                    </p>
+
+                    <p>
+                        Congratulations on being selected to join
+                        <strong>
+                            <t t-out="object.company_id.name"/>
+                        </strong>
+                        !
+                    </p>
+
+                    <p>
+                        As part of our onboarding process, kindly fill in your
+                        <strong>Pre-Onboarding Form</strong>
+                        before your joining date
+                        <strong>
+                            <t t-out="object.ls_date_of_joining or '(as communicated)'"/>
+                        </strong>
+                        .
+                    </p>
+
+                    <p>Please use the link below to access your form:</p>
+
+                    <!-- REPLACE your-domain.com with your actual domain -->
+                    <p>
+                        <a t-attf-href="https://lifesigns-hr-odoohrms.odoo.com/job/pre_onboarding/{{ object.access_token }}">
+                            https://lifesigns-hr-odoohrms.odoo.com/job/pre_onboarding/
+                            <t t-out="object.access_token"/>
+                        </a>
+                    </p>
+
+                    <p>
+                        If you have any questions, feel free to contact
+                        <a href="mailto:rupesh@lifesigns.us">rupesh@lifesigns.us</a>.
+                    </p>
+
+                    <p>
+                        Warm regards,
 
 
+                        <strong>
+                            <t t-out="user.name"/>
+                        </strong>
+
+
+                        HR Team –
+                        <t t-out="object.company_id.name"/>
+                    </p>
+                </div>
+            </field>
+            <field name="lang">{{ object.partner_id.lang or 'en_US' }}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
     </data>
 </odoo>
 

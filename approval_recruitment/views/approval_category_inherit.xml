@@ -8,7 +8,14 @@
 
             <xpath expr="//field[@name='manager_approval']" position="after">
                 <field name="hr_department_id" string="Department"/>
-                <field name="interviewer_ids" widget="many2many_tags"/>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="readonly">
+                    name == 'Man Power Requisition'
+                </attribute>
+            </xpath>
+            <xpath expr="//field[@name='manager_approval']" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
 
             <xpath expr="//field[@name='has_location']" position="after">
