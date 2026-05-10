@@ -14,6 +14,6 @@ class HrJobInherit(models.Model):
         'hr_job_interviewer_rel',
         'category_id',
         'user_id',
-        string="Interviewers",
+        string="Recruitment Interviewers",
         help="Set Interviewers for All Candidates",
     )
