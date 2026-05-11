@@ -15,7 +15,7 @@
     'data': [
         'views/hr_employee_inherit.xml',
         'views/hr_employee_views_inherit.xml',
-        'views/hr_leave_inherit.xml',
+        # 'views/hr_leave_inherit.xml',
         'views/hr_version_inherit.xml',
         'views/hr_payslip_fnf_views.xml',
         'views/hr_payslip_views.xml',
