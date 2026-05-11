@@ -79,11 +79,11 @@ class HrVersion(models.Model):
         store=True
     )
 
-    years_of_service = fields.Float(
-        string="Years of Service",
-        related='employee_id.years_of_service_num',
-        store=True
-    )
+    # years_of_service = fields.Float(
+    #     string="Years of Service",
+    #     related='employee_id.years_of_service_num',
+    #     store=True
+    # )
 
     l10n_in_gratuity = fields.Monetary(
         string="Gratuity",
@@ -93,19 +93,19 @@ class HrVersion(models.Model):
         groups="hr_payroll.group_hr_payroll_user"
     )
 
-    @api.depends(
-        'l10n_in_basic_salary_amount',
-        'employee_id.years_of_service_num',
-        'dearness_allowance'
-    )
-    def _compute_l10n_in_gratuity(self):
-        for version in self:
-            years = float(version.employee_id.years_of_service_num or 0.0)
-            basic = version.l10n_in_basic_salary_amount or 0.0
-            da = version.dearness_allowance or 0.0
-
-            # 🔥 No condition → always calculate
-            version.l10n_in_gratuity = ((basic + da) * 15 * years) / 26
+    # @api.depends(
+    #     'l10n_in_basic_salary_amount',
+    #     'employee_id.years_of_service_num',
+    #     'dearness_allowance'
+    # )
+    # def _compute_l10n_in_gratuity(self):
+    #     for version in self:
+    #         years = float(version.employee_id.years_of_service_num or 0.0)
+    #         basic = version.l10n_in_basic_salary_amount or 0.0
+    #         da = version.dearness_allowance or 0.0
+    #
+    #         # 🔥 No condition → always calculate
+    #         version.l10n_in_gratuity = ((basic + da) * 15 * years) / 26
 
     @api.depends('l10n_in_gratuity')
     def _compute_l10n_in_gratuity_percentage(self):
