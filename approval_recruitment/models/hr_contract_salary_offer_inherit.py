@@ -21,26 +21,26 @@ class HrContractSalaryOffer(models.Model):
     end_date = fields.Date(string="End Date")
 
     #Full time appointment letter
-    full_time_hospital_name = fields.Char(string="Hospital Name")
-    full_time_hospital_city = fields.Char(string="Hospital City")
+    full_time_hospital_name = fields.Char(string="Full Time (Hospital Name)")
+    full_time_hospital_city = fields.Char(string="Full Time (Hospital City)")
 
     #HSE appointment letter
-    hse_hospital_name = fields.Char(string="Hospital Name")
-    hse_hospital_city = fields.Char(string="Hospital City")
+    hse_hospital_name = fields.Char(string="HSE Hospital Name")
+    hse_hospital_city = fields.Char(string="HSE Hospital City")
 
     #offer of appointment
     designation = fields.Char(string="Designation")
     variable_pay_ctc = fields.Float(string="Variable Pay CTC")
-    offer_hospital_name = fields.Char(string="Hospital Name")
-    offer_hospital_city = fields.Char(string="Hospital City")
+    offer_hospital_name = fields.Char(string="Offer of Appointment (Hospital Name)")
+    offer_hospital_city = fields.Char(string="Offer of Appointment (Hospital City)")
 
     #cmt offer internship
     cmt_designation = fields.Char(string="Designation")
 
     # hse offer internship
     hse_designation = fields.Char(string="Designation")
-    hse_intern_hospital_name = fields.Char(string="Hospital Name")
-    hse_intern_hospital_city = fields.Char(string="Hospital City")
+    hse_intern_hospital_name = fields.Char(string="HSE Intern (Hospital Name)")
+    hse_intern_hospital_city = fields.Char(string="HSE Intern (Hospital City)")
 
     # def write(self, vals):
     #     res = super().write(vals)
