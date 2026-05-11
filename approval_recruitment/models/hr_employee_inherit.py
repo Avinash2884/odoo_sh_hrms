@@ -71,27 +71,27 @@ class HrEmployeeInherit(models.Model):
     mother_mobile = fields.Char("Mother Mobile",tracking=True)
 
     # Guardian
-    guardian_relationship = fields.Char("Guardian Relationship",tracking=True)
+    guardian_relationship = fields.Char("Guardian Relationships",tracking=True)
     guardian_name = fields.Char("Guardian Name",tracking=True)
     guardian_mobile = fields.Char("Guardian Mobile",tracking=True)
     ls_aadhar = fields.Char(string="AADHAR",tracking=True)
-    ls_pan = fields.Char(string="PAN",tracking=True)
-    ls_uan = fields.Char(string="UAN",tracking=True)
+    ls_pan = fields.Char(string="LS PAN",tracking=True)
+    ls_uan = fields.Char(string="LS UAN",tracking=True)
 
     ls_date_of_exit = fields.Date(string="Date of Exit", copy=False, tracking=True)
     ls_date_of_resignation = fields.Date(string="Date of Resignation", copy=False, tracking=True)
 
     dependant_name_1 = fields.Char(string="Dependant Name 1")
     dependant_dob_1 = fields.Char(string="Dependant DOB 1")
-    relationship_status_1 = fields.Char(string="Relationship Status 1")
+    relationship_status_1 = fields.Char(string="Relationships Status 1")
 
     dependant_name_2 = fields.Char(string="Dependant Name 2")
     dependant_dob_2 = fields.Char(string="Dependant DOB 2")
-    relationship_status_2 = fields.Char(string="Relationship Status 2")
+    relationship_status_2 = fields.Char(string="Relationships Status 2")
 
     dependant_name_3 = fields.Char(string="Dependant Name 3")
     dependant_dob_3 = fields.Char(string="Dependant DOB 3")
-    relationship_status_3 = fields.Char(string="Relationship Status 3")
+    relationship_status_3 = fields.Char(string="Relationships Status 3")
 
     permanent_street = fields.Char(string="Street")
     permanent_street2 = fields.Char(string="Street 2")
