@@ -3,7 +3,7 @@
     'name': "Approval-Recruitment",
     'version': '1.0.0',
     'depends': ['base','hr','mail','approvals','hr_recruitment','hr_skills','hr_appraisal','survey','hr_attendance','calendar',
-                'hr_contract_salary','website_hr_recruitment','hr_appraisal_skills','hr_appraisal_survey',
+                'hr_contract_salary','account','website_hr_recruitment','hr_appraisal_skills','hr_appraisal_survey',
                 'planning'],
     'summary': "Approval-Man Power",
     'author': "Unisas ITBusiness Solutions Private Limited",
