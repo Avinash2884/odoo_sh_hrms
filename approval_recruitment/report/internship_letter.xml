@@ -68,7 +68,7 @@
                         <div style="margin-left: 20px; text-align: justify; margin-bottom: 20px;">
 
                             <p style="margin-bottom: 12px;">
-                               The duration of internship shall be from
+                               The duration of internship shall be from <strong><t t-esc="object.start_date.strftime('%d-%m-%Y')"/></strong> to <strong><t t-esc="object.end_date.strftime('%d-%m-%Y')"/></strong>
                             </p>
                         </div>
 
@@ -88,7 +88,7 @@
                         </p>
 
                         <p style="margin-bottom: 20px; text-align: justify;">
-                            You shall be paid a monthly stipend of INR
+                            You shall be paid a monthly stipend of INR <strong><t t-esc="object.final_yearly_costs"/></strong>
                         </p>
 
 
@@ -179,7 +179,7 @@
 
                             <!-- Paragraph -->
                             <p style="text-align: justify; line-height: 1.6;">
-                                This Non-Disclosure Agreement ("Agreement") is made and entered into  and effective from (“Effective Date”), at Chennai, India
+                                This Non-Disclosure Agreement ("Agreement") is made and entered into <strong><t t-esc="object.start_date.strftime('%d-%m-%Y')"/></strong> and effective from <strong><t t-esc="object.end_date.strftime('%d-%m-%Y')"/></strong> (“Effective Date”), at Chennai, India
                             </p>
 
                             <p><strong>BY AND BETWEEN</strong></p>
@@ -225,7 +225,7 @@
                                 2.	The Company possesses competitively valuable Confidential Information (as hereinafter defined) regarding its business, products, goods, current trends and services, future products and services, research and development, market demands, clients, consulting, and general business operations.
                             </p>
                             <p>
-                                3.	Whereas the Company has employed the Intern vide an internship letter date  During employment, the Intern shall be privy to various information pertaining to the products, processes, services, customers, affiliates, subsidiaries, group companies of the Company which are confidential.
+                                3.	Whereas the Company has employed the Intern vide an internship letter date <strong><t t-esc="time.strftime('%d-%m-%Y')"/></strong> During employment, the Intern shall be privy to various information pertaining to the products, processes, services, customers, affiliates, subsidiaries, group companies of the Company which are confidential.
                             </p>
 
                             <p>

@@ -62,7 +62,7 @@
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            2. Designation
+                            2. <t t-esc="object.hse_designation"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
@@ -70,7 +70,7 @@
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            4.	Compensation: Your Annual Compensation will be INR: Total CTC Per Annum. Annexure 1 outlines the detailed component-wise stack up.
+                            4.	Compensation: Your Annual Compensation will be <strong>Rs.<t t-esc="object.final_yearly_costs"/></strong> Per Annum. Annexure 1 outlines the detailed component-wise stack up.
                         </p>
 
                         <p>
@@ -80,7 +80,7 @@
                             6.	During this period you would be evaluated on standard performance criteria as per your published roles &amp; responsibilities. You are eligible for the full salary mentioned in Annexure 1, post confirmation after 3 months.
                         </p>
                         <p>
-                            7.	You will be deputed to Hospital Name, located at Hospital city for this role.
+                            7.	You will be deputed to <strong>Rs.<t t-esc="object.final_yearly_costs"/></strong>, located at <strong>Rs.<t t-esc="object.final_yearly_costs"/></strong> for this role.
                         </p>
                         <div style="page-break-before: always; font-family: Arial, sans-serif;">
                             <p>

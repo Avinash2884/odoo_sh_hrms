@@ -1,0 +1,93 @@
+<odoo>
+    <record id="view_hr_contract_salary_offer_form_inherit" model="ir.ui.view">
+        <field name="name">hr.contract.salary.offer.form.inherit</field>
+        <field name="model">hr.contract.salary.offer</field>
+        <field name="inherit_id" ref="hr_contract_salary.hr_contract_salary_offer_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='contract_type_id']" position="after">
+                <field name="offer_letter_type"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+
+                    <page string="CMT Full Time Appointment Letter"
+                          invisible="offer_letter_type != 'cmt_full_time_appointment_letter'">
+
+                        <group>
+                            <field name="hospital_name"/>
+                            <field name="hospital_city"/>
+                        </group>
+
+                    </page>
+
+                    <page string="Internship Letter"
+                          invisible="offer_letter_type != 'internship_letter'">
+
+                        <group>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+
+                    </page>
+
+                    <page string="Full Time Appointment Letter"
+                          invisible="offer_letter_type != 'full_time_appointment_letter'">
+
+                        <group>
+                            <field name="full_time_hospital_name"/>
+                            <field name="full_time_hospital_city"/>
+                        </group>
+
+                    </page>
+
+                    <page string="HSE Appointment Letter"
+                          invisible="offer_letter_type != 'hse_time_appointment_letter'">
+
+                        <group>
+                            <field name="hse_hospital_name"/>
+                            <field name="hse_hospital_city"/>
+                        </group>
+
+                    </page>
+
+                    <page string="Offer Of Appointment"
+                          invisible="offer_letter_type != 'offer_of_appointment'">
+
+                        <group>
+                            <field name="designation"/>
+                            <field name="variable_pay_ctc"/>
+                            <field name="offer_hospital_name"/>
+                            <field name="offer_hospital_city"/>
+                        </group>
+
+                    </page>
+                    <page string="CMT Offer Of Internship"
+                          invisible="offer_letter_type != 'cmt_offer_of_internship_and_subsequent_appointment'">
+
+                        <group>
+                            <field name="cmt_designation"/>
+                        </group>
+
+                    </page>
+
+                    <page string="HSE Offer Of Internship"
+                          invisible="offer_letter_type != 'hse_offer_of_internship_and_subsequent_appointment'">
+
+                        <group>
+                            <field name="hse_designation"/>
+                            <field name="hse_intern_hospital_name"/>
+                            <field name="hse_intern_hospital_city"/>
+                        </group>
+
+                    </page>
+
+
+
+
+                </notebook>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

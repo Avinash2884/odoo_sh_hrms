@@ -71,12 +71,12 @@
                         <p style="margin-bottom: 10px;">
                             Your employment will begin on
                             <strong><t t-esc="object.applicant_id.ls_date_of_joining"/></strong>
-                            and your annual salary will be Rs. Total CTC /- per annum
+                            and your annual salary will be <strong>Rs.<t t-esc="object.final_yearly_costs"/></strong> per annum
                             paid in accordance with the company's payroll policies
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            You will be deputed to Hospital Name, located at Hospital City
+                            You will be deputed to <strong><t t-esc="object.hse_intern_hospital_name"/></strong>, located at <strong><t t-esc="object.hse_intern_hospital_city"/></strong>
                             for this role.
                         </p>
 
@@ -324,6 +324,101 @@
 
                         <p style="margin-top: 10px;">Koushalya R</p>
                         <p style="margin-top: 0px;">Head – Human Resources </p>
+                    </div>
+                    <div style="page-break-before: always; font-family: Arial, sans-serif;">
+
+                            <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">
+                                <strong>Annexure I</strong>
+                            </p>
+
+                            <!-- Employee Details -->
+                            <p>Name: </p>
+                            <p>Designation: </p>
+                            <p>Band: </p>
+                            <p>Level: </p>
+                            <p>Date of joining:</p>
+
+                            <br/>
+
+                            <p>The breakup of the Salary is given below:</p>
+
+                            <!-- Salary Table -->
+                            <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
+                                <thead>
+                                    <tr>
+                                        <th class="text-start">Particulars</th>
+                                        <th class="text-center">Monthly</th>
+                                        <th class="text-center">Annual CTC</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Basic Pay + DA</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>HRA</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Special Allowance</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total Gross Pay</strong></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Employer PF</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>CTC</strong></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>                           <br/>
+
+                            <!-- Notes -->
+                            <ul style="margin-top: 15px;">
+                                <li>
+                                    Taxation: The Income Tax Act as prevailing at the time of employment,
+                                    will govern the taxation matters. The Company will deduct tax at source
+                                    as per the prevailing income tax law.
+                                </li>
+                                <li>
+                                    Gratuity and Insurance is over and above CTC.
+                                </li>
+                            </ul>
+                    </div>
+                    <div style="page-break-before: always; font-family: Arial, sans-serif;">
+
+                            <!-- Title -->
+                            <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">
+                                <strong>ACKNOWLEDGEMENT AND ACCEPTANCE</strong>
+                            </p>
+
+                            <!-- Paragraph -->
+                            <p style="text-align: justify; line-height: 1.6;">
+                                I have read and understood thoroughly the rules of employment/obligations of my employment
+                                contained herein and all the terms of appointment of my employment, and I do hereby agree with all
+                                terms as above and I shall abide by all general rules of employment/service which are now or may
+                                hereafter to be in force, and accordingly I accept the appointment of my employment with you.
+                                Upon acceptance and execution, this letter will constitute the legally binding and enforceable
+                                employment agreement between self and Company.
+                            </p>
+
+                            <br/><br/>
+
+                            <p>Signature: ______________________</p>
+                            <p>Name: ______________________</p>
+                            <p>Date: ______________________</p>
                     </div>
 
                 </t>
