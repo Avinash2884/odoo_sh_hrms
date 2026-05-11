@@ -62,7 +62,7 @@
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            2. Designation
+                            2. <t t-esc="object.designation"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
@@ -70,11 +70,11 @@
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            4.	Compensation: Your Annual Compensation will be INR: Total CTC Per Annum, including a Variable Pay INR: Variable Pay CTC. Annexure 1 outlines the detailed component-wise stack up.
+                            4.	Compensation: Your Annual Compensation will be <strong>Rs.<t t-esc="object.final_yearly_costs"/></strong> Per Annum, including a Variable Pay <strong>Rs.<t t-esc="object.variable_pay_ctc"/></strong>. Annexure 1 outlines the detailed component-wise stack up.
                         </p>
 
                         <p>
-                            5.	You will be deputed to Hospital Name, located at Hospital City for this role.
+                            5.	You will be deputed to <strong><t t-esc="object.offer_hospital_name"/></strong>, located at <strong><t t-esc="object.offer_hospital_city"/></strong> for this role.
                         </p>
                         <p>
                            The Company may, for business needs, may change your reporting manager, or transfer you to any other office location or function of the Company in India or overseas or to any of its affiliates.

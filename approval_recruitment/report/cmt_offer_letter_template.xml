@@ -62,7 +62,7 @@
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            2. Designation
+                            2. <t t-esc="object.cmt_designation"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
@@ -70,7 +70,7 @@
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            4.	Compensation: Your Annual Compensation will be INR: Total CTC Per Annum. Annexure 1 outlines the detailed component-wise stack up.
+                            4.	Compensation: Your Annual Compensation will be <strong>Rs.<t t-esc="object.final_yearly_costs"/></strong> Per Annum. Annexure 1 outlines the detailed component-wise stack up.
                         </p>
 
                         <p>
