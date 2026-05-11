@@ -119,7 +119,7 @@ class HrEmployeeInherit(models.Model):
         ('father', 'Father'),
         ('mother', 'Mother'),
         ('guardian', 'Guardian'),
-    ],string="Relationship")
+    ],string="Relationships")
     pf_percentage = fields.Float(string="Percentage")
     pf_payment_mode = fields.Selection([
         ('cheque', 'Cheque'),
