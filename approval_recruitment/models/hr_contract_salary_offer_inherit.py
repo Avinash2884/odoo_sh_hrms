@@ -35,10 +35,10 @@ class HrContractSalaryOffer(models.Model):
     offer_hospital_city = fields.Char(string="Offer of Appointment (Hospital City)")
 
     #cmt offer internship
-    cmt_designation = fields.Char(string="Designation")
+    cmt_designation = fields.Char(string="CMT Designation")
 
     # hse offer internship
-    hse_designation = fields.Char(string="Designation")
+    hse_designation = fields.Char(string="HSE Designation")
     hse_intern_hospital_name = fields.Char(string="HSE Intern (Hospital Name)")
     hse_intern_hospital_city = fields.Char(string="HSE Intern (Hospital City)")
 
