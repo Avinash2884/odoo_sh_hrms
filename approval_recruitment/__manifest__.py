@@ -59,6 +59,8 @@
         'report/internal_job_posting_selection_letter.xml',
         'report/contract_engagement_letter.xml',
         'report/non_disclosure_agreement.xml',
+        'report/offer_letter_approval_template.xml',
+        'report/offer_letter_approval_report.xml',
 
         # Employee Configuration
         "views/employee_configuration/employment_type.xml",

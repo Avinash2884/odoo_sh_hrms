@@ -11,33 +11,42 @@ class JobApplicationController(http.Controller):
 
     @http.route('/job/apply/save', type='http', auth='public', methods=['POST'], website=True, csrf=False)
     def submit_job_application(self, **kwargs):
-        _logger.info("=== JOB APPLICATION SUBMISSION STARTED ===")
+        print("\n\n" + "=" * 60)
+        print("🚀 === JOB APPLICATION CONTROLLER TRIGGERED === 🚀")
+        print("=" * 60)
 
         def safe_int(value):
-            try: return int(value) if value else False
-            except ValueError: return False
+            try:
+                return int(value) if value else False
+            except ValueError:
+                return False
 
         def safe_float(value):
-            try: return float(value) if value else 0.0
-            except ValueError: return 0.0
+            try:
+                return float(value) if value else 0.0
+            except ValueError:
+                return 0.0
 
         try:
-            # 1. GENERATE NAME
-            first = kwargs.get('first_name', '').strip()
-            last = kwargs.get('last_name', '').strip()
-            full_name = f"{first} {last}".strip() or "New Applicant"
+            first = (kwargs.get('first_name') or '').strip()
+            last = (kwargs.get('last_name') or '').strip()
+            full_name = '{} {}'.format(first, last).strip() or 'New Applicant'
+
+            # --- THE MAGIC FIX: Combine Address Fields ---
+            # Your model has 'mailing_address', not street/city/state.
+            street = (kwargs.get('applicant_street') or '').strip()
+            city = (kwargs.get('applicant_city') or '').strip()
+            state = (kwargs.get('applicant_state') or '').strip()
+
+            address_parts = [p for p in [street, city, state] if p]
+            full_mailing_address = ", ".join(address_parts)
+            # ---------------------------------------------
 
             vals = {
-                # --- CORE ODOO FIELDS (Now using Defaults) ---
                 'partner_name': full_name,
                 'email_from': kwargs.get('email_from'),
                 'partner_phone': kwargs.get('partner_phone'),
 
-                # IDs
-                'job_id': safe_int(kwargs.get('job_id')),
-                'department_id': safe_int(kwargs.get('department_id')),
-
-                # CUSTOM PERSONAL INFO
                 'registration_no': kwargs.get('registration_no'),
                 'title': kwargs.get('title'),
                 'first_name': kwargs.get('first_name'),
@@ -48,133 +57,179 @@ class JobApplicationController(http.Controller):
                 'date_of_birth': kwargs.get('date_of_birth') or False,
                 'gender': kwargs.get('gender'),
                 'category': kwargs.get('category'),
-
-                # CONTACT
                 'phone_with_std': kwargs.get('phone_with_std'),
-                'mailing_address': kwargs.get('mailing_address'),
                 'pincode': kwargs.get('pincode'),
 
-                # OTHER
+                # Assign the combined address here:
+                'mailing_address': full_mailing_address,
+
                 'discipline_applied': kwargs.get('discipline_applied'),
                 'declaration': True if kwargs.get('declaration') == 'on' else False,
                 'linkedin_profile': kwargs.get('linkedin_profile'),
             }
 
-            # 2. HANDLE PHOTO
-            file = request.httprequest.files.get('photograph')
-            if file and file.filename:
-                vals['photograph'] = base64.b64encode(file.read())
-                vals['photograph_filename'] = file.filename
+            job_id = safe_int(kwargs.get('job_id'))
+            dept_id = safe_int(kwargs.get('department_id'))
+            if job_id: vals['job_id'] = job_id
+            if dept_id: vals['department_id'] = dept_id
 
-            # 3. HANDLE RESUME
+            print("\n👀 1. DICTIONARY COMPILED. ATTEMPTING TO SAVE THESE KEYS:")
+            print(list(vals.keys()))
+
+            photo = request.httprequest.files.get('photograph')
+            if photo and photo.filename:
+                vals['photograph'] = base64.b64encode(photo.read())
+                vals['photograph_filename'] = photo.filename
+
             resume = request.httprequest.files.get('Resume')
             if resume and resume.filename:
                 vals['resume_file'] = base64.b64encode(resume.read())
                 vals['resume_filename'] = resume.filename
 
-            # 4. CREATE APPLICANT
-            applicant = request.env['hr.applicant'].sudo().create(vals)
-            _logger.info("Applicant Created: ID %s", applicant.id)
+            print("\n⏳ 2. EXECUTING ORM CREATE()...")
 
-            # 5. HANDLE EDUCATION
+            applicant = request.env['hr.applicant'].sudo().create(vals)
+
+            print(f"✅ 3. SUCCESS! APPLICANT CREATED WITH ID: {applicant.id}")
+
+            if vals.get('resume_file'):
+                print("📎 4. Attaching Resume...")
+                request.env['ir.attachment'].sudo().create({
+                    'name': vals.get('resume_filename') or 'Resume',
+                    'type': 'binary',
+                    'datas': vals['resume_file'],
+                    'res_model': 'hr.applicant',
+                    'res_id': applicant.id,
+                })
+
+            print("🎓 5. Processing Education & Experience...")
             exams = request.httprequest.form.getlist('edu_exam_name[]')
             dates = request.httprequest.form.getlist('edu_passing_date[]')
             universities = request.httprequest.form.getlist('edu_university[]')
             marks = request.httprequest.form.getlist('edu_marks_percentage[]')
             subjects = request.httprequest.form.getlist('edu_main_subject[]')
 
-            for i in range(len(exams)):
-                if exams[i].strip():
+            for i, exam in enumerate(exams):
+                if exam.strip():
                     request.env['hr.applicant.education'].sudo().create({
                         'applicant_id': applicant.id,
-                        'exam_name': exams[i],
+                        'exam_name': exam.strip(),
                         'passing_date': dates[i] if i < len(dates) else '',
                         'university': universities[i] if i < len(universities) else '',
                         'marks_percentage': safe_float(marks[i]) if i < len(marks) else 0.0,
                         'main_subject': subjects[i] if i < len(subjects) else '',
                     })
 
-            # 6. HANDLE EXPERIENCE
             employers = request.httprequest.form.getlist('exp_employer_name[]')
             from_dates = request.httprequest.form.getlist('exp_from_date[]')
             to_dates = request.httprequest.form.getlist('exp_to_date[]')
             designations = request.httprequest.form.getlist('exp_designation[]')
-            duties = request.httprequest.form.getlist('exp_duties[]')
+            duties_list = request.httprequest.form.getlist('exp_duties[]')
             salaries = request.httprequest.form.getlist('exp_gross_salary[]')
             scales = request.httprequest.form.getlist('exp_pay_scale[]')
 
-            for i in range(len(employers)):
-                if employers[i].strip():
+            for i, employer in enumerate(employers):
+                if employer.strip():
                     request.env['hr.applicant.experience'].sudo().create({
                         'applicant_id': applicant.id,
-                        'employer_name': employers[i],
+                        'employer_name': employer.strip(),
                         'from_date': from_dates[i] if i < len(from_dates) else '',
                         'to_date': to_dates[i] if i < len(to_dates) else '',
                         'designation': designations[i] if i < len(designations) else '',
-                        'duties': duties[i] if i < len(duties) else '',
+                        'duties': duties_list[i] if i < len(duties_list) else '',
                         'gross_salary': safe_float(salaries[i]) if i < len(salaries) else 0.0,
                         'pay_scale': scales[i] if i < len(scales) else '',
                     })
 
-            return request.redirect('/contactus-thank-you')
+            print("🎉 6. ALL SAVED. REDIRECTING TO THANK YOU PAGE. ===\n\n")
+            return "SUCCESS"
 
         except Exception as e:
-            _logger.exception("CRITICAL ERROR: %s", e)
-            return request.redirect('/jobs?error=internal_error')
+            print("\n" + "❌" * 20)
+            print("FATAL DATABASE CRASH DETECTED!")
+            print("Exact Error:", str(e))
+            print("❌" * 20 + "\n")
+
+            error_msg = f"""
+            <div style="padding: 40px; font-family: sans-serif;">
+                <h1 style="color: #d9534f;">Odoo Save Failed!</h1>
+                <p style="font-size: 18px;">The database rejected the save because of this exact error:</p>
+                <div style="background: #f8d7da; color: #721c24; padding: 20px; border: 1px solid #f5c6cb; border-radius: 5px; font-size: 20px; font-weight: bold;">
+                    {str(e)}
+                </div>
+            </div>
+            """
+            return error_msg
 
 
 class PreOnboardingController(http.Controller):
 
-    @http.route('/job/pre_onboarding', type='http', auth='user', website=True)
-    def pre_onboarding_form(self, **kwargs):
-        user = request.env.user
-        # Find the applicant linked to this portal user
+    @http.route('/job/pre_onboarding/<string:token>', type='http', auth='public', website=True)
+    def pre_onboarding_form(self, token, **kwargs):
+        if not token:
+            return request.redirect('/')
+
         applicant = request.env['hr.applicant'].sudo().search([
-            ('partner_id', '=', user.partner_id.id)
+            ('access_token', '=', token)
         ], limit=1)
 
         if not applicant:
-            return request.redirect('/my/home')
+            _logger.warning("Invalid pre-onboarding token: %s", token)
+            return request.redirect('/')
 
-        # The 'applicant' object contains all the details they submitted earlier
-        return request.render('website_job_custom.pre_onboarding_template', {
-            'applicant': applicant
+        return request.render('approval_recruitment.pre_onboarding_template', {
+            'applicant': applicant,
+            'token': token,
         })
 
-    @http.route('/job/onboarding/save', type='http', auth='user', methods=['POST'], website=True, csrf=False)
+    @http.route('/job/onboarding/save', type='http', auth='public', methods=['POST'], website=True, csrf=False)
     def save_onboarding_docs(self, **kwargs):
-        user = request.env.user
+        _logger.info("=== ONBOARDING SAVE STARTED ===")
+
+        token = kwargs.get('access_token')
+        if not token:
+            return request.redirect('/')
+
         applicant = request.env['hr.applicant'].sudo().search([
-            ('partner_id', '=', user.partner_id.id)
+            ('access_token', '=', token)
         ], limit=1)
 
         if not applicant:
-            return request.redirect('/my/home')
-
-        # 1. HANDLE TEXT FIELDS (Identity & Bank)
-        text_fields = [
-            'aadhaar_no', 'pan_no', 'bank_name',
-            'bank_acc_no', 'bank_ifsc', 'bank_branch'
-        ]
+            _logger.error("No applicant for token: %s", token)
+            return request.redirect('/')
 
         vals = {}
-        for field in text_fields:
-            if kwargs.get(field):
-                vals[field] = kwargs.get(field)
+        try:
+            for field in ['aadhaar_no', 'pan_no', 'bank_name', 'bank_acc_no',
+                          'bank_ifsc', 'bank_branch', 'joining_category']:
+                if kwargs.get(field):
+                    vals[field] = kwargs[field]
 
-        # 2. HANDLE FILE FIELDS
-        file_fields = [
-            'onboarding_photo', 'aadhaar_card', 'pan_card', 'bank_doc',
-            'marksheet_10', 'marksheet_12', 'diploma_cert', 'ug_degree', 'pg_degree',
-            'payslips', 'salary_revision_letter', 'relieving_letter', 'exp_appointment_letter'
-        ]
+            for field in ['onboarding_photo', 'aadhaar_card', 'pan_card', 'bank_doc',
+                          'marksheet_10', 'marksheet_12', 'diploma_cert', 'ug_degree', 'pg_degree',
+                          'payslips', 'salary_revision_letter', 'relieving_letter', 'exp_appointment_letter']:
+                for f in request.httprequest.files.getlist(field):
+                    if f and f.filename:
+                        data = base64.b64encode(f.read())
+                        if field not in vals:
+                            vals[field] = data
+                            if field == 'onboarding_photo':
+                                vals['photograph'] = data
+                        request.env['ir.attachment'].sudo().create({
+                            'name': '{} - {}'.format(field.replace('_', ' ').title(), f.filename),
+                            'type': 'binary',
+                            'datas': data,
+                            'res_model': 'hr.applicant',
+                            'res_id': applicant.id,
+                            'public': False,
+                        })
 
-        for field in file_fields:
-            file = request.httprequest.files.get(field)
-            if file and file.filename:
-                vals[field] = base64.b64encode(file.read())
+            if vals:
+                applicant.sudo().write(vals)
+                _logger.info("Onboarding saved for applicant id=%s", applicant.id)
 
-        if vals:
-            applicant.sudo().write(vals)
+            return request.redirect('/contactus-thank-you')
 
-        return request.redirect('/contactus-thank-you')
+        except Exception as e:
+            _logger.exception("ONBOARDING SAVE ERROR: %s", e)
+            return request.redirect('/contactus-thank-you')
