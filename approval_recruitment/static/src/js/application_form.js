@@ -22,14 +22,12 @@ console.log('Custom Job Form JS Loaded');
         return true;
     }
 
-    // ── WATCHDOG 1: Fast watchdog ──
     var wdCount = 0;
     var wd = setInterval(function () {
         setRegistrationNumber();
         if (++wdCount > 50) { clearInterval(wd); }
     }, 100);
 
-    // ── WATCHDOG 2: Slow persistent watchdog ──
     setInterval(function () {
         var f = document.getElementById('reg_no_field');
         if (f && currentRegNo && f.value !== currentRegNo) {
@@ -236,7 +234,7 @@ console.log('Custom Job Form JS Loaded');
     }
 
     // ─────────────────────────────────────────────────────────
-    // SUBMIT VIA FETCH - FIXED TO CATCH ERRORS
+    // SUBMIT VIA FETCH - FIXED TO CATCH ERRORS AND STRICT REDIRECT
     // ─────────────────────────────────────────────────────────
     function submitFormViaFetch(form) {
         setRegistrationNumber();
@@ -255,23 +253,27 @@ console.log('Custom Job Form JS Loaded');
             body: formData,
         })
         .then(function(response) {
-            // Get the raw HTML/text back from our Python controller
+
+            if (!response.ok) {
+                throw new Error("Server crashed with status: " + response.status);
+            }
             return response.text();
         })
         .then(function(text) {
-            // If the python controller threw our red error box, show it!
-            if (text.includes("Odoo Save Failed!")) {
+
+            if (text.trim() === "SUCCESS") {
+                window.location.href = '/contactus-thank-you';
+            } else {
+
                 document.open();
                 document.write(text);
                 document.close();
-            } else {
-                // If there's no error, safely redirect
-                window.location.href = '/contactus-thank-you';
             }
         })
         .catch(function (err) {
             console.error('Submit error:', err);
-            btn.textContent = 'Submit Failed';
+            if (btn) btn.textContent = 'Submit Failed';
+            alert("Fatal Error: Could not reach the server. Check your Odoo Terminal for the Python Crash.");
         });
     }
 
@@ -281,42 +283,49 @@ console.log('Custom Job Form JS Loaded');
     function initForm() {
         setRegistrationNumber();
 
+
         var form = document.getElementById('hr_recruitment_form')
             || document.querySelector('form[action*="/website/form"]')
-            || document.querySelector('form[action*="apply"]')
-            || document.querySelector('.s_website_form form')
-            || document.querySelector('form');
+            || document.querySelector('.s_website_form form');
 
         if (!form) {
-            console.warn('Job application form not found');
-        } else {
-            form.removeAttribute('data-model_name');
-            form.removeAttribute('data-success-page');
-            form.removeAttribute('data-success_page');
-            form.removeAttribute('data-force_action');
-            form.classList.remove('s_website_form');
-
-            var submitEl = form.querySelector('.s_website_form_send')
-                || form.querySelector('a[role="button"]')
-                || form.querySelector('button[type="submit"]');
-
-            if (submitEl) {
-                var newSubmit = submitEl.cloneNode(true);
-                submitEl.parentNode.replaceChild(newSubmit, submitEl);
-
-                newSubmit.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-
-                    var dob = document.getElementById('date_of_birth');
-                    if (dob && !validateDOB(dob)) { dob.focus(); return; }
-
-                    if (!form.checkValidity()) { form.reportValidity(); return; }
-
-                    submitFormViaFetch(form);
-                });
+            var firstNameInput = document.querySelector('input[name="first_name"]');
+            if (firstNameInput) {
+                form = firstNameInput.closest('form');
             }
+        }
+
+        if (!form) {
+            console.warn('Job application form not found. (Not attaching JS to this page)');
+            return;
+        }
+
+        form.removeAttribute('data-model_name');
+        form.removeAttribute('data-success-page');
+        form.removeAttribute('data-success_page');
+        form.removeAttribute('data-force_action');
+        form.classList.remove('s_website_form');
+
+        var submitEl = form.querySelector('.s_website_form_send')
+            || form.querySelector('a[role="button"]')
+            || form.querySelector('button[type="submit"]');
+
+        if (submitEl) {
+            var newSubmit = submitEl.cloneNode(true);
+            submitEl.parentNode.replaceChild(newSubmit, submitEl);
+
+            newSubmit.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                var dob = document.getElementById('date_of_birth');
+                if (dob && !validateDOB(dob)) { dob.focus(); return; }
+
+                if (!form.checkValidity()) { form.reportValidity(); return; }
+
+                submitFormViaFetch(form);
+            });
         }
 
         var dob = document.getElementById('date_of_birth');
