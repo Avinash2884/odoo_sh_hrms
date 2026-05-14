@@ -3,7 +3,7 @@
     'name': "Approval-Recruitment",
     'version': '1.0.0',
     'depends': ['base','hr','mail','approvals','hr_recruitment','hr_skills','hr_appraisal','survey','hr_attendance','calendar',
-                'hr_contract_salary','account','website_hr_recruitment','account_followup','hr_appraisal_skills','hr_appraisal_survey',
+                'hr_contract_salary','account','website_hr_recruitment','hr_appraisal_skills','hr_appraisal_survey',
                 'planning'],
     'summary': "Approval-Man Power",
     'author': "Unisas ITBusiness Solutions Private Limited",
@@ -59,6 +59,8 @@
         'report/internal_job_posting_selection_letter.xml',
         'report/contract_engagement_letter.xml',
         'report/non_disclosure_agreement.xml',
+        'report/offer_letter_approval_template.xml',
+        'report/offer_letter_approval_report.xml',
 
         # Employee Configuration
         "views/employee_configuration/employment_type.xml",

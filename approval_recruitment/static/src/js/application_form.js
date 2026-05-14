@@ -1,9 +1,11 @@
-console.log('Started Custom Job Form Script (With Watchdog)');
+console.log('Custom Job Form JS Loaded');
 
 (function () {
     'use strict';
 
-    // 1. Generate Random Number
+    // ─────────────────────────────────────────────────────────
+    // REGISTRATION NUMBER
+    // ─────────────────────────────────────────────────────────
     function generateRegNo() {
         var year = new Date().getFullYear();
         var rand = Math.floor(1000 + Math.random() * 9000);
@@ -13,193 +15,352 @@ console.log('Started Custom Job Form Script (With Watchdog)');
     var currentRegNo = null;
 
     function setRegistrationNumber() {
-        var regField = document.getElementById('reg_no_field');
-        if (!regField) return;
-
-        // If we haven't generated one for this session yet, create it.
-        if (!currentRegNo) {
-            currentRegNo = generateRegNo();
-        }
-
-        // If the field is empty (or Odoo wiped it), put our number back!
-        if (regField.value !== currentRegNo) {
-            regField.value = currentRegNo;
-            // console.log("Watchdog: Restored Registration Number -> " + currentRegNo);
-        }
+        var f = document.getElementById('reg_no_field');
+        if (!f) return false;
+        if (!currentRegNo) { currentRegNo = generateRegNo(); }
+        f.value = currentRegNo;
+        return true;
     }
 
-    // 3. Main Initialization
-    function initForm() {
-        // --- 1. RECRUITMENT APPLICATION FORM LOGIC ---
-        var recruitmentForm = document.getElementById('hr_recruitment_form');
-        if (!recruitmentForm) { recruitmentForm = document.querySelector('form[action^="/website/form"]'); }
+    var wdCount = 0;
+    var wd = setInterval(function () {
+        setRegistrationNumber();
+        if (++wdCount > 50) { clearInterval(wd); }
+    }, 100);
 
-        // Only run this block if we are actually on the job application page
-        if (recruitmentForm) {
-            recruitmentForm.setAttribute('action', '/job/apply/save');
-            recruitmentForm.setAttribute('method', 'POST');
-            recruitmentForm.setAttribute('enctype', 'multipart/form-data');
-            recruitmentForm.removeAttribute('data-model_name');
-            recruitmentForm.removeAttribute('data-success-page');
-            recruitmentForm.classList.remove('s_website_form');
+    setInterval(function () {
+        var f = document.getElementById('reg_no_field');
+        if (f && currentRegNo && f.value !== currentRegNo) {
+            f.value = currentRegNo;
+            console.log('RegNo restored by persistent watchdog');
+        }
+    }, 500);
 
-            var oldBtn = recruitmentForm.querySelector('.s_website_form_send, button[type="submit"], .o_website_form_send');
-            if (oldBtn) {
-                var newBtn = oldBtn.cloneNode(true);
-                oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-                newBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    setRegistrationNumber();
-                    if (recruitmentForm.checkValidity()) { recruitmentForm.submit(); } else { recruitmentForm.reportValidity(); }
-                });
+    // ─────────────────────────────────────────────────────────
+    // FIELD VALIDATORS
+    // ─────────────────────────────────────────────────────────
+    function setError(el, msg) {
+        el.classList.add('is-invalid');
+        el.classList.remove('is-valid');
+        var fb = el.nextElementSibling;
+        if (fb && fb.classList.contains('invalid-feedback')) { fb.textContent = msg; }
+    }
+
+    function clearError(el) {
+        el.classList.remove('is-invalid');
+        el.classList.add('is-valid');
+    }
+
+    function validateDOB(el) {
+        if (!el.value) { setError(el, 'Date of birth is required.'); return false; }
+        var yr = new Date(el.value).getFullYear();
+        if (yr < 1900 || yr > 2099) { setError(el, 'Enter a valid year (1900-2099).'); return false; }
+        clearError(el); return true;
+    }
+
+    function initNumericField(id, maxLen, exactLen, label) {
+        var el = document.getElementById(id);
+        if (!el) return;
+
+        function cleanInput() {
+            el.value = el.value.replace(/[^0-9]/g, '').slice(0, maxLen);
+        }
+
+        el.addEventListener('keypress', function (e) {
+            if (e.ctrlKey || e.metaKey) return;
+            if (e.key.length === 1 && !/[0-9]/.test(e.key)) { e.preventDefault(); }
+        });
+
+        el.addEventListener('input', cleanInput);
+        el.addEventListener('change', cleanInput);
+
+        el.addEventListener('blur', function () {
+            cleanInput();
+            if (exactLen && this.value.length !== exactLen) {
+                setError(this, label + ' must be exactly ' + exactLen + ' digits.');
+            } else if (!this.value.length) {
+                setError(this, label + ' is required.');
+            } else {
+                clearError(this);
             }
+        });
+    }
 
-            setRegistrationNumber();
-            var attempts = 0;
-            var watchdog = setInterval(function() {
-                setRegistrationNumber();
-                attempts++;
-                if (attempts > 15) { clearInterval(watchdog); }
-            }, 200);
+    function attachCgpa(input) {
+        input.addEventListener('keydown', function (e) {
+            if (['e', 'E', '+', '-'].indexOf(e.key) !== -1) { e.preventDefault(); }
+        });
+        input.addEventListener('input', function () {
+            var v = this.value.replace(/[^0-9.]/g, '');
+            var p = v.split('.');
+            if (p.length > 2) { v = p[0] + '.' + p.slice(1).join(''); }
+            this.value = v;
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // TABLE ROWS
+    // ─────────────────────────────────────────────────────────
+    function createEduRow() {
+        var tr = document.createElement('tr');
+        tr.className = 'edu_row';
+        tr.innerHTML =
+            '<td><input type="text" class="form-control form-control-sm border-0 edu-req" name="edu_exam_name[]" placeholder="e.g., B.Tech"/></td>' +
+            '<td><input type="date" class="form-control form-control-sm border-0" name="edu_passing_date[]" min="1950-01-01" max="2099-12-31"/></td>' +
+            '<td><input type="text" class="form-control form-control-sm border-0 edu-req" name="edu_university[]" placeholder="Institution"/></td>' +
+            '<td><input type="number" step="0.01" min="0" max="100" class="form-control form-control-sm border-0 cgpa-inp" name="edu_marks_percentage[]" placeholder="85"/></td>' +
+            '<td><input type="text" class="form-control form-control-sm border-0" name="edu_main_subject[]" placeholder="e.g., CSE"/></td>' +
+            '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove_edu_row"><i class="fa fa-trash"></i></button></td>';
+        var cgpa = tr.querySelector('.cgpa-inp');
+        if (cgpa) { attachCgpa(cgpa); }
+        return tr;
+    }
+
+    function createExpRow() {
+        var tr = document.createElement('tr');
+        tr.className = 'exp_row';
+        tr.innerHTML =
+            '<td><input type="text" class="form-control form-control-sm border-0 exp-req" name="exp_employer_name[]" placeholder="Employer"/></td>' +
+            '<td><input type="date" class="form-control form-control-sm border-0" name="exp_from_date[]" min="1950-01-01" max="2099-12-31"/></td>' +
+            '<td><input type="date" class="form-control form-control-sm border-0" name="exp_to_date[]" min="1950-01-01" max="2099-12-31"/></td>' +
+            '<td><input type="text" class="form-control form-control-sm border-0 exp-req" name="exp_designation[]" placeholder="Designation"/></td>' +
+            '<td><input type="text" class="form-control form-control-sm border-0" name="exp_duties[]" placeholder="Nature of duties"/></td>' +
+            '<td><input type="number" step="0.01" min="0" class="form-control form-control-sm border-0 cgpa-inp" name="exp_gross_salary[]" placeholder="0.00"/></td>' +
+            '<td><input type="text" class="form-control form-control-sm border-0" name="exp_pay_scale[]" placeholder="e.g., 30k-50k"/></td>' +
+            '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove_exp_row"><i class="fa fa-trash"></i></button></td>';
+        var sal = tr.querySelector('.cgpa-inp');
+        if (sal) { attachCgpa(sal); }
+        return tr;
+    }
+
+    function isLastRowValid(tbody, reqClass) {
+        var rows = tbody.querySelectorAll('tr');
+        if (!rows.length) return true;
+        var last = rows[rows.length - 1];
+        var ok = true;
+        last.querySelectorAll('.' + reqClass).forEach(function (f) {
+            if (!f.value.trim()) { f.classList.add('is-invalid'); ok = false; }
+            else { f.classList.remove('is-invalid'); }
+        });
+        return ok;
+    }
+
+    function attachRowListeners() {
+        document.querySelectorAll('.remove_edu_row, .remove_exp_row').forEach(function (btn) {
+            btn.onclick = function () { this.closest('tr').remove(); };
+        });
+    }
+
+    function showTableError(spanId) {
+        var el = document.getElementById(spanId);
+        if (!el) return;
+        el.style.display = 'inline';
+        setTimeout(function () { el.style.display = 'none'; }, 3000);
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // PHOTO & UPLOADS
+    // ─────────────────────────────────────────────────────────
+    function initPhotoPreview() {
+        var inp = document.getElementById('photo_upload');
+        var box = document.getElementById('photo_preview_box');
+        if (!inp || !box) return;
+        inp.addEventListener('change', function () {
+            var file = this.files[0];
+            if (!file) return;
+            var r = new FileReader();
+            r.onload = function (e) {
+                box.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">';
+            };
+            r.readAsDataURL(file);
+        });
+    }
+
+    function initAdvancedUploads() {
+        var lb    = document.getElementById('obLightbox');
+        var lbImg = document.getElementById('obLightboxImg');
+        var lbPdf = document.getElementById('obLightboxPdf');
+
+        document.querySelectorAll('.file-input-advanced').forEach(function (input) {
+            input.addEventListener('change', function () {
+                var container = this.closest('.ob-upload-zone').querySelector('.ob-file-list');
+                if (!this.hasAttribute('multiple')) { container.innerHTML = ''; }
+                Array.from(this.files).forEach(function (file) {
+                    var id = 'file_' + Math.random().toString(36).substr(2, 9);
+                    var r  = new FileReader();
+                    r.onload = function (e) {
+                        var isPdf = file.type === 'application/pdf';
+                        var src   = e.target.result;
+                        container.insertAdjacentHTML('beforeend',
+                            '<div id="' + id + '" style="display:flex;align-items:center;gap:10px;margin-top:8px;padding:10px;border:1px solid #ede9ff;border-radius:12px;background:#fff;">' +
+                            '<div style="width:40px;height:40px;flex-shrink:0;">' +
+                            (isPdf ? '<i class="fa fa-file-pdf-o fa-2x" style="color:#e24b4a"></i>'
+                                   : '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">') +
+                            '</div><div style="flex:1;min-width:0;font-size:.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + file.name + '</div>' +
+                            '<button type="button" class="btn btn-sm btn-light preview-btn" data-src="' + src + '" data-type="' + (isPdf ? 'pdf' : 'img') + '"><i class="fa fa-eye"></i></button>' +
+                            '<button type="button" class="btn btn-sm btn-outline-danger" onclick="document.getElementById(\'' + id + '\').remove()"><i class="fa fa-trash"></i></button>' +
+                            '</div>');
+                    };
+                    r.readAsDataURL(file);
+                });
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.preview-btn');
+            if (btn && lb) {
+                var src  = btn.getAttribute('data-src');
+                var type = btn.getAttribute('data-type');
+                if (type === 'pdf') { lbImg.style.display = 'none'; lbPdf.style.display = 'block'; lbPdf.src = src; }
+                else                { lbPdf.style.display = 'none'; lbImg.style.display = 'block'; lbImg.src = src; }
+                lb.classList.add('is-open');
+            }
+        });
+
+        var lbClose = document.getElementById('obLightboxClose');
+        if (lbClose) { lbClose.onclick = function () { lb.classList.remove('is-open'); lbPdf.src = ''; }; }
+    }
+
+    function initCategoryToggle() {
+        var sel  = document.getElementById('doc_type_selector');
+        var wrap = document.getElementById('dynamic_sections');
+        var exp  = document.getElementById('exp_docs');
+        if (!sel || !wrap || !exp) return;
+        sel.addEventListener('change', function () {
+            wrap.classList.remove('d-none');
+            this.value === 'experienced' ? exp.classList.remove('d-none') : exp.classList.add('d-none');
+            wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // SUBMIT VIA FETCH - FIXED TO CATCH ERRORS AND STRICT REDIRECT
+    // ─────────────────────────────────────────────────────────
+    function submitFormViaFetch(form) {
+        setRegistrationNumber();
+
+        var btn = form.querySelector('.s_website_form_send, a[role="button"], button[type="submit"]');
+        if (btn) {
+            btn.style.opacity = '0.6';
+            btn.style.pointerEvents = 'none';
+            btn.textContent = 'Submitting...';
         }
 
-        // =========================================================
-        // ★ UPDATED: AESTHETIC TOGGLE LOGIC ★
-        // =========================================================
-        var typeSelector = document.getElementById('doc_type_selector');
-        var dynamicContainer = document.getElementById('dynamic_sections');
-        var expSection = document.getElementById('exp_docs');
+        var formData = new FormData(form);
 
-        if (typeSelector && dynamicContainer && expSection) {
-            console.log("Pre-Onboarding Aesthetic Logic Initialized");
+        fetch('/job/apply/save', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(function(response) {
 
-            typeSelector.addEventListener('change', function () {
-                var choice = this.value;
-                console.log("Category Selected:", choice);
+            if (!response.ok) {
+                throw new Error("Server crashed with status: " + response.status);
+            }
+            return response.text();
+        })
+        .then(function(text) {
 
-                // 1. Reveal the main form (Identity, Bank, Education)
-                dynamicContainer.classList.remove('d-none');
+            if (text.trim() === "SUCCESS") {
+                window.location.href = '/contactus-thank-you';
+            } else {
 
-                // 2. Reveal or hide the Experience-specific section
-                if (choice === 'experienced') {
-                    expSection.classList.remove('d-none');
-                } else {
-                    expSection.classList.add('d-none');
-                }
+                document.open();
+                document.write(text);
+                document.close();
+            }
+        })
+        .catch(function (err) {
+            console.error('Submit error:', err);
+            if (btn) btn.textContent = 'Submit Failed';
+            alert("Fatal Error: Could not reach the server. Check your Odoo Terminal for the Python Crash.");
+        });
+    }
 
-                // 3. Smooth scroll to the start of the documents
-                dynamicContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // ─────────────────────────────────────────────────────────
+    // MAIN INIT
+    // ─────────────────────────────────────────────────────────
+    function initForm() {
+        setRegistrationNumber();
+
+
+        var form = document.getElementById('hr_recruitment_form')
+            || document.querySelector('form[action*="/website/form"]')
+            || document.querySelector('.s_website_form form');
+
+        if (!form) {
+            var firstNameInput = document.querySelector('input[name="first_name"]');
+            if (firstNameInput) {
+                form = firstNameInput.closest('form');
+            }
+        }
+
+        if (!form) {
+            console.warn('Job application form not found. (Not attaching JS to this page)');
+            return;
+        }
+
+        form.removeAttribute('data-model_name');
+        form.removeAttribute('data-success-page');
+        form.removeAttribute('data-success_page');
+        form.removeAttribute('data-force_action');
+        form.classList.remove('s_website_form');
+
+        var submitEl = form.querySelector('.s_website_form_send')
+            || form.querySelector('a[role="button"]')
+            || form.querySelector('button[type="submit"]');
+
+        if (submitEl) {
+            var newSubmit = submitEl.cloneNode(true);
+            submitEl.parentNode.replaceChild(newSubmit, submitEl);
+
+            newSubmit.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                var dob = document.getElementById('date_of_birth');
+                if (dob && !validateDOB(dob)) { dob.focus(); return; }
+
+                if (!form.checkValidity()) { form.reportValidity(); return; }
+
+                submitFormViaFetch(form);
             });
         }
 
+        var dob = document.getElementById('date_of_birth');
+        if (dob) { dob.addEventListener('change', function () { validateDOB(this); }); }
 
-        // =========================================================
-        // PHOTO PREVIEW LOGIC
-        // =========================================================
-        var photoInput  = document.getElementById('photo_upload');
-        var previewBox  = document.getElementById('photo_preview_box');
-        var placeholder = document.getElementById('photo_placeholder');
-        var removeBtn   = document.getElementById('remove_photo');
+        initNumericField('partner_phone', 10, 10, 'Mobile number');
+        initNumericField('pincode', 6, 6, 'PIN code');
 
-        if (photoInput && previewBox) {
-            photoInput.addEventListener('change', function () {
-                var file = this.files[0];
-                if (!file) return;
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('File size must be less than 2MB!');
-                    this.value = '';
-                    return;
-                }
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    if (placeholder) placeholder.style.display = 'none';
-                    var old = previewBox.querySelector('img');
-                    if (old) old.remove();
-                    var img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:4px;';
-                    previewBox.appendChild(img);
-                    if (removeBtn) removeBtn.style.display = 'inline-block';
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+        initPhotoPreview();
+        initAdvancedUploads();
+        initCategoryToggle();
 
-        if (removeBtn) {
-            removeBtn.addEventListener('click', function () {
-                if (photoInput) photoInput.value = '';
-                var img = previewBox ? previewBox.querySelector('img') : null;
-                if (img) img.remove();
-                if (placeholder) placeholder.style.display = 'block';
-                removeBtn.style.display = 'none';
-            });
-        }
-
-        // =========================================================
-        // TABLE ROW LOGIC
-        // =========================================================
-        function createEduRow() {
-            var tr = document.createElement('tr');
-            tr.className = 'edu_row';
-            tr.innerHTML = '<td><input type="text" class="form-control form-control-sm border-0" name="edu_exam_name[]" placeholder="e.g., B.Tech"/></td>' +
-                '<td><input type="text" class="form-control form-control-sm border-0" name="edu_passing_date[]" placeholder="MM/YYYY"/></td>' +
-                '<td><input type="text" class="form-control form-control-sm border-0" name="edu_university[]"/></td>' +
-                '<td><input type="number" step="0.01" class="form-control form-control-sm border-0" name="edu_marks_percentage[]"/></td>' +
-                '<td><input type="text" class="form-control form-control-sm border-0" name="edu_main_subject[]"/></td>' +
-                '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove_edu_row"><i class="fa fa-trash"></i></button></td>';
-            return tr;
-        }
-
-        function createExpRow() {
-            var tr = document.createElement('tr');
-            tr.className = 'exp_row';
-            tr.innerHTML = '<td><textarea class="form-control form-control-sm border-0" name="exp_employer_name[]" rows="2"></textarea></td>' +
-                '<td><input type="text" class="form-control form-control-sm border-0" name="exp_from_date[]" placeholder="DD/MM/YYYY"/></td>' +
-                '<td><input type="text" class="form-control form-control-sm border-0" name="exp_to_date[]" placeholder="DD/MM/YYYY"/></td>' +
-                '<td><input type="text" class="form-control form-control-sm border-0" name="exp_designation[]"/></td>' +
-                '<td><textarea class="form-control form-control-sm border-0" name="exp_duties[]" rows="2"></textarea></td>' +
-                '<td><input type="number" class="form-control form-control-sm border-0" name="exp_gross_salary[]"/></td>' +
-                '<td><input type="text" class="form-control form-control-sm border-0" name="exp_pay_scale[]"/></td>' +
-                '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove_exp_row"><i class="fa fa-trash"></i></button></td>';
-            return tr;
-        }
-
-        function attachListeners() {
-            document.querySelectorAll('.remove_edu_row').forEach(function (btn) {
-                btn.onclick = function () {
-                    if (document.querySelectorAll('.edu_row').length > 1) { this.closest('tr').remove(); }
-                    else { var inputs = this.closest('tr').querySelectorAll('input'); inputs.forEach(input => input.value = ''); }
-                };
-            });
-            document.querySelectorAll('.remove_exp_row').forEach(function (btn) {
-                btn.onclick = function () {
-                    if (document.querySelectorAll('.exp_row').length > 1) { this.closest('tr').remove(); }
-                    else { var inputs = this.closest('tr').querySelectorAll('input, textarea'); inputs.forEach(input => input.value = ''); }
-                };
-            });
-        }
-
-        var addEduBtn = document.getElementById('add_edu_row');
-        if (addEduBtn) {
-            addEduBtn.addEventListener('click', function () {
+        var addEdu = document.getElementById('add_edu_row');
+        if (addEdu) {
+            addEdu.addEventListener('click', function () {
                 var tbody = document.getElementById('edu_tbody');
-                if (tbody) { tbody.appendChild(createEduRow()); attachListeners(); }
+                if (!tbody) return;
+                if (!isLastRowValid(tbody, 'edu-req')) { showTableError('edu_error'); return; }
+                tbody.appendChild(createEduRow());
+                attachRowListeners();
             });
         }
 
-        var addExpBtn = document.getElementById('add_exp_row');
-        if (addExpBtn) {
-            addExpBtn.addEventListener('click', function () {
+        var addExp = document.getElementById('add_exp_row');
+        if (addExp) {
+            addExp.addEventListener('click', function () {
                 var tbody = document.getElementById('exp_tbody');
-                if (tbody) { tbody.appendChild(createExpRow()); attachListeners(); }
+                if (!tbody) return;
+                if (!isLastRowValid(tbody, 'exp-req')) { showTableError('exp_error'); return; }
+                tbody.appendChild(createExpRow());
+                attachRowListeners();
             });
         }
 
-        var eduTbody = document.getElementById('edu_tbody');
-        var expTbody = document.getElementById('exp_tbody');
-        if (eduTbody && eduTbody.children.length === 0) { eduTbody.appendChild(createEduRow()); }
-        if (expTbody && expTbody.children.length === 0) { expTbody.appendChild(createExpRow()); }
-        attachListeners();
+        attachRowListeners();
     }
 
     if (document.readyState === 'loading') {

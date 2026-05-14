@@ -17,3 +17,35 @@ class HrJobInherit(models.Model):
         string="Recruitment Interviewers",
         help="Set Interviewers for All Candidates",
     )
+
+    def action_send_job_email(self):
+        self.ensure_one()
+
+        partner = False
+        email = self.user_id.partner_id.email  # recruiter email
+
+        if email:
+            partner = self.env['res.partner'].search([
+                ('email', '=', email)
+            ], limit=1)
+
+            if not partner:
+                partner = self.env['res.partner'].create({
+                    'name': self.user_id.name,
+                    'email': email,
+                })
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Send Email',
+            'res_model': 'mail.compose.message',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_model': 'hr.job',
+                'default_res_ids': self.ids,
+                'default_composition_mode': 'comment',
+                'default_partner_ids': [(6, 0, [partner.id])] if partner else [],
+                'default_email_to': email,
+            }
+        }
