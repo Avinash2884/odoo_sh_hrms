@@ -108,15 +108,30 @@ class HrLeave(models.Model):
     # ----------------------------------------
     # 📎 SUPPORTING DOCUMENT VALIDATION
     # ----------------------------------------
-    @api.onchange('holiday_status_id', 'number_of_days')
-    def _onchange_support_doc_warning(self):
-        if self.holiday_status_id.support_document and self.number_of_days > 2:
-            return {
-                'warning': {
-                    'title': "Warning",
-                    'message': "Supporting document required for leave > 2 days."
-                }
-            }
+    @api.constrains('holiday_status_id', 'number_of_days')
+    def _check_support_document_required(self):
+        for leave in self:
+
+            # Skip if not fully filled
+            if not leave.holiday_status_id or not leave.number_of_days:
+                continue
+
+            # Only validate after record is saved (id exists)
+            if not leave.id:
+                continue
+
+            if leave.holiday_status_id.support_document and leave.number_of_days > 2:
+
+                # Check attachment properly using ir.attachment
+                attachments = self.env['ir.attachment'].search([
+                    ('res_model', '=', 'hr.leave'),
+                    ('res_id', '=', leave.id)
+                ])
+
+                if not attachments:
+                    raise ValidationError(
+                        "❌ Supporting Document is required for leave more than 2 days."
+                    )
 
     def action_print_leave(self):
         self.ensure_one()
