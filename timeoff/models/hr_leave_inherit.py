@@ -108,17 +108,32 @@ class HrLeave(models.Model):
     # ----------------------------------------
     # 📎 SUPPORTING DOCUMENT VALIDATION
     # ----------------------------------------
-    @api.constrains('holiday_status_id', 'number_of_days', 'message_main_attachment_id')
+    @api.constrains('holiday_status_id', 'number_of_days')
     def _check_support_document_required(self):
         for leave in self:
 
+            # ✅ skip unsaved record
+            if not leave.id:
+                continue
+
+            # ✅ skip incomplete form
             if not leave.holiday_status_id or not leave.number_of_days:
                 continue
 
+            # ✅ condition
             if leave.holiday_status_id.support_document and leave.number_of_days > 2:
 
-                # ✅ Use main attachment (reliable)
-                if not leave.message_main_attachment_id:
+                # ✅ skip draft (user still editing / demo data)
+                if leave.state == 'draft':
+                    continue
+
+                # ✅ check attachment
+                attachment_count = self.env['ir.attachment'].search_count([
+                    ('res_model', '=', 'hr.leave'),
+                    ('res_id', '=', leave.id)
+                ])
+
+                if attachment_count == 0:
                     raise ValidationError(
                         "❌ Supporting Document is required for leave more than 2 days."
                     )
