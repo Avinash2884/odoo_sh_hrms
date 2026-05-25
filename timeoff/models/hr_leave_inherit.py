@@ -112,22 +112,18 @@ class HrLeave(models.Model):
     def _check_support_document_required(self):
         for leave in self:
 
-            # ✅ skip unsaved record
-            if not leave.id:
+            # 🔥 MUST for Odoo.sh / CI
+            if self.env.context.get('install_mode'):
                 continue
 
-            # ✅ skip incomplete form
             if not leave.holiday_status_id or not leave.number_of_days:
                 continue
 
-            # ✅ condition
+            if leave.state == 'draft':
+                continue
+
             if leave.holiday_status_id.support_document and leave.number_of_days > 2:
 
-                # ✅ skip draft (user still editing / demo data)
-                if leave.state == 'draft':
-                    continue
-
-                # ✅ check attachment
                 attachment_count = self.env['ir.attachment'].search_count([
                     ('res_model', '=', 'hr.leave'),
                     ('res_id', '=', leave.id)
@@ -135,7 +131,7 @@ class HrLeave(models.Model):
 
                 if attachment_count == 0:
                     raise ValidationError(
-                        "❌ Supporting Document is required for leave more than 2 days."
+                        "Supporting Document is required for leave more than 2 days."
                     )
 
     def action_print_leave(self):
