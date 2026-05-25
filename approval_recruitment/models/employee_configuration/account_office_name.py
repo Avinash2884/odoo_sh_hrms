@@ -4,4 +4,4 @@ class AccountOfficeName(models.Model):
     _name = 'account.office.name'
     _description = 'Account Office Name'
 
-    name = fields.Char(string="Name", required=True)
+    name = fields.Char(string="Name")

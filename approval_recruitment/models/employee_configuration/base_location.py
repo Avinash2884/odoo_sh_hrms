@@ -4,4 +4,4 @@ class BaseLocation(models.Model):
     _name = 'base.location'
     _description = 'Base Location'
 
-    name = fields.Char(string="Name", required=True)
+    name = fields.Char(string="Name")

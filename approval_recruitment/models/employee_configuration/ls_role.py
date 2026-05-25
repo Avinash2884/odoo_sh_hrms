@@ -4,4 +4,4 @@ class LsRole(models.Model):
     _name = 'ls.role'
     _description = 'Ls Role'
 
-    name = fields.Char(string="Name", required=True)
+    name = fields.Char(string="Name")

@@ -4,4 +4,4 @@ class Function(models.Model):
     _name = 'function'
     _description = 'Function'
 
-    name = fields.Char(string="Name", required=True)
+    name = fields.Char(string="Name")

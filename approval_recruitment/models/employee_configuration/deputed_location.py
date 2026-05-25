@@ -4,4 +4,4 @@ class DeputedLocation(models.Model):
     _name = 'deputed.location'
     _description = 'Deputed Location'
 
-    name = fields.Char(string="Name", required=True)
+    name = fields.Char(string="Name")

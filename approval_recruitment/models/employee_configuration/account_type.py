@@ -4,4 +4,4 @@ class LsAccountType(models.Model):
     _name = 'ls.account.type'
     _description = 'Account Type'
 
-    name = fields.Char(string="Name", required=True)
+    name = fields.Char(string="Name")

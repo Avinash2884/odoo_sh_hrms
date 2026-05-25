@@ -4,4 +4,4 @@ class SourceOfHire(models.Model):
     _name = 'source.of.hire'
     _description = 'Source Of Hire'
 
-    name = fields.Char(string="Name", required=True)
+    name = fields.Char(string="Name")
