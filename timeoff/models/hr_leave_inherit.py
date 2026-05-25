@@ -112,10 +112,6 @@ class HrLeave(models.Model):
     def _check_support_document_required(self):
         for leave in self:
 
-            # ✅ Skip during install / demo / import
-            if self.env.context.get('install_mode') or self.env.context.get('skip_validation'):
-                continue
-
             # ✅ skip unsaved record
             if not leave.id:
                 continue
@@ -124,13 +120,14 @@ class HrLeave(models.Model):
             if not leave.holiday_status_id or not leave.number_of_days:
                 continue
 
-            # ✅ skip draft
-            if leave.state == 'draft':
-                continue
-
             # ✅ condition
             if leave.holiday_status_id.support_document and leave.number_of_days > 2:
 
+                # ✅ skip draft (user still editing / demo data)
+                if leave.state == 'draft':
+                    continue
+
+                # ✅ check attachment
                 attachment_count = self.env['ir.attachment'].search_count([
                     ('res_model', '=', 'hr.leave'),
                     ('res_id', '=', leave.id)
