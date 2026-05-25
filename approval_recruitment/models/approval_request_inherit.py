@@ -36,8 +36,8 @@ class ApprovalRequestInherit(models.Model):
 
                 # Check Category
                 if category_xml_id == 'approval_category_data_man_power_requisition_inherit' or \
-                        request.category_id.name == 'Man Power Requisition':
-                    print("✅ Man Power Requisition category matched — proceeding to create HR Job")
+                        request.category_id.name == 'HeadCount Requisition':
+                    print("HeadCount Requisition category matched — proceeding to create HR Job")
 
                     # Check if job exists
                     existing_job = self.env['hr.job'].search(

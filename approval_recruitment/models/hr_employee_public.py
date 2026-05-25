@@ -10,7 +10,6 @@ class HrEmployeeInherit(models.Model):
     joining_date_recruit = fields.Date(related='employee_id.joining_date_recruit', readonly=True)
     date_of_confirmation = fields.Date(related='employee_id.date_of_confirmation', readonly=True)
 
-    # ✅ IMPORTANT: Match SAME TYPE as hr.employee
     hr_id = fields.Many2one(
         'hr.employee',
         related='employee_id.hr_id',

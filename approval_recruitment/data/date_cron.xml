@@ -27,4 +27,14 @@
         <field name="active">True</field>
     </record>
 
+    <record id="ir_cron_unpublish_jobs" model="ir.cron">
+        <field name="name">Unpublish Expired Jobs</field>
+        <field name="model_id" ref="hr.model_hr_job"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_unpublish_expired_jobs()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+
 </odoo>

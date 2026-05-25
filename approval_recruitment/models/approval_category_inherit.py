@@ -106,7 +106,6 @@ class ApprovalCategoryInherit(models.Model):
 
                 dept_vals, approvers = rec._prepare_department_data(department)
 
-                # ✅ Existing users
                 existing_user_ids = rec.approver_ids.mapped('user_id').ids
 
                 new_commands = []
@@ -119,8 +118,6 @@ class ApprovalCategoryInherit(models.Model):
                 update_vals = {
                     **dept_vals
                 }
-
-                # ✅ Only add missing approvers
                 if new_commands:
                     update_vals['approver_ids'] = new_commands
 

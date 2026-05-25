@@ -40,8 +40,7 @@
         <record id="mail_template_pre_onboarding" model="mail.template">
             <field name="name">Pre-Onboarding Form – Fill &amp; Submit</field>
             <field name="model_id" ref="hr_recruitment.model_hr_applicant"/>
-            <field name="subject">Action Required: Complete Your Pre-Onboarding Form – {{ object.company_id.name }}
-            </field>
+            <field name="subject">Action Required: Complete Your Pre-Onboarding Form – {{ object.company_id.name }}</field>
             <field name="partner_to" eval="False"/>
             <field name="email_to">{{ object.email_from }}</field>
             <field name="use_default_to" eval="False"/>

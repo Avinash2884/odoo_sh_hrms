@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models, fields, api
 
 class HrJobInherit(models.Model):
     _inherit = 'hr.job'
@@ -17,6 +17,8 @@ class HrJobInherit(models.Model):
         string="Recruitment Interviewers",
         help="Set Interviewers for All Candidates",
     )
+    start_date = fields.Date(string="Start Date")
+    end_date = fields.Date(string="End Date")
 
     def action_send_job_email(self):
         self.ensure_one()
@@ -49,3 +51,27 @@ class HrJobInherit(models.Model):
                 'default_email_to': email,
             }
         }
+
+    @api.model
+    def cron_unpublish_expired_jobs(self):
+        today = fields.Date.context_today(self)
+
+        print("CRON START")
+        print("Today:", today)
+
+        expired_jobs = self.search([
+            ('end_date', '!=', False),
+            ('end_date', '<=', today),
+            ('website_published', '=', True)
+        ])
+
+        print("Found:", len(expired_jobs))
+        print("Jobs:", expired_jobs.mapped('name'))
+
+        if expired_jobs:
+            expired_jobs.write({'website_published': False})
+            print("Unpublished:", expired_jobs.mapped('name'))
+        else:
+            print("No jobs matched")
+
+        print("END")

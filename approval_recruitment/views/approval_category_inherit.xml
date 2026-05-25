@@ -11,7 +11,7 @@
             </xpath>
             <xpath expr="//field[@name='name']" position="attributes">
                 <attribute name="readonly">
-                    name == 'Man Power Requisition'
+                    name == 'HeadCount Requisition'
                 </attribute>
             </xpath>
             <xpath expr="//field[@name='manager_approval']" position="attributes">

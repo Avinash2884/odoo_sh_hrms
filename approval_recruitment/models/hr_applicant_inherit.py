@@ -150,15 +150,13 @@ class HrApplicantInherit(models.Model):
                 job_interviewers = set(rec.job_id.hr_interviewer_ids.ids)
                 applicant_interviewers = set(rec.interviewer_ids.ids)
 
-                # ➕ ADD new interviewers
+                # ADD new interviewers
                 to_add = job_interviewers - applicant_interviewers
 
                 # ➖ REMOVE deleted interviewers
                 to_remove = applicant_interviewers - job_interviewers
 
-                # =========================
                 # REMOVE INTERVIEWERS
-                # =========================
                 if to_remove:
                     print("❌ Removing interviewers from applicant:", to_remove)
 
@@ -170,9 +168,8 @@ class HrApplicantInherit(models.Model):
                         ('interviewer_id', 'in', list(to_remove))
                     ]).unlink()
 
-                # =========================
                 # ADD INTERVIEWERS
-                # =========================
+
                 if to_add:
                     print("✅ Adding new interviewers:", to_add)
 
@@ -396,11 +393,7 @@ class HrApplicantInherit(models.Model):
 
         template.send_mail(self.id, force_send=True, email_values={
             'email_to': self.email_from,
-            'email_from': (
-                    self.job_id.hr_head.work_email
-                    or self.job_id.hr_head.private_email
-                    or self.env.user.email
-            ),
+            'email_from': self.env.user.email,
         })
 
         self.message_post(

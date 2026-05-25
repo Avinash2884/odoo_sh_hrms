@@ -15,6 +15,10 @@
                 <field name="approval_experience_minimum"/>
                 <field name="approval_experience_maximum"/>
             </xpath>
+            <xpath expr="//field[@name='expected_degree']" position="after">
+                <field name="start_date"/>
+                <field name="end_date"/>
+            </xpath>
             <xpath expr="//field[@name='interviewer_ids']" position="after">
                 <field name="hr_interviewer_ids" widget="many2many_tags"/>
                 <field name="approval_overall_budget_for_all_posting"/>

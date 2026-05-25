@@ -10,8 +10,6 @@ class HrApplicantExperience(models.Model):
         required=True,
         ondelete='cascade'
     )
-
-    # ===== EXPERIENCE FIELDS =====
     employer_name = fields.Char(string="Employer Name & Address")
     from_date = fields.Char(string="From Date")
     to_date = fields.Char(string="To Date")
