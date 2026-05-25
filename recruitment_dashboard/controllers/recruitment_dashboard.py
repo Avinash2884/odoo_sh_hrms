@@ -157,7 +157,7 @@ class RecruitmentDashboard(http.Controller):
             print("ERROR OCCURRED:", str(e))
             return {'error': str(e)}
 
-    @http.route('/recruitment/stage_pie', auth='user', type='json')
+    @http.route('/recruitment/stage_pie', auth='user', type='jsonrpc')
     def get_stage_pie(self, job_id=None):
 
         Applicant = request.env['hr.applicant'].sudo()
