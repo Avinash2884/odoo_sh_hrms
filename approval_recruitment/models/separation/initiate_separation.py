@@ -170,6 +170,11 @@ class InitiateSeparation(models.Model):
     is_only_it_assets_head = fields.Boolean(compute="_compute_is_only_it_assets_head")
     is_only_admin_head = fields.Boolean(compute="_compute_is_only_admin_head")
     is_only_payroll_head = fields.Boolean(compute="_compute_is_only_payroll_head")
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        default=lambda self: self.env.company
+    )
 
     def _compute_is_request_owner(self):
         for rec in self:

@@ -11,6 +11,7 @@
     'license': 'LGPL-3',
     'data': [
         "security/approval_recruitment.xml",
+        "security/employee/employee_security.xml",
         "security/approval/approval_securitys.xml",
         "security/separation/separation_security.xml",
         "security/policy/policy_security.xml",

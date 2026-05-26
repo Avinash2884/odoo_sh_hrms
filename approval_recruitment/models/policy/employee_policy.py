@@ -17,6 +17,11 @@ class EmployeePolicy(models.Model):
         compute="_compute_is_acknowledged",
         inverse="_inverse_is_acknowledged"
     )
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        default=lambda self: self.env.company
+    )
 
     # ---------------- COMPUTE ----------------
     def _compute_is_acknowledged(self):

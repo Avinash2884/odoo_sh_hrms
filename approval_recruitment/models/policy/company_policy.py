@@ -41,6 +41,12 @@ class CompanyPolicy(models.Model):
     revision_5_date = fields.Datetime(readonly=True)
     revision_5_published = fields.Boolean(default=False)
 
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        default=lambda self: self.env.company
+    )
+
     # ---------------- STATE ----------------
 
     state = fields.Selection([

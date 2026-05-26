@@ -10,3 +10,8 @@ class ExitInterviewQuestion(models.Model):
     name = fields.Char(string="Question", required=True)
     sequence = fields.Integer(string="Sequence", default=10)
     option_ids = fields.One2many('exit.interview.option', 'question_id', string="Options",copy=True)
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        default=lambda self: self.env.company
+    )

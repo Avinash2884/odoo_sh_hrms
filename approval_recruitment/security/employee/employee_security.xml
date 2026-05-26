@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="ir_rule_account_office_name_multi_company" model="ir.rule">
+        <field name="name">Account Office Name: Multi Company</field>
+        <field name="model_id" ref="model_account_office_name"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_ls_account_type_multi_company" model="ir.rule">
+        <field name="name">Ls Account Type: Multi Company</field>
+        <field name="model_id" ref="model_ls_account_type"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_band_multi_company" model="ir.rule">
+        <field name="name">Band: Multi Company</field>
+        <field name="model_id" ref="model_band"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_base_location_multi_company" model="ir.rule">
+        <field name="name">Base Location: Multi Company</field>
+        <field name="model_id" ref="model_base_location"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_blood_group_multi_company" model="ir.rule">
+        <field name="name">Blood Group: Multi Company</field>
+        <field name="model_id" ref="model_blood_group"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_deputed_location_multi_company" model="ir.rule">
+        <field name="name">Deputed Location: Multi Company</field>
+        <field name="model_id" ref="model_deputed_location"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_designation_multi_company" model="ir.rule">
+        <field name="name">Designation: Multi Company</field>
+        <field name="model_id" ref="model_designation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_employee_status_multi_company" model="ir.rule">
+        <field name="name">Employee Status: Multi Company</field>
+        <field name="model_id" ref="model_employee_status"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_employment_type_multi_company" model="ir.rule">
+        <field name="name">Employment Type: Multi Company</field>
+        <field name="model_id" ref="model_employment_type"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_entity_name_multi_company" model="ir.rule">
+        <field name="name">Entity Name: Multi Company</field>
+        <field name="model_id" ref="model_entity_name"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_function_multi_company" model="ir.rule">
+        <field name="name">Function: Multi Company</field>
+        <field name="model_id" ref="model_function"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_level_multi_company" model="ir.rule">
+        <field name="name">Level: Multi Company</field>
+        <field name="model_id" ref="model_level"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="ir_rule_ls_role_multi_company" model="ir.rule">
+        <field name="name">Ls Role: Multi Company</field>
+        <field name="model_id" ref="model_ls_role"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="ir_rule_parent_account_multi_company" model="ir.rule">
+        <field name="name">Parent Account: Multi Company</field>
+        <field name="model_id" ref="model_parent_account"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="ir_rule_region_multi_company" model="ir.rule">
+        <field name="name">Region: Multi Company</field>
+        <field name="model_id" ref="model_region"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="ir_rule_source_of_hire_multi_company" model="ir.rule">
+        <field name="name">Source of Hire: Multi Company</field>
+        <field name="model_id" ref="model_source_of_hire"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="ir_rule_vertical_multi_company" model="ir.rule">
+        <field name="name">Vertical: Multi Company</field>
+        <field name="model_id" ref="model_vertical"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+
+</odoo>

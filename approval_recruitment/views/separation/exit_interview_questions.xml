@@ -9,6 +9,7 @@
             <list string="Exit Interview Questions">
                 <field name="name"/>
                 <field name="sequence" widget="handle"/>
+                <field name="company_id"/>
             </list>
         </field>
     </record>
@@ -23,6 +24,7 @@
                     <group>
                         <field name="name"/>
                         <field name="sequence"/>
+                        <field name="company_id"/>
                     </group>
                     <notebook>
                         <page string="Options">

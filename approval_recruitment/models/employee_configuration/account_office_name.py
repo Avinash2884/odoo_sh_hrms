@@ -5,3 +5,8 @@ class AccountOfficeName(models.Model):
     _description = 'Account Office Name'
 
     name = fields.Char(string="Name")
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        default=lambda self: self.env.company
+    )

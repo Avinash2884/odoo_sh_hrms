@@ -130,4 +130,30 @@
         </field>
     </record>
 
+    <record id="ir_rule_device_type_multi_company" model="ir.rule">
+        <field name="name">Device Type: Multi Company</field>
+        <field name="model_id" ref="model_device_type"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="ir_rule_exit_interview_question_multi_company" model="ir.rule">
+        <field name="name">Exit Interview Question: Multi Company</field>
+        <field name="model_id" ref="model_exit_interview_question"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="ir_rule_item_name_multi_company" model="ir.rule">
+        <field name="name">Item Name: Multi Company</field>
+        <field name="model_id" ref="model_item_name"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="ir_rule_payroll_component_multi_company" model="ir.rule">
+        <field name="name">Payroll Component: Multi Company</field>
+        <field name="model_id" ref="model_payroll_component"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="ir_rule_initiate_separation_multi_company" model="ir.rule">
+        <field name="name">Initiate Separation: Multi Company</field>
+        <field name="model_id" ref="model_initiate_separation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
 </odoo>

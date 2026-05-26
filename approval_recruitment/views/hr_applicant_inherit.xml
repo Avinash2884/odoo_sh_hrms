@@ -102,8 +102,6 @@
                         name="action_send_pre_offer_mail"
                         type="object"
                         class="btn-primary"/>
-            </xpath>
-            <xpath expr="//button[@name='archive_applicant']" position="before">
                 <button
                         name="action_send_pre_onboarding_mail"
                         string="Send Pre-Onboarding Form"

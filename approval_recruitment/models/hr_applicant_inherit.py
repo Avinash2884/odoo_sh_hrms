@@ -51,19 +51,19 @@ class HrApplicantInherit(models.Model):
 
     @api.model
     def _cron_move_not_shown_applicants(self):
-        print("🔔 CRON STARTED: Move Not Joined Applicants")
+        print("CRON STARTED: Move Not Joined Applicants")
 
         today = fields.Date.today()
         ten_days_ago = today - timedelta(days=10)
-        print("📅 Today Date:", today)
-        print("⏳ Threshold Date (10 days ago):", ten_days_ago)
+        print("Today Date:", today)
+        print("Threshold Date (10 days ago):", ten_days_ago)
 
         # Get the "No Shown" stage
         not_shown_stage = self.env.ref(
             'approval_recruitment.stage_job8', raise_if_not_found=False
         )
         if not not_shown_stage:
-            print("❌ No Shown stage NOT FOUND")
+            print("No Shown stage NOT FOUND")
             return
 
         # Search applicants that have a joining date, haven't joined, and not already in "No Shown"
@@ -72,7 +72,7 @@ class HrApplicantInherit(models.Model):
             ('employee_id', '=', False),
         ])
 
-        print("👥 Total Applicants with joining date but not joined:", len(applicants))
+        print("Total Applicants with joining date but not joined:", len(applicants))
 
         moved_count = 0
         for applicant in applicants:
@@ -158,7 +158,7 @@ class HrApplicantInherit(models.Model):
 
                 # REMOVE INTERVIEWERS
                 if to_remove:
-                    print("❌ Removing interviewers from applicant:", to_remove)
+                    print("Removing interviewers from applicant:", to_remove)
 
                     rec.interviewer_ids = [(3, user_id) for user_id in to_remove]
 
@@ -171,7 +171,7 @@ class HrApplicantInherit(models.Model):
                 # ADD INTERVIEWERS
 
                 if to_add:
-                    print("✅ Adding new interviewers:", to_add)
+                    print("Adding new interviewers:", to_add)
 
                     rec.interviewer_ids = [(4, user_id) for user_id in to_add]
 

@@ -8,6 +8,7 @@
                 <sheet>
                     <group>
                         <field name="name"/>
+                        <field name="company_id"/>
                     </group>
                 </sheet>
             </form>
@@ -19,6 +20,7 @@
         <field name="arch" type="xml">
             <list string="Device Types">
                 <field name="name"/>
+                <field name="company_id"/>
             </list>
         </field>
     </record>

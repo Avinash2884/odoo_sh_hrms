@@ -5,3 +5,8 @@ class EmploymentType(models.Model):
     _description = 'Employment Type'
 
     name = fields.Char(string="Name")
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        default=lambda self: self.env.company
+    )
