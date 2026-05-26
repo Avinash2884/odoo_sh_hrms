@@ -250,6 +250,10 @@ class HrApplicantInherit(models.Model):
     resume_file = fields.Binary(string="Resume")
     resume_filename = fields.Char(string="Resume Filename")
 
+    applicant_street = fields.Char(string="Street")
+    applicant_city = fields.Char(string="City")
+    applicant_state = fields.Char(string="State")
+
     # ===== ADDITIONAL =====
     discipline_applied = fields.Char(string="Discipline Applied")
     declaration = fields.Boolean(string="Declaration Accepted")
@@ -318,37 +322,45 @@ class HrApplicantInherit(models.Model):
                 )
 
     def create_employee_from_applicant(self):
-        # 1. First, let Odoo create the basic employee record
-        res = super(HrApplicantInherit, self).create_employee_from_applicant()
 
-        # 2. Get the new Employee record ID
+        # 1. Let Odoo create the basic employee record
+        res = super(HrApplicantInherit, self).create_employee_from_applicant()
         employee_id = res.get('res_id')
 
         if employee_id:
             employee = self.env['hr.employee'].browse(employee_id)
 
-            # 3. MAPPING: We take YOUR applicant data and put it in THEIR employee fields
+            # --- TRANSLATE STATE TEXT TO DATABASE ID ---
+            state_id = False
+            if self.applicant_state:
+                # Find the matching state in the database
+                state_record = self.env['res.country.state'].search([
+                    ('name', '=', self.applicant_state),
+                    ('country_id.code', '=', 'IN')
+                ], limit=1)
+                if state_record:
+                    state_id = state_record.id
+            # -------------------------------------------
+
+            # 2. MAPPING: Put the data in the exact, separated Employee boxes
             employee.write({
                 'ls_employee_id': self.registration_no,
                 'father_name': self.father_name,
                 'mother_name': self.mother_name,
                 'birthday': self.date_of_birth,
-
-                # FIX: In hr.employee, the field is named 'sex', not 'gender'
                 'sex': self.gender,
-
-                # Check if these field names (aadhaar_no/pan_no) match your Applicant model
                 'ls_aadhar': getattr(self, 'aadhaar_no', False),
                 'ls_pan': getattr(self, 'pan_no', False),
-
-                'permanent_street': self.mailing_address,
-                'permanent_zip': self.pincode,
                 'image_1920': self.photograph,
+
+                'permanent_street': self.applicant_street,
+                'permanent_city': self.applicant_city,
+                'permanent_state_id': state_id,
+                'permanent_zip': self.pincode,
             })
 
-            # 4. Map the Education Table
+            # 3. Map the Education Table
             if self.educational_qualification_ids:
-                # Clear existing lines if any (standard practice) then add new ones
                 edu_lines = []
                 for line in self.educational_qualification_ids:
                     edu_lines.append((0, 0, {
@@ -407,6 +419,44 @@ class HrApplicantInherit(models.Model):
             'params': {
                 'title': 'Mail Sent!',
                 'message': f'Pre-Onboarding form link sent to {self.email_from}.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+    def action_send_pre_offer_mail(self):
+        self.ensure_one()
+        template = self.env.ref(
+            'approval_recruitment.mail_template_pre_offer',
+            raise_if_not_found=False
+        )
+        if not template:
+            raise UserError("Pre-Offer mail template not found.")
+        if not self.email_from:
+            raise UserError("Candidate email (Email ID) is missing on this application.")
+        if not self.access_token:
+            raise UserError("Security Token is missing. Please save the record first.")
+
+        template.send_mail(self.id, force_send=True, email_values={
+            'email_to': self.email_from,
+            'email_from': (
+                    self.job_id.hr_head.work_email
+                    or self.job_id.hr_head.private_email
+                    or self.env.user.email
+            ),
+        })
+
+        self.message_post(
+            body=Markup(f" Pre-Offer form link sent to <b>{self.email_from}</b> by {self.env.user.name}."),
+            subtype_xmlid="mail.mt_note",
+        )
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Mail Sent!',
+                'message': f'Pre-Offer form link sent to {self.email_from}.',
                 'type': 'success',
                 'sticky': False,
             }

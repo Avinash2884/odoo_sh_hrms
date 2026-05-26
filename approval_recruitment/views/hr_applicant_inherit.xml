@@ -98,6 +98,11 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//button[@name='archive_applicant']" position="before">
+                <button string="Send Pre-Offer Mail"
+                        name="action_send_pre_offer_mail"
+                        type="object"
+                        class="btn-primary"/>
+            <xpath expr="//button[@name='archive_applicant']" position="before">
                 <button
                         name="action_send_pre_onboarding_mail"
                         string="Send Pre-Onboarding Form"
@@ -155,8 +160,8 @@
                         <span class="o_form_label o_td_label">Address</span>
                         <div class="o_address_format">
                             <field name="mailing_address" placeholder="Mailing Address..." class="o_address_street"/>
-                            <field name="permanent_address" placeholder="Permanent Address..."
-                                   class="o_address_street mt-2"/>
+<!--                            <field name="permanent_address" placeholder="Permanent Address..."-->
+<!--                                   class="o_address_street mt-2"/>-->
                             <div class="d-flex align-items-center mt-2">
                                 <span class="me-2 text-muted">ZIP:</span>
                                 <field name="pincode" placeholder="000000" class="o_address_zip"
@@ -228,6 +233,9 @@
 
                         <div class="col-md-6 p-4">
                             <group string="EDUCATIONAL RECORDS" class="mb-4">
+                                <field name="highest_edu_level" class="fw-bold text-primary"/>
+                                <field name="highest_edu_detail" invisible="not highest_edu_level"/>
+
                                 <field name="marksheet_10" widget="binary"/>
                                 <field name="marksheet_12" widget="binary"/>
                                 <field name="ug_degree" widget="binary"/>
@@ -236,6 +244,8 @@
                             </group>
 
                             <group string="EMPLOYMENT HISTORY" invisible="joining_category != 'experienced'">
+                                <field name="income_proof_type" class="fw-bold text-primary"/>
+
                                 <field name="payslips" widget="binary" string="Recent Payslips"/>
                                 <field name="relieving_letter" widget="binary"/>
                                 <field name="salary_revision_letter" widget="binary"/>

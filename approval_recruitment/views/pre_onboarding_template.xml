@@ -125,11 +125,17 @@
                                         joining status
                                     </label>
                                     <select id="doc_type_selector" name="joining_category"
-                                            class="category-select mx-auto" required="1">
-                                        <option value="" disabled="disabled" selected="selected">-- SELECT CATEGORY --
+                                            class="category-select mx-auto" required="1"
+                                            t-att-style="'background-color: #e9ecef; pointer-events: none;' if applicant.joining_category else ''">
+                                        <option value="" disabled="disabled"
+                                                t-att-selected="not applicant.joining_category">-- SELECT CATEGORY --
                                         </option>
-                                        <option value="fresher">Fresher</option>
-                                        <option value="experienced">Experienced</option>
+                                        <option value="fresher"
+                                                t-att-selected="applicant.joining_category == 'fresher'">Fresher
+                                        </option>
+                                        <option value="experienced"
+                                                t-att-selected="applicant.joining_category == 'experienced'">Experienced
+                                        </option>
                                     </select>
                                 </div>
 
@@ -145,7 +151,11 @@
                                                 <span class="ob-req">*</span>
                                             </label>
                                             <input type="text" name="aadhaar_no" class="ob-text-inp mb-3"
-                                                   placeholder="XXXX XXXX XXXX" required="1"/>
+                                                   placeholder="XXXX XXXX XXXX" required="1"
+                                                   t-att-value="applicant.aadhaar_no"
+                                                   t-att-readonly="'readonly' if applicant.aadhaar_no else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.aadhaar_no else ''"/>
+
                                             <label class="ob-field-label">Aadhaar Card Copy
                                                 <span class="ob-req">*</span>
                                             </label>
@@ -159,9 +169,14 @@
                                                         <span>PDF, JPG, PNG</span>
                                                     </div>
                                                     <input type="file" class="file-input-advanced" name="aadhaar_card"
-                                                           accept=".pdf,.jpg,.jpeg,.png" required="1"/>
+                                                           accept=".pdf,.jpg,.jpeg,.png"
+                                                           t-att-required="'1' if not applicant.aadhaar_card else None"/>
                                                 </div>
                                                 <div class="ob-file-list" id="fl_aadhaar_card"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.aadhaar_card">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
 
@@ -170,7 +185,11 @@
                                                 <span class="ob-req">*</span>
                                             </label>
                                             <input type="text" name="pan_no" class="ob-text-inp mb-3"
-                                                   placeholder="ABCDE1234F" required="1"/>
+                                                   placeholder="ABCDE1234F" required="1"
+                                                   t-att-value="applicant.pan_no"
+                                                   t-att-readonly="'readonly' if applicant.pan_no else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.pan_no else ''"/>
+
                                             <label class="ob-field-label">PAN Card Copy
                                                 <span class="ob-req">*</span>
                                             </label>
@@ -184,9 +203,14 @@
                                                         <span>PDF, JPG, PNG</span>
                                                     </div>
                                                     <input type="file" class="file-input-advanced" name="pan_card"
-                                                           accept=".pdf,.jpg,.jpeg,.png" required="1"/>
+                                                           accept=".pdf,.jpg,.jpeg,.png"
+                                                           t-att-required="'1' if not applicant.pan_card else None"/>
                                                 </div>
                                                 <div class="ob-file-list" id="fl_pan_card"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.pan_card">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
 
@@ -194,25 +218,37 @@
                                             <label class="ob-field-label">Bank Name
                                                 <span class="ob-req">*</span>
                                             </label>
-                                            <input type="text" name="bank_name" class="ob-text-inp" required="1"/>
+                                            <input type="text" name="bank_name" class="ob-text-inp" required="1"
+                                                   t-att-value="applicant.bank_name"
+                                                   t-att-readonly="'readonly' if applicant.bank_name else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.bank_name else ''"/>
                                         </div>
                                         <div class="col-md-6 mb-4">
                                             <label class="ob-field-label">Account Number
                                                 <span class="ob-req">*</span>
                                             </label>
-                                            <input type="text" name="bank_acc_no" class="ob-text-inp" required="1"/>
+                                            <input type="text" name="bank_acc_no" class="ob-text-inp" required="1"
+                                                   t-att-value="applicant.bank_acc_no"
+                                                   t-att-readonly="'readonly' if applicant.bank_acc_no else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.bank_acc_no else ''"/>
                                         </div>
                                         <div class="col-md-6 mb-4">
                                             <label class="ob-field-label">IFSC Code
                                                 <span class="ob-req">*</span>
                                             </label>
-                                            <input type="text" name="bank_ifsc" class="ob-text-inp" required="1"/>
+                                            <input type="text" name="bank_ifsc" class="ob-text-inp" required="1"
+                                                   t-att-value="applicant.bank_ifsc"
+                                                   t-att-readonly="'readonly' if applicant.bank_ifsc else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.bank_ifsc else ''"/>
                                         </div>
                                         <div class="col-md-6 mb-4">
                                             <label class="ob-field-label">Branch Name
                                                 <span class="ob-req">*</span>
                                             </label>
-                                            <input type="text" name="bank_branch" class="ob-text-inp" required="1"/>
+                                            <input type="text" name="bank_branch" class="ob-text-inp" required="1"
+                                                   t-att-value="applicant.bank_branch"
+                                                   t-att-readonly="'readonly' if applicant.bank_branch else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.bank_branch else ''"/>
                                         </div>
 
                                         <div class="col-md-12 mb-4">
@@ -229,9 +265,14 @@
                                                         <span>PDF, JPG, PNG</span>
                                                     </div>
                                                     <input type="file" class="file-input-advanced" name="bank_doc"
-                                                           accept=".pdf,.jpg,.jpeg,.png" required="1"/>
+                                                           accept=".pdf,.jpg,.jpeg,.png"
+                                                           t-att-required="'1' if not applicant.bank_doc else None"/>
                                                 </div>
                                                 <div class="ob-file-list" id="fl_bank_doc"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.bank_doc">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
                                     </div>
@@ -241,6 +282,36 @@
                                         Educational Documents
                                     </div>
                                     <div class="row">
+
+                                        <div class="col-md-6 mb-4">
+                                            <label class="ob-field-label">Select Level
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <select class="category-select" name="highest_edu_level"
+                                                    id="edu_level_select" required="1"
+                                                    t-att-style="'background-color: #e9ecef; pointer-events: none;' if applicant.highest_edu_level else ''">
+                                                <option value="" disabled="disabled"
+                                                        t-att-selected="not applicant.highest_edu_level">-- Select --
+                                                </option>
+                                                <option value="ug" t-att-selected="applicant.highest_edu_level == 'ug'">
+                                                    Under Graduate (UG)
+                                                </option>
+                                                <option value="pg" t-att-selected="applicant.highest_edu_level == 'pg'">
+                                                    Post Graduate (PG)
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4 d-none" id="edu_detail_wrapper">
+                                            <label class="ob-field-label">Degree Specialization (e.g., BE, MS)
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <input type="text" name="highest_edu_detail" class="ob-text-inp"
+                                                   id="edu_detail_input"
+                                                   t-att-value="applicant.highest_edu_detail"
+                                                   t-att-readonly="'readonly' if applicant.highest_edu_detail else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.highest_edu_detail else ''"/>
+                                        </div>
 
                                         <div class="col-md-6 mb-4">
                                             <label class="ob-field-label">10th Marksheet
@@ -256,9 +327,14 @@
                                                         <span>PDF, JPG, PNG</span>
                                                     </div>
                                                     <input type="file" class="file-input-advanced" name="marksheet_10"
-                                                           accept=".pdf,.jpg,.jpeg,.png" required="1"/>
+                                                           accept=".pdf,.jpg,.jpeg,.png"
+                                                           t-att-required="'1' if not applicant.marksheet_10 else None"/>
                                                 </div>
                                                 <div class="ob-file-list" id="fl_marksheet_10"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.marksheet_10">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
 
@@ -276,13 +352,18 @@
                                                         <span>PDF, JPG, PNG</span>
                                                     </div>
                                                     <input type="file" class="file-input-advanced" name="marksheet_12"
-                                                           accept=".pdf,.jpg,.jpeg,.png" required="1"/>
+                                                           accept=".pdf,.jpg,.jpeg,.png"
+                                                           t-att-required="'1' if not applicant.marksheet_12 else None"/>
                                                 </div>
                                                 <div class="ob-file-list" id="fl_marksheet_12"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.marksheet_12">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6 mb-4">
+                                        <div class="col-md-12 mb-4">
                                             <label class="ob-field-label">Diploma Certificate (If any)</label>
                                             <div class="ob-upload-zone">
                                                 <div class="ob-upload-trigger">
@@ -297,11 +378,17 @@
                                                            accept=".pdf,.jpg,.jpeg,.png"/>
                                                 </div>
                                                 <div class="ob-file-list" id="fl_diploma_cert"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.diploma_cert">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6 mb-4">
-                                            <label class="ob-field-label">UG Degree Certificate</label>
+                                        <div class="col-md-6 mb-4 d-none" id="ug_file_wrapper">
+                                            <label class="ob-field-label">UG Degree Certificate
+                                                <span class="ob-req">*</span>
+                                            </label>
                                             <div class="ob-upload-zone">
                                                 <div class="ob-upload-trigger">
                                                     <div class="ob-upload-icon">
@@ -312,14 +399,21 @@
                                                         <span>PDF, JPG, PNG</span>
                                                     </div>
                                                     <input type="file" class="file-input-advanced" name="ug_degree"
-                                                           accept=".pdf,.jpg,.jpeg,.png"/>
+                                                           accept=".pdf,.jpg,.jpeg,.png" id="ug_file_input"
+                                                           t-att-required="'1' if not applicant.ug_degree else None"/>
                                                 </div>
                                                 <div class="ob-file-list" id="fl_ug_degree"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.ug_degree">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6 mb-4">
-                                            <label class="ob-field-label">PG Degree Certificate</label>
+                                        <div class="col-md-6 mb-4 d-none" id="pg_file_wrapper">
+                                            <label class="ob-field-label">PG Degree Certificate
+                                                <span class="ob-req">*</span>
+                                            </label>
                                             <div class="ob-upload-zone">
                                                 <div class="ob-upload-trigger">
                                                     <div class="ob-upload-icon">
@@ -330,9 +424,14 @@
                                                         <span>PDF, JPG, PNG</span>
                                                     </div>
                                                     <input type="file" class="file-input-advanced" name="pg_degree"
-                                                           accept=".pdf,.jpg,.jpeg,.png"/>
+                                                           accept=".pdf,.jpg,.jpeg,.png" id="pg_file_input"
+                                                           t-att-required="'1' if not applicant.pg_degree else None"/>
                                                 </div>
                                                 <div class="ob-file-list" id="fl_pg_degree"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.pg_degree">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
                                     </div>
@@ -345,7 +444,9 @@
                                         <div class="row">
 
                                             <div class="col-md-12 mb-4">
-                                                <label class="ob-field-label">Last 3 Months Payslips (Multiple)</label>
+                                                <label class="ob-field-label">Last 3 Months Payslips (Multiple)
+                                                    <span class="ob-req">*</span>
+                                                </label>
                                                 <div class="ob-upload-zone">
                                                     <div class="ob-upload-trigger">
                                                         <div class="ob-upload-icon">
@@ -356,9 +457,14 @@
                                                             <span>Up to 3 files</span>
                                                         </div>
                                                         <input type="file" class="file-input-advanced" name="payslips"
-                                                               accept=".pdf,.jpg,.jpeg,.png" multiple="multiple"/>
+                                                               accept=".pdf,.jpg,.jpeg,.png" multiple="multiple"
+                                                               t-att-required="'1' if not applicant.payslips else None"/>
                                                     </div>
                                                     <div class="ob-file-list is-multi" id="fl_payslips"></div>
+                                                    <small class="text-success fw-bold" t-if="applicant.payslips">
+                                                        <i class="fa fa-check-circle"/>
+                                                        File(s) Already Uploaded
+                                                    </small>
                                                 </div>
                                             </div>
 
@@ -378,6 +484,11 @@
                                                                accept=".pdf,.jpg,.jpeg,.png"/>
                                                     </div>
                                                     <div class="ob-file-list" id="fl_salary_revision_letter"></div>
+                                                    <small class="text-success fw-bold"
+                                                           t-if="applicant.salary_revision_letter">
+                                                        <i class="fa fa-check-circle"/>
+                                                        File Already Uploaded
+                                                    </small>
                                                 </div>
                                             </div>
 
@@ -396,6 +507,11 @@
                                                                name="relieving_letter" accept=".pdf,.jpg,.jpeg,.png"/>
                                                     </div>
                                                     <div class="ob-file-list" id="fl_relieving_letter"></div>
+                                                    <small class="text-success fw-bold"
+                                                           t-if="applicant.relieving_letter">
+                                                        <i class="fa fa-check-circle"/>
+                                                        File Already Uploaded
+                                                    </small>
                                                 </div>
                                             </div>
 
@@ -415,6 +531,11 @@
                                                                accept=".pdf,.jpg,.jpeg,.png"/>
                                                     </div>
                                                     <div class="ob-file-list" id="fl_exp_appointment_letter"></div>
+                                                    <small class="text-success fw-bold"
+                                                           t-if="applicant.exp_appointment_letter">
+                                                        <i class="fa fa-check-circle"/>
+                                                        File Already Uploaded
+                                                    </small>
                                                 </div>
                                             </div>
 

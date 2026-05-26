@@ -20,7 +20,6 @@
 
         <xpath expr="//input[@name='linkedin_profile']/../.." position="before">
 
-            <!-- Registration No + Discipline -->
             <div class="col-12 mb-4">
                 <div class="row g-3">
                     <div class="col-md-6">
@@ -30,13 +29,14 @@
                     </div>
                     <div class="col-md-6">
                         <label class="fw-bold">Discipline Applied</label>
-                        <input type="text" class="form-control" name="discipline_applied"
-                               placeholder="e.g., Computer Science"/>
+                        <input type="text" class="form-control fw-bold text-primary"
+                               name="discipline_applied"
+                               t-att-value="job.name if job else ''"
+                               readonly="readonly"/>
                     </div>
                 </div>
             </div>
 
-            <!-- Photograph -->
             <div class="col-12 mb-4">
                 <h5 class="fw-bold border-bottom pb-2">Photograph</h5>
                 <div class="row align-items-start mt-3">
@@ -57,7 +57,6 @@
                 </div>
             </div>
 
-            <!-- Personal Information -->
             <div class="col-12 mb-4">
                 <h5 class="fw-bold border-bottom pb-2">Personal Information</h5>
                 <div class="row g-3 mt-2">
@@ -125,7 +124,6 @@
                 </div>
             </div>
 
-            <!-- Contact Information -->
             <div class="col-12 mb-4">
                 <h5 class="fw-bold border-bottom pb-2">Contact Information</h5>
                 <div class="row g-3 mt-2">
@@ -152,7 +150,6 @@
                 </div>
             </div>
 
-            <!-- Address -->
             <div class="col-12 mb-4">
                 <h5 class="fw-bold border-bottom pb-2">Address Details</h5>
                 <div class="row g-3 mt-2">
@@ -170,8 +167,18 @@
                     </div>
                     <div class="col-md-4">
                         <label class="fw-bold">State</label>
-                        <input type="text" class="form-control" name="applicant_state"
-                               placeholder="e.g., Tamil Nadu"/>
+
+                        <t t-set="indian_states"
+                           t-value="request.env['res.country.state'].sudo().search([('country_id.code', '=', 'IN')])"/>
+
+                        <select class="form-select" name="applicant_state">
+                            <option value="">Select State...</option>
+                            <t t-foreach="indian_states" t-as="state">
+                                <option t-att-value="state.name">
+                                    <t t-esc="state.name"/>
+                                </option>
+                            </t>
+                        </select>
                     </div>
                     <div class="col-md-3">
                         <label class="fw-bold">Pin Code
@@ -185,7 +192,6 @@
                 </div>
             </div>
 
-            <!-- Educational Qualification -->
             <div class="col-12 mt-2">
                 <h5 class="fw-bold border-bottom pb-2">Educational Qualification</h5>
             </div>
@@ -224,7 +230,6 @@
                 </div>
             </div>
 
-            <!-- Work Experience -->
             <div class="col-12 mt-2">
                 <h5 class="fw-bold border-bottom pb-2">
                     Work Experience
@@ -236,14 +241,10 @@
                     <table class="table table-bordered align-middle" id="exp_table">
                         <thead class="table-secondary text-center">
                             <tr>
-                                <th style="min-width:160px;">Employer Name
-                                    <span class="text-danger">*</span>
-                                </th>
+                                <th style="min-width:160px;">Employer Name</th>
                                 <th style="min-width:110px;">From</th>
                                 <th style="min-width:110px;">To</th>
-                                <th style="min-width:130px;">Designation
-                                    <span class="text-danger">*</span>
-                                </th>
+                                <th style="min-width:130px;">Designation</th>
                                 <th style="min-width:160px;">Nature of Duties</th>
                                 <th style="min-width:110px;">Gross Salary</th>
                                 <th style="min-width:90px;">Pay Scale</th>
@@ -269,7 +270,6 @@
             </div>
         </xpath>
 
-        <!-- Declaration -->
         <xpath expr="//textarea[@name='short_introduction']/../.." position="after">
             <div class="col-12 mt-4 mb-3">
                 <div class="card border-secondary">
@@ -292,7 +292,6 @@
             </div>
         </xpath>
 
-        <!-- Submit button renamed -->
         <xpath expr="//a[hasclass('s_website_form_send')]" position="replace">
             <a href="#" role="button" class="btn btn-primary btn-lg s_website_form_send">Submit</a>
         </xpath>

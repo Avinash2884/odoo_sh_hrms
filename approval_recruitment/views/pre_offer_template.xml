@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="pre_offer_template" name="Pre-Offer Documentation">
+        <t t-call="website.layout">
+
+            <style>
+                .ob-page-wrap { background: #f0eeff; min-height: 100vh; padding: 48px 16px; }
+                .ob-card { border: none; border-radius: 24px; box-shadow: 0 20px 60px rgba(91,79,255,0.10); background: #ffffff; overflow: hidden; max-width: 1000px; margin: 0 auto; }
+                .ob-header-main { background: #5b4fff; color: white; padding: 44px 48px 36px; text-align: center; }
+                .ob-header-main h1 { font-weight: 800; font-size: 1.9rem; margin: 0 0 8px; color: #fff; }
+                .ob-header-main p { color: rgba(255,255,255,0.75); margin: 0; font-size: 1rem; }
+                .ob-profile-strip { background: #fdfbff; border-bottom: 2px solid #ede9ff; padding: 28px 40px; }
+                .ob-profile-photo { width: 110px; height: 135px; object-fit: cover; border-radius: 14px; border: 3px solid #5b4fff; box-shadow: 0 4px 16px rgba(91,79,255,0.18); }
+                .ob-profile-placeholder { width: 110px; height: 135px; border-radius: 14px; border: 2px dashed #c7bfff; background: #f3f0ff; display: flex; align-items: center; justify-content: center; color: #9e96e8; }
+                .reg-badge { display: inline-block; background: #5b4fff; color: #fff; padding: 4px 14px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; }
+                .ob-profile-name { font-weight: 800; font-size: 1.5rem; color: #1e1a40; margin: 0 0 4px; }
+                .ob-profile-role { color: #7970b3; font-size: 1rem; margin: 0; }
+                .ob-form-body { padding: 36px 40px 48px; }
+                .category-gate { background: #f3f0ff; border: 2px solid #c7bfff; border-radius: 18px; padding: 32px; text-align: center; margin-bottom: 36px; }
+                .category-gate-label { display: block; font-weight: 700; font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase; color: #5b4fff; margin-bottom: 14px; }
+                .category-select { max-width: 320px; width: 100%; border: 2px solid #c7bfff; border-radius: 12px; padding: 14px 18px; font-size: 1rem; background: #fff; color: #1e1a40; cursor: pointer; transition: border-color 0.2s; }
+                .ob-section-title { font-weight: 800; font-size: 1.1rem; color: #5b4fff; margin: 40px 0 20px; padding-bottom: 12px; border-bottom: 2px solid #ede9ff; display: flex; align-items: center; gap: 10px; }
+                .ob-section-num { background: #5b4fff; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; }
+                .ob-field-label { display: block; font-weight: 600; color: #2c2640; font-size: 0.9rem; margin-bottom: 8px; }
+                .ob-req { color: #e24b4a; margin-left: 2px; }
+                .ob-text-inp { width: 100%; border: 2px solid #e8e3ff; border-radius: 12px; padding: 13px 16px; font-size: 0.95rem; background: #fafbff; color: #1e1a40; }
+                .ob-upload-zone { border: 2px dashed #c7bfff; border-radius: 14px; background: #faf9ff; padding: 16px; position: relative; margin-bottom: 10px; }
+                .ob-upload-trigger { display: flex; align-items: center; gap: 12px; cursor: pointer; position: relative; }
+                .ob-upload-trigger input[type="file"] { position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 2; }
+                .ob-upload-icon { width: 42px; height: 42px; border-radius: 10px; background: #ede9ff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+                .ob-upload-text { flex: 1; }
+                .ob-upload-text strong { display: block; font-size: 0.9rem; font-weight: 600; color: #5b4fff; }
+                .ob-upload-text span { font-size: 0.78rem; color: #9e96c8; }
+                .ob-file-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+                .ob-file-list.is-multi { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+
+                /* Lightbox */
+                .ob-lightbox { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; padding: 24px; }
+                .ob-lightbox.is-open { display: flex !important; }
+                .ob-lightbox-content { width: 85%; height: 85%; display: flex; align-items: center; justify-content: center; position: relative; }
+                .ob-lightbox-img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+                .ob-lightbox-pdf { width: 100%; height: 100%; background: #fff; border-radius: 8px; }
+                .ob-lightbox-close { position: fixed; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 50%; background: #fff; border: none; cursor: pointer; color: #333; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; }
+
+                .ob-submit-btn { display: block; width: 100%; margin-top: 40px; background: #5b4fff; color: #fff; border: none; border-radius: 50px; padding: 18px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
+                .ob-submit-btn:hover { background: #4a3ee6; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(91, 79, 255, 0.3); }
+                @media (max-width: 640px) { .ob-form-body { padding: 24px 20px; } }
+            </style>
+
+            <div class="ob-lightbox" id="obLightbox">
+                <button class="ob-lightbox-close" id="obLightboxClose" type="button">✕</button>
+                <div class="ob-lightbox-content">
+                    <img class="ob-lightbox-img" id="obLightboxImg" src="" alt="Preview" style="display:none;"/>
+                    <iframe class="ob-lightbox-pdf" id="obLightboxPdf" src="" style="display:none; border:none;"></iframe>
+                </div>
+            </div>
+
+            <div id="wrap" class="ob-page-wrap pt-5 pb-5">
+                <div class="container">
+                    <div class="ob-card mx-auto">
+                        <div class="ob-header-main">
+                            <h1>Pre-Offer Documentation</h1>
+                            <p>Please provide these initial documents to process your official offer letter.</p>
+                        </div>
+
+                        <div class="ob-profile-strip">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <t t-if="applicant.photograph">
+                                        <img class="ob-profile-photo" t-att-src="image_data_uri(applicant.photograph)" alt="Applicant Photo"/>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="ob-profile-placeholder">
+                                            <i class="fa fa-user fa-3x"/>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div class="col">
+                                    <span class="reg-badge">REG NO: <t t-esc="applicant.registration_no"/></span>
+                                    <h2 class="ob-profile-name"><t t-esc="applicant.partner_name"/></h2>
+                                    <p class="ob-profile-role"><t t-esc="applicant.discipline_applied"/></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ob-form-body p-4 p-md-5">
+                            <form action="/job/onboarding/save" method="post" enctype="multipart/form-data" id="obForm">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <input type="hidden" name="access_token" t-att-value="token"/>
+
+                                <div class="category-gate text-center">
+                                    <label class="category-gate-label" for="doc_type_selector">Please select your joining status</label>
+                                    <select id="doc_type_selector" name="joining_category" class="category-select mx-auto" required="1"
+                                            t-att-style="'background-color: #e9ecef; pointer-events: none;' if applicant.joining_category else ''">
+                                        <option value="" disabled="disabled" t-att-selected="not applicant.joining_category">-- SELECT CATEGORY --</option>
+                                        <option value="fresher" t-att-selected="applicant.joining_category == 'fresher'">Fresher</option>
+                                        <option value="experienced" t-att-selected="applicant.joining_category == 'experienced'">Experienced</option>
+                                    </select>
+                                </div>
+
+                                <div id="dynamic_sections" class="d-none">
+
+                                    <div class="ob-section-title">
+                                        <span class="ob-section-num">I</span> Identity Details
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <label class="ob-field-label">Aadhaar Number <span class="ob-req">*</span></label>
+                                            <input type="text" name="aadhaar_no" class="ob-text-inp mb-3" placeholder="XXXX XXXX XXXX" required="1"
+                                                   t-att-value="applicant.aadhaar_no"
+                                                   t-att-readonly="'readonly' if applicant.aadhaar_no else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.aadhaar_no else ''"/>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <label class="ob-field-label">Aadhaar Card Copy <span class="ob-req">*</span></label>
+                                            <div class="ob-upload-zone">
+                                                <div class="ob-upload-trigger">
+                                                    <div class="ob-upload-icon"><i class="fa fa-upload"></i></div>
+                                                    <div class="ob-upload-text">
+                                                        <strong>Upload Aadhaar</strong>
+                                                        <span>PDF, JPG, PNG</span>
+                                                    </div>
+                                                    <input type="file" class="file-input-advanced" name="aadhaar_card" accept=".pdf,.jpg,.jpeg,.png"
+                                                           t-att-required="'1' if not applicant.aadhaar_card else None"
+                                                           t-att-disabled="'disabled' if applicant.aadhaar_card else None"/>
+                                                </div>
+                                                <div class="ob-file-list" id="fl_aadhaar_card"></div>
+                                                <small class="text-success fw-bold mt-2 d-block" t-if="applicant.aadhaar_card">
+                                                    <i class="fa fa-check-circle"/> File Already Uploaded
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="ob-section-title">
+                                        <span class="ob-section-num">II</span> Highest Educational Qualification
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <label class="ob-field-label">Select Level <span class="ob-req">*</span></label>
+                                            <select class="category-select" name="highest_edu_level" id="edu_level_select" required="1"
+                                                    t-att-style="'background-color: #e9ecef; pointer-events: none;' if applicant.highest_edu_level else ''">
+                                                <option value="" disabled="disabled" t-att-selected="not applicant.highest_edu_level">-- Select --</option>
+                                                <option value="ug" t-att-selected="applicant.highest_edu_level == 'ug'">Under Graduate (UG)</option>
+                                                <option value="pg" t-att-selected="applicant.highest_edu_level == 'pg'">Post Graduate (PG)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4 d-none" id="edu_detail_wrapper">
+                                            <label class="ob-field-label">Degree Specialization (e.g., BE, MS) <span class="ob-req">*</span></label>
+                                            <input type="text" name="highest_edu_detail" class="ob-text-inp" id="edu_detail_input"
+                                                   t-att-value="applicant.highest_edu_detail"
+                                                   t-att-readonly="'readonly' if applicant.highest_edu_detail else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.highest_edu_detail else ''"/>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4 d-none" id="ug_file_wrapper">
+                                            <label class="ob-field-label">Upload UG Degree Certificate <span class="ob-req">*</span></label>
+                                            <div class="ob-upload-zone">
+                                                <div class="ob-upload-trigger">
+                                                    <div class="ob-upload-icon"><i class="fa fa-graduation-cap"></i></div>
+                                                    <div class="ob-upload-text">
+                                                        <strong>Upload UG Degree</strong>
+                                                        <span>PDF, JPG, PNG</span>
+                                                    </div>
+                                                    <input type="file" class="file-input-advanced" name="ug_degree" accept=".pdf,.jpg,.jpeg,.png" id="ug_file_input"
+                                                           t-att-disabled="'disabled' if applicant.ug_degree else None"/>
+                                                </div>
+                                                <div class="ob-file-list" id="fl_ug_degree"></div>
+                                                <small class="text-success fw-bold mt-2 d-block" t-if="applicant.ug_degree">
+                                                    <i class="fa fa-check-circle"/> File Already Uploaded
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4 d-none" id="pg_file_wrapper">
+                                            <label class="ob-field-label">Upload PG Degree Certificate <span class="ob-req">*</span></label>
+                                            <div class="ob-upload-zone">
+                                                <div class="ob-upload-trigger">
+                                                    <div class="ob-upload-icon"><i class="fa fa-graduation-cap"></i></div>
+                                                    <div class="ob-upload-text">
+                                                        <strong>Upload PG Degree</strong>
+                                                        <span>PDF, JPG, PNG</span>
+                                                    </div>
+                                                    <input type="file" class="file-input-advanced" name="pg_degree" accept=".pdf,.jpg,.jpeg,.png" id="pg_file_input"
+                                                           t-att-disabled="'disabled' if applicant.pg_degree else None"/>
+                                                </div>
+                                                <div class="ob-file-list" id="fl_pg_degree"></div>
+                                                <small class="text-success fw-bold mt-2 d-block" t-if="applicant.pg_degree">
+                                                    <i class="fa fa-check-circle"/> File Already Uploaded
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="exp_docs" class="d-none">
+
+                                        <div class="ob-section-title">
+                                            <span class="ob-section-num">III</span> Income Proof
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12 mb-4">
+                                                <label class="ob-field-label">Document Type</label>
+                                                <select class="category-select" name="income_proof_type" id="income_type_select"
+                                                        t-att-style="'background-color: #e9ecef; pointer-events: none;' if applicant.income_proof_type else ''">
+                                                    <option value="" disabled="disabled" t-att-selected="not applicant.income_proof_type">-- Select --</option>
+                                                    <option value="payslip" t-att-selected="applicant.income_proof_type == 'payslip'">Payslips</option>
+                                                    <option value="bank" t-att-selected="applicant.income_proof_type == 'bank'">Bank Statement</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-12 mb-4 d-none" id="payslip_wrapper">
+                                                <label class="ob-field-label">Upload Last 3 Months Payslips (Multiple) <span class="ob-req">*</span></label>
+                                                <div class="ob-upload-zone">
+                                                    <div class="ob-upload-trigger">
+                                                        <div class="ob-upload-icon"><i class="fa fa-files-o"></i></div>
+                                                        <div class="ob-upload-text">
+                                                            <strong>Upload multiple payslips</strong>
+                                                            <span>Up to 3 files</span>
+                                                        </div>
+                                                        <input type="file" class="file-input-advanced" name="payslips" accept=".pdf,.jpg,.jpeg,.png" multiple="multiple" id="payslip_input"
+                                                               t-att-required="'1' if not applicant.payslips else None"
+                                                               t-att-disabled="'disabled' if applicant.payslips else None"/>
+                                                    </div>
+                                                    <div class="ob-file-list is-multi" id="fl_payslips"></div>
+                                                    <small class="text-success fw-bold mt-2 d-block" t-if="applicant.payslips">
+                                                        <i class="fa fa-check-circle"/> File(s) Already Uploaded
+                                                    </small>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12 mb-4 d-none" id="bank_wrapper">
+                                                <label class="ob-field-label">Upload Bank Statement (Multiple) <span class="ob-req">*</span></label>
+                                                <div class="ob-upload-zone">
+                                                    <div class="ob-upload-trigger">
+                                                        <div class="ob-upload-icon"><i class="fa fa-university"></i></div>
+                                                        <div class="ob-upload-text">
+                                                            <strong>Upload Bank Statement</strong>
+                                                            <span>PDF, JPG, PNG</span>
+                                                        </div>
+                                                        <input type="file" class="file-input-advanced" name="income_bank_statement" accept=".pdf,.jpg,.jpeg,.png" multiple="multiple" id="bank_input"
+                                                               t-att-disabled="'disabled' if applicant.income_bank_statement else None"/>
+                                                    </div>
+                                                    <div class="ob-file-list is-multi" id="fl_bank_doc"></div>
+                                                    <small class="text-success fw-bold mt-2 d-block" t-if="applicant.income_bank_statement">
+                                                        <i class="fa fa-check-circle"/> File Already Uploaded
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="ob-section-title">
+                                            <span class="ob-section-num">IV</span> Previous Employment
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12 mb-4">
+                                                <label class="ob-field-label">Upload Relieving / Experience Letter</label>
+                                                <div class="ob-upload-zone">
+                                                    <div class="ob-upload-trigger">
+                                                        <div class="ob-upload-icon"><i class="fa fa-briefcase"></i></div>
+                                                        <div class="ob-upload-text">
+                                                            <strong>Upload file</strong>
+                                                            <span>PDF, JPG, PNG</span>
+                                                        </div>
+                                                        <input type="file" class="file-input-advanced" name="relieving_letter" accept=".pdf,.jpg,.jpeg,.png" id="relieving_letter_input"
+                                                               t-att-disabled="'disabled' if applicant.relieving_letter else None"/>
+                                                    </div>
+                                                    <div class="ob-file-list" id="fl_relieving_letter"></div>
+                                                    <small class="text-success fw-bold mt-2 d-block" t-if="applicant.relieving_letter">
+                                                        <i class="fa fa-check-circle"/> File Already Uploaded
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div> <button type="submit" class="ob-submit-btn shadow">SUBMIT PRE-OFFER DOCUMENTS</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>
+
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<odoo>-->
+<!--    <template id="pre_offer_template" name="Pre-Offer Documentation">-->
+<!--        <t t-call="website.layout">-->
+
+<!--            <style>-->
+<!--                .ob-page-wrap { background: #f0eeff; min-height: 100vh; padding: 48px 16px; }-->
+<!--                .ob-card { border: none; border-radius: 24px; box-shadow: 0 20px 60px rgba(91,79,255,0.10); background: #ffffff; overflow: hidden; max-width: 1000px; margin: 0 auto; }-->
+<!--                .ob-header-main { background: #5b4fff; color: white; padding: 44px 48px 36px; text-align: center; }-->
+<!--                .ob-header-main h1 { font-weight: 800; font-size: 1.9rem; margin: 0 0 8px; color: #fff; }-->
+<!--                .ob-header-main p { color: rgba(255,255,255,0.75); margin: 0; font-size: 1rem; }-->
+<!--                .ob-profile-strip { background: #fdfbff; border-bottom: 2px solid #ede9ff; padding: 28px 40px; }-->
+<!--                .ob-profile-photo { width: 110px; height: 135px; object-fit: cover; border-radius: 14px; border: 3px solid #5b4fff; box-shadow: 0 4px 16px rgba(91,79,255,0.18); }-->
+<!--                .ob-profile-placeholder { width: 110px; height: 135px; border-radius: 14px; border: 2px dashed #c7bfff; background: #f3f0ff; display: flex; align-items: center; justify-content: center; color: #9e96e8; }-->
+<!--                .reg-badge { display: inline-block; background: #5b4fff; color: #fff; padding: 4px 14px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; }-->
+<!--                .ob-profile-name { font-weight: 800; font-size: 1.5rem; color: #1e1a40; margin: 0 0 4px; }-->
+<!--                .ob-profile-role { color: #7970b3; font-size: 1rem; margin: 0; }-->
+<!--                .ob-form-body { padding: 36px 40px 48px; }-->
+<!--                .category-gate { background: #f3f0ff; border: 2px solid #c7bfff; border-radius: 18px; padding: 32px; text-align: center; margin-bottom: 36px; }-->
+<!--                .category-gate-label { display: block; font-weight: 700; font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase; color: #5b4fff; margin-bottom: 14px; }-->
+<!--                .category-select { max-width: 320px; width: 100%; border: 2px solid #c7bfff; border-radius: 12px; padding: 14px 18px; font-size: 1rem; background: #fff; color: #1e1a40; cursor: pointer; transition: border-color 0.2s; }-->
+<!--                .ob-section-title { font-weight: 800; font-size: 1.1rem; color: #5b4fff; margin: 40px 0 20px; padding-bottom: 12px; border-bottom: 2px solid #ede9ff; display: flex; align-items: center; gap: 10px; }-->
+<!--                .ob-section-num { background: #5b4fff; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; }-->
+<!--                .ob-field-label { display: block; font-weight: 600; color: #2c2640; font-size: 0.9rem; margin-bottom: 8px; }-->
+<!--                .ob-req { color: #e24b4a; margin-left: 2px; }-->
+<!--                .ob-text-inp { width: 100%; border: 2px solid #e8e3ff; border-radius: 12px; padding: 13px 16px; font-size: 0.95rem; background: #fafbff; color: #1e1a40; }-->
+<!--                .ob-upload-zone { border: 2px dashed #c7bfff; border-radius: 14px; background: #faf9ff; padding: 16px; position: relative; margin-bottom: 10px; }-->
+<!--                .ob-upload-trigger { display: flex; align-items: center; gap: 12px; cursor: pointer; position: relative; }-->
+<!--                .ob-upload-trigger input[type="file"] { position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 2; }-->
+<!--                .ob-upload-icon { width: 42px; height: 42px; border-radius: 10px; background: #ede9ff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }-->
+<!--                .ob-upload-text { flex: 1; }-->
+<!--                .ob-upload-text strong { display: block; font-size: 0.9rem; font-weight: 600; color: #5b4fff; }-->
+<!--                .ob-upload-text span { font-size: 0.78rem; color: #9e96c8; }-->
+<!--                .ob-file-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }-->
+<!--                .ob-file-list.is-multi { flex-direction: row; flex-wrap: wrap; gap: 10px; }-->
+
+<!--                /* Lightbox */-->
+<!--                .ob-lightbox { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; padding: 24px; }-->
+<!--                .ob-lightbox.is-open { display: flex !important; }-->
+<!--                .ob-lightbox-content { width: 85%; height: 85%; display: flex; align-items: center; justify-content: center; position: relative; }-->
+<!--                .ob-lightbox-img { max-width: 100%; max-height: 100%; border-radius: 8px; }-->
+<!--                .ob-lightbox-pdf { width: 100%; height: 100%; background: #fff; border-radius: 8px; }-->
+<!--                .ob-lightbox-close { position: fixed; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 50%; background: #fff; border: none; cursor: pointer; color: #333; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; }-->
+
+<!--                .ob-submit-btn { display: block; width: 100%; margin-top: 40px; background: #5b4fff; color: #fff; border: none; border-radius: 50px; padding: 18px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: 0.3s; }-->
+<!--                .ob-submit-btn:hover { background: #4a3ee6; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(91, 79, 255, 0.3); }-->
+<!--                @media (max-width: 640px) { .ob-form-body { padding: 24px 20px; } }-->
+<!--            </style>-->
+
+<!--            <div class="ob-lightbox" id="obLightbox">-->
+<!--                <button class="ob-lightbox-close" id="obLightboxClose" type="button">✕</button>-->
+<!--                <div class="ob-lightbox-content">-->
+<!--                    <img class="ob-lightbox-img" id="obLightboxImg" src="" alt="Preview" style="display:none;"/>-->
+<!--                    <iframe class="ob-lightbox-pdf" id="obLightboxPdf" src="" style="display:none; border:none;"></iframe>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            <div id="wrap" class="ob-page-wrap pt-5 pb-5">-->
+<!--                <div class="container">-->
+<!--                    <div class="ob-card mx-auto">-->
+<!--                        <div class="ob-header-main">-->
+<!--                            <h1>Pre-Offer Documentation</h1>-->
+<!--                            <p>Please provide these initial documents to process your official offer letter.</p>-->
+<!--                        </div>-->
+
+<!--                        <div class="ob-profile-strip">-->
+<!--                            <div class="row align-items-center">-->
+<!--                                <div class="col-auto">-->
+<!--                                    <t t-if="applicant.photograph">-->
+<!--                                        <img class="ob-profile-photo" t-att-src="image_data_uri(applicant.photograph)" alt="Applicant Photo"/>-->
+<!--                                    </t>-->
+<!--                                    <t t-else="">-->
+<!--                                        <div class="ob-profile-placeholder">-->
+<!--                                            <i class="fa fa-user fa-3x"/>-->
+<!--                                        </div>-->
+<!--                                    </t>-->
+<!--                                </div>-->
+<!--                                <div class="col">-->
+<!--                                    <span class="reg-badge">REG NO: <t t-esc="applicant.registration_no"/></span>-->
+<!--                                    <h2 class="ob-profile-name"><t t-esc="applicant.partner_name"/></h2>-->
+<!--                                    <p class="ob-profile-role"><t t-esc="applicant.discipline_applied"/></p>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        <div class="ob-form-body p-4 p-md-5">-->
+<!--                            <form action="/job/onboarding/save" method="post" enctype="multipart/form-data" id="obForm">-->
+<!--                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>-->
+<!--                                <input type="hidden" name="access_token" t-att-value="token"/>-->
+
+<!--                                <div class="category-gate text-center">-->
+<!--                                    <label class="category-gate-label" for="doc_type_selector">Please select your joining status</label>-->
+<!--                                    <select id="doc_type_selector" name="joining_category" class="category-select mx-auto" required="1"-->
+<!--                                            t-att-style="'background-color: #e9ecef; pointer-events: none;' if applicant.joining_category else ''">-->
+<!--                                        <option value="" disabled="disabled" t-att-selected="not applicant.joining_category">&#45;&#45; SELECT CATEGORY &#45;&#45;</option>-->
+<!--                                        <option value="fresher" t-att-selected="applicant.joining_category == 'fresher'">Fresher</option>-->
+<!--                                        <option value="experienced" t-att-selected="applicant.joining_category == 'experienced'">Experienced</option>-->
+<!--                                    </select>-->
+<!--                                </div>-->
+
+<!--                                <div id="dynamic_sections" class="d-none">-->
+
+<!--                                    <div class="ob-section-title">-->
+<!--                                        <span class="ob-section-num">I</span> Identity Details-->
+<!--                                    </div>-->
+<!--                                    <div class="row">-->
+<!--                                        <div class="col-md-6 mb-4">-->
+<!--                                            <label class="ob-field-label">Aadhaar Number <span class="ob-req">*</span></label>-->
+<!--                                            <input type="text" name="aadhaar_no" class="ob-text-inp mb-3" placeholder="XXXX XXXX XXXX" required="1"-->
+<!--                                                   t-att-value="applicant.aadhaar_no"-->
+<!--                                                   t-att-readonly="'readonly' if applicant.aadhaar_no else None"-->
+<!--                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.aadhaar_no else ''"/>-->
+<!--                                        </div>-->
+
+<!--                                        <div class="col-md-6 mb-4">-->
+<!--                                            <label class="ob-field-label">Aadhaar Card Copy <span class="ob-req">*</span></label>-->
+<!--                                            <div class="ob-upload-zone">-->
+<!--                                                <div class="ob-upload-trigger">-->
+<!--                                                    <div class="ob-upload-icon"><i class="fa fa-upload"></i></div>-->
+<!--                                                    <div class="ob-upload-text">-->
+<!--                                                        <strong>Upload Aadhaar</strong>-->
+<!--                                                        <span>PDF, JPG, PNG</span>-->
+<!--                                                    </div>-->
+<!--                                                    <input type="file" class="file-input-advanced" name="aadhaar_card" accept=".pdf,.jpg,.jpeg,.png"-->
+<!--                                                           t-att-required="'1' if not applicant.aadhaar_card else None"-->
+<!--                                                           t-att-disabled="'disabled' if applicant.aadhaar_card else None"/>-->
+<!--                                                </div>-->
+<!--                                                <div class="ob-file-list" id="fl_aadhaar_card"></div>-->
+<!--                                                <small class="text-success fw-bold mt-2 d-block" t-if="applicant.aadhaar_card">-->
+<!--                                                    <i class="fa fa-check-circle"/> File Already Uploaded-->
+<!--                                                </small>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+
+<!--                                    <div class="ob-section-title">-->
+<!--                                        <span class="ob-section-num">II</span> Highest Educational Qualification-->
+<!--                                    </div>-->
+<!--                                    <div class="row">-->
+<!--                                        <div class="col-md-6 mb-4">-->
+<!--                                            <label class="ob-field-label">Select Level <span class="ob-req">*</span></label>-->
+<!--                                            <select class="category-select" name="highest_edu_level" id="edu_level_select" required="1"-->
+<!--                                                    t-att-style="'background-color: #e9ecef; pointer-events: none;' if applicant.highest_edu_level else ''">-->
+<!--                                                <option value="" disabled="disabled" t-att-selected="not applicant.highest_edu_level">&#45;&#45; Select &#45;&#45;</option>-->
+<!--                                                <option value="ug" t-att-selected="applicant.highest_edu_level == 'ug'">Under Graduate (UG)</option>-->
+<!--                                                <option value="pg" t-att-selected="applicant.highest_edu_level == 'pg'">Post Graduate (PG)</option>-->
+<!--                                            </select>-->
+<!--                                        </div>-->
+
+<!--                                        <div class="col-md-6 mb-4 d-none" id="edu_detail_wrapper">-->
+<!--                                            <label class="ob-field-label">Degree Specialization (e.g., BE, MS) <span class="ob-req">*</span></label>-->
+<!--                                            <input type="text" name="highest_edu_detail" class="ob-text-inp" id="edu_detail_input"-->
+<!--                                                   t-att-value="applicant.highest_edu_detail"-->
+<!--                                                   t-att-readonly="'readonly' if applicant.highest_edu_detail else None"-->
+<!--                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.highest_edu_detail else ''"/>-->
+<!--                                        </div>-->
+
+<!--                                        <div class="col-md-6 mb-4 d-none" id="ug_file_wrapper">-->
+<!--                                            <label class="ob-field-label">Upload UG Degree Certificate <span class="ob-req">*</span></label>-->
+<!--                                            <div class="ob-upload-zone">-->
+<!--                                                <div class="ob-upload-trigger">-->
+<!--                                                    <div class="ob-upload-icon"><i class="fa fa-graduation-cap"></i></div>-->
+<!--                                                    <div class="ob-upload-text">-->
+<!--                                                        <strong>Upload UG Degree</strong>-->
+<!--                                                        <span>PDF, JPG, PNG</span>-->
+<!--                                                    </div>-->
+<!--                                                    <input type="file" class="file-input-advanced" name="ug_degree" accept=".pdf,.jpg,.jpeg,.png" id="ug_file_input"-->
+<!--                                                           t-att-disabled="'disabled' if applicant.ug_degree else None"/>-->
+<!--                                                </div>-->
+<!--                                                <div class="ob-file-list" id="fl_ug_degree"></div>-->
+<!--                                                <small class="text-success fw-bold mt-2 d-block" t-if="applicant.ug_degree">-->
+<!--                                                    <i class="fa fa-check-circle"/> File Already Uploaded-->
+<!--                                                </small>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
+
+<!--                                        <div class="col-md-6 mb-4 d-none" id="pg_file_wrapper">-->
+<!--                                            <label class="ob-field-label">Upload PG Degree Certificate <span class="ob-req">*</span></label>-->
+<!--                                            <div class="ob-upload-zone">-->
+<!--                                                <div class="ob-upload-trigger">-->
+<!--                                                    <div class="ob-upload-icon"><i class="fa fa-graduation-cap"></i></div>-->
+<!--                                                    <div class="ob-upload-text">-->
+<!--                                                        <strong>Upload PG Degree</strong>-->
+<!--                                                        <span>PDF, JPG, PNG</span>-->
+<!--                                                    </div>-->
+<!--                                                    <input type="file" class="file-input-advanced" name="pg_degree" accept=".pdf,.jpg,.jpeg,.png" id="pg_file_input"-->
+<!--                                                           t-att-disabled="'disabled' if applicant.pg_degree else None"/>-->
+<!--                                                </div>-->
+<!--                                                <div class="ob-file-list" id="fl_pg_degree"></div>-->
+<!--                                                <small class="text-success fw-bold mt-2 d-block" t-if="applicant.pg_degree">-->
+<!--                                                    <i class="fa fa-check-circle"/> File Already Uploaded-->
+<!--                                                </small>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+
+<!--                                    <div id="exp_docs" class="d-none">-->
+
+<!--                                        <div class="ob-section-title">-->
+<!--                                            <span class="ob-section-num">III</span> Income Proof-->
+<!--                                        </div>-->
+<!--                                        <div class="row">-->
+<!--                                            <div class="col-md-12 mb-4">-->
+<!--                                                <label class="ob-field-label">Document Type <span class="ob-req">*</span></label>-->
+<!--                                                <select class="category-select" name="income_proof_type" id="income_type_select"-->
+<!--                                                        t-att-style="'background-color: #e9ecef; pointer-events: none;' if applicant.income_proof_type else ''">-->
+<!--                                                    <option value="" disabled="disabled" t-att-selected="not applicant.income_proof_type">&#45;&#45; Select &#45;&#45;</option>-->
+<!--                                                    <option value="payslip" t-att-selected="applicant.income_proof_type == 'payslip'">Payslips</option>-->
+<!--                                                    <option value="bank" t-att-selected="applicant.income_proof_type == 'bank'">Bank Statement</option>-->
+<!--                                                </select>-->
+<!--                                            </div>-->
+
+<!--                                            <div class="col-md-12 mb-4 d-none" id="payslip_wrapper">-->
+<!--                                                <label class="ob-field-label">Upload Last 3 Months Payslips (Multiple) <span class="ob-req">*</span></label>-->
+<!--                                                <div class="ob-upload-zone">-->
+<!--                                                    <div class="ob-upload-trigger">-->
+<!--                                                        <div class="ob-upload-icon"><i class="fa fa-files-o"></i></div>-->
+<!--                                                        <div class="ob-upload-text">-->
+<!--                                                            <strong>Upload multiple payslips</strong>-->
+<!--                                                            <span>Up to 3 files</span>-->
+<!--                                                        </div>-->
+<!--                                                        <input type="file" class="file-input-advanced" name="payslips" accept=".pdf,.jpg,.jpeg,.png" multiple="multiple" id="payslip_input"-->
+<!--                                                               t-att-disabled="'disabled' if applicant.payslips else None"/>-->
+<!--                                                    </div>-->
+<!--                                                    <div class="ob-file-list is-multi" id="fl_payslips"></div>-->
+<!--                                                    <small class="text-success fw-bold mt-2 d-block" t-if="applicant.payslips">-->
+<!--                                                        <i class="fa fa-check-circle"/> File(s) Already Uploaded-->
+<!--                                                    </small>-->
+<!--                                                </div>-->
+<!--                                            </div>-->
+
+<!--                                            <div class="col-md-12 mb-4 d-none" id="bank_wrapper">-->
+<!--                                                <label class="ob-field-label">Upload Bank Statement (Multiple) <span class="ob-req">*</span></label>-->
+<!--                                                <div class="ob-upload-zone">-->
+<!--                                                    <div class="ob-upload-trigger">-->
+<!--                                                        <div class="ob-upload-icon"><i class="fa fa-university"></i></div>-->
+<!--                                                        <div class="ob-upload-text">-->
+<!--                                                            <strong>Upload Bank Statement</strong>-->
+<!--                                                            <span>PDF, JPG, PNG</span>-->
+<!--                                                        </div>-->
+<!--                                                        <input type="file" class="file-input-advanced" name="income_bank_statement" accept=".pdf,.jpg,.jpeg,.png" multiple="multiple" id="bank_input"-->
+<!--                                                               t-att-disabled="'disabled' if applicant.income_bank_statement else None"/>-->
+<!--                                                    </div>-->
+<!--                                                    <div class="ob-file-list is-multi" id="fl_bank_doc"></div>-->
+<!--                                                    <small class="text-success fw-bold mt-2 d-block" t-if="applicant.income_bank_statement">-->
+<!--                                                        <i class="fa fa-check-circle"/> File Already Uploaded-->
+<!--                                                    </small>-->
+<!--                                                </div>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
+
+<!--                                        <div class="ob-section-title">-->
+<!--                                            <span class="ob-section-num">IV</span> Previous Employment-->
+<!--                                        </div>-->
+<!--                                        <div class="row">-->
+<!--                                            <div class="col-md-12 mb-4">-->
+<!--                                                <label class="ob-field-label">Upload Relieving / Experience Letter</label>-->
+<!--                                                <div class="ob-upload-zone">-->
+<!--                                                    <div class="ob-upload-trigger">-->
+<!--                                                        <div class="ob-upload-icon"><i class="fa fa-briefcase"></i></div>-->
+<!--                                                        <div class="ob-upload-text">-->
+<!--                                                            <strong>Upload file (Optional)</strong>-->
+<!--                                                            <span>PDF, JPG, PNG</span>-->
+<!--                                                        </div>-->
+<!--                                                        <input type="file" class="file-input-advanced" name="relieving_letter" accept=".pdf,.jpg,.jpeg,.png" id="relieving_letter_input"-->
+<!--                                                               t-att-disabled="'disabled' if applicant.relieving_letter else None"/>-->
+<!--                                                    </div>-->
+<!--                                                    <div class="ob-file-list" id="fl_relieving_letter"></div>-->
+<!--                                                    <small class="text-success fw-bold mt-2 d-block" t-if="applicant.relieving_letter">-->
+<!--                                                        <i class="fa fa-check-circle"/> File Already Uploaded-->
+<!--                                                    </small>-->
+<!--                                                </div>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
+
+<!--                                    </div> <button type="submit" class="ob-submit-btn shadow">SUBMIT PRE-OFFER DOCUMENTS</button>-->
+<!--                                </div>-->
+<!--                            </form>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </t>-->
+<!--    </template>-->
+<!--</odoo>-->

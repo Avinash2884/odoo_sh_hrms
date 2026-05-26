@@ -12,7 +12,7 @@ class JobApplicationController(http.Controller):
     @http.route('/job/apply/save', type='http', auth='public', methods=['POST'], website=True, csrf=False)
     def submit_job_application(self, **kwargs):
         print("\n\n" + "=" * 60)
-        print("🚀 === JOB APPLICATION CONTROLLER TRIGGERED === 🚀")
+        print(" === JOB APPLICATION CONTROLLER TRIGGERED === ")
         print("=" * 60)
 
         def safe_int(value):
@@ -62,6 +62,9 @@ class JobApplicationController(http.Controller):
 
                 # Assign the combined address here:
                 'mailing_address': full_mailing_address,
+                'applicant_street': kwargs.get('applicant_street'),
+                'applicant_city': kwargs.get('applicant_city'),
+                'applicant_state': kwargs.get('applicant_state'),
 
                 'discipline_applied': kwargs.get('discipline_applied'),
                 'declaration': True if kwargs.get('declaration') == 'on' else False,
@@ -73,7 +76,7 @@ class JobApplicationController(http.Controller):
             if job_id: vals['job_id'] = job_id
             if dept_id: vals['department_id'] = dept_id
 
-            print("\n👀 1. DICTIONARY COMPILED. ATTEMPTING TO SAVE THESE KEYS:")
+            print("\n 1. DICTIONARY COMPILED. ATTEMPTING TO SAVE THESE KEYS:")
             print(list(vals.keys()))
 
             photo = request.httprequest.files.get('photograph')
@@ -102,7 +105,7 @@ class JobApplicationController(http.Controller):
                     'res_id': applicant.id,
                 })
 
-            print("🎓 5. Processing Education & Experience...")
+            print(" 5. Processing Education & Experience...")
             exams = request.httprequest.form.getlist('edu_exam_name[]')
             dates = request.httprequest.form.getlist('edu_passing_date[]')
             universities = request.httprequest.form.getlist('edu_university[]')
@@ -164,6 +167,30 @@ class JobApplicationController(http.Controller):
 
 class PreOnboardingController(http.Controller):
 
+    # =======================================================
+    # 1. NEW: Route to load the Pre-Offer page
+    # =======================================================
+    @http.route('/job/pre_offer/<string:token>', type='http', auth='public', website=True)
+    def pre_offer_form(self, token, **kwargs):
+        if not token:
+            return request.redirect('/')
+
+        applicant = request.env['hr.applicant'].sudo().search([
+            ('access_token', '=', token)
+        ], limit=1)
+
+        if not applicant:
+            _logger.warning("Invalid pre-offer token: %s", token)
+            return request.redirect('/')
+
+        return request.render('approval_recruitment.pre_offer_template', {
+            'applicant': applicant,
+            'token': token,
+        })
+
+    # =======================================================
+    # 2. EXISTING: Route to load the Pre-Onboarding page
+    # =======================================================
     @http.route('/job/pre_onboarding/<string:token>', type='http', auth='public', website=True)
     def pre_onboarding_form(self, token, **kwargs):
         if not token:
@@ -182,9 +209,12 @@ class PreOnboardingController(http.Controller):
             'token': token,
         })
 
+    # =======================================================
+    # 3. UPGRADED: Universal Save (Saves data from BOTH forms)
+    # =======================================================
     @http.route('/job/onboarding/save', type='http', auth='public', methods=['POST'], website=True, csrf=False)
     def save_onboarding_docs(self, **kwargs):
-        _logger.info("=== ONBOARDING SAVE STARTED ===")
+        _logger.info("=== UNIVERSAL DOCUMENT SAVE STARTED ===")
 
         token = kwargs.get('access_token')
         if not token:
@@ -200,14 +230,25 @@ class PreOnboardingController(http.Controller):
 
         vals = {}
         try:
-            for field in ['aadhaar_no', 'pan_no', 'bank_name', 'bank_acc_no',
-                          'bank_ifsc', 'bank_branch', 'joining_category']:
+            # Added the new Pre-Offer dropdowns to this list
+            text_fields = [
+                'aadhaar_no', 'pan_no', 'bank_name', 'bank_acc_no',
+                'bank_ifsc', 'bank_branch', 'joining_category',
+                'highest_edu_level', 'highest_edu_detail', 'income_proof_type'
+            ]
+
+            for field in text_fields:
                 if kwargs.get(field):
                     vals[field] = kwargs[field]
 
-            for field in ['onboarding_photo', 'aadhaar_card', 'pan_card', 'bank_doc',
-                          'marksheet_10', 'marksheet_12', 'diploma_cert', 'ug_degree', 'pg_degree',
-                          'payslips', 'salary_revision_letter', 'relieving_letter', 'exp_appointment_letter']:
+            file_fields = [
+                'onboarding_photo', 'aadhaar_card', 'pan_card', 'bank_doc',
+                'marksheet_10', 'marksheet_12', 'diploma_cert', 'ug_degree', 'pg_degree',
+                'payslips', 'salary_revision_letter', 'relieving_letter', 'exp_appointment_letter',
+                'income_bank_statement'
+            ]
+
+            for field in file_fields:
                 for f in request.httprequest.files.getlist(field):
                     if f and f.filename:
                         data = base64.b64encode(f.read())
@@ -215,6 +256,8 @@ class PreOnboardingController(http.Controller):
                             vals[field] = data
                             if field == 'onboarding_photo':
                                 vals['photograph'] = data
+
+                        # Save attachments for HR
                         request.env['ir.attachment'].sudo().create({
                             'name': '{} - {}'.format(field.replace('_', ' ').title(), f.filename),
                             'type': 'binary',
@@ -226,10 +269,10 @@ class PreOnboardingController(http.Controller):
 
             if vals:
                 applicant.sudo().write(vals)
-                _logger.info("Onboarding saved for applicant id=%s", applicant.id)
+                _logger.info("Documents saved for applicant id=%s", applicant.id)
 
             return request.redirect('/contactus-thank-you')
 
         except Exception as e:
-            _logger.exception("ONBOARDING SAVE ERROR: %s", e)
+            _logger.exception("DOCUMENT SAVE ERROR: %s", e)
             return request.redirect('/contactus-thank-you')

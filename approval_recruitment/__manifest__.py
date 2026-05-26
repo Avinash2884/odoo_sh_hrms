@@ -39,6 +39,7 @@
         'views/job_application_form.xml',
         'views/job_template.xml',
         'views/pre_onboarding_template.xml',
+        'views/pre_offer_template.xml',
         'views/calendar_event_inherit.xml',
         'views/hr_contract_salary_offer_inherit.xml',
 
@@ -99,6 +100,7 @@
             'web.assets_frontend': [
                 'approval_recruitment/static/src/scss/custom_buttons.scss',
                 'approval_recruitment/static/src/js/application_form.js',
+                'approval_recruitment/static/src/js/pre_offer_form.js',
 
             ],
             'web.assets_backend': [
