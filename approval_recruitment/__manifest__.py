@@ -13,8 +13,6 @@
         "security/approval_recruitment.xml",
         "security/employee/employee_security.xml",
         "security/approval/approval_securitys.xml",
-        "security/separation/separation_security.xml",
-        "security/policy/policy_security.xml",
         "security/ir.model.access.csv",
 
         "data/approval_category_data_inherit.xml",
@@ -22,7 +20,6 @@
         "data/hr_recruitment_data_inherit.xml",
         "data/date_cron.xml",
         "data/mail_template_hr_applicant.xml",
-        "data/mail_template_data.xml",
         "data/hr_appraisal_inherit.xml",
         "data/hr_recruitment_mail_templates.xml",
         "data/hr_applicant_refuse_reason.xml",
@@ -84,18 +81,6 @@
         "views/employee_configuration/account_type.xml",
         "views/employee_configuration/menus.xml",
 
-        # Separation
-        "views/separation/initiate_separation.xml",
-        "views/separation/device_type.xml",
-        "views/separation/item_name.xml",
-        "views/separation/payroll_component.xml",
-        "views/separation/exit_interview_questions.xml",
-        "views/separation/menus.xml",
-
-        # Policy
-        "views/policy/company_policy.xml",
-        "views/policy/employee_policy.xml",
-        "views/policy/menus.xml",
     ],
     'assets': {
             'web.assets_frontend': [

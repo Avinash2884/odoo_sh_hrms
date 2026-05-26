@@ -21,5 +21,3 @@ from . import hr_employee_public
 from . import calendar_event_inherit
 
 from . import employee_configuration
-from . import separation
-from . import policy

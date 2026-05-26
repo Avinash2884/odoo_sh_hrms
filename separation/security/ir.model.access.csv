@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_initiate_separation,access.initiate.separation,model_initiate_separation,base.group_user,1,1,1,1
+access_device_type,access.device.type,model_device_type,base.group_user,1,1,1,1
+access_it_assets_clearance,access.it.assets.clearance,model_it_assets_clearance,base.group_user,1,1,1,1
+access_admin_clearance,access.admin.clearance,model_admin_clearance,base.group_user,1,1,1,1
+access_item_name,access.item.name,model_item_name,base.group_user,1,1,1,1
+access_payroll_component,access.payroll.component,model_payroll_component,base.group_user,1,1,1,1
+access_payroll_clearance,access.payroll.clearance,model_payroll_clearance,base.group_user,1,1,1,1
+access_exit_interview_question,access.exit.interview.question,model_exit_interview_question,base.group_user,1,1,1,1
+access_exit_interview_option,access.exit.interview.option,model_exit_interview_option,base.group_user,1,1,1,1
+access_exit_interview_line,access.exit.interview.line,model_exit_interview_line,base.group_user,1,1,1,1
+
