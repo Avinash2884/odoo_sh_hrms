@@ -91,7 +91,7 @@ class HrVersion(models.Model):
 
     years_of_service = fields.Float(
         string="Years of Service",
-        related='employee_id.years_of_service_num',
+        related='employee_id.years_of_service',
         store=True
     )
 
@@ -105,12 +105,12 @@ class HrVersion(models.Model):
 
     @api.depends(
         'l10n_in_basic_salary_amount',
-        'employee_id.years_of_service_num',
+        'employee_id.years_of_service',
         'dearness_allowance'
     )
     def _compute_l10n_in_gratuity(self):
         for version in self:
-            years = float(version.employee_id.years_of_service_num or 0.0)
+            years = float(version.employee_id.years_of_servic or 0.0)
             basic = version.l10n_in_basic_salary_amount or 0.0
             da = version.dearness_allowance or 0.0
 
