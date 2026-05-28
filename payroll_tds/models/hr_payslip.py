@@ -19,13 +19,19 @@ class HrPayslip(models.Model):
     state = fields.Selection(
         selection_add=[
             ('timeoff_balance', 'Time Off Balance')
-        ]
+        ],
+        ondelete={
+            'timeoff_balance': 'set default'
+        }
     )
 
     state_display = fields.Selection(
         selection_add=[
             ('timeoff_balance', 'Time Off Balance')
-        ]
+        ],
+        ondelete={
+            'timeoff_balance': 'set default'
+        }
     )
 
     def action_payslip_done(self):
