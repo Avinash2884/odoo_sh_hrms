@@ -1,0 +1,4 @@
+from . import hr_employee_inherit
+from . import hr_version_inherit
+from . import hr_leave_inherit
+from . import hr_payslip

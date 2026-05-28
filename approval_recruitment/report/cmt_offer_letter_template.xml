@@ -15,7 +15,7 @@
             <t t-foreach="docs" t-as="object">
                 <t t-call="web.external_layout">
 
-                    <div style="margin: 20px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+                    <div style="margin: 20px; font-family: 'DM Sans'; font-weight:normal; font-size: 14px; line-height: 1.8;">
 
                         <!-- Title -->
                         <h3 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
@@ -84,7 +84,7 @@
                         <p>
                             7.	Post CCT/CRT certification completion, you are eligible for the full salary mentioned in Annexure 1.
                         </p>
-                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+                        <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
                             <p>
                                 The offer stands automatically revoked, not joining as per the indicated timelines. Discussions or attempts to arrive at a revised joining date could be made, but in case no agreement on a date is arrived at, the date indicated in the offer (or last agreed in writing thereafter) would be considered as the date by which the you should join, failing which the offer would automatically stand revoked. While you are at liberty to reject the offer by indicating in writing, the offer can also be revoked at the discretion of the management, before your date of joining.
                             </p>
@@ -148,7 +148,7 @@
                             <p >Koushalya R</p>
                             <p >Head – Human Resources </p>
                         </div>
-                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+                        <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
                             <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">
                                 <strong>Annexure I</strong>

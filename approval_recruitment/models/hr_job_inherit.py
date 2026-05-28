@@ -20,6 +20,11 @@ class HrJobInherit(models.Model):
     start_date = fields.Date(string="Start Date")
     end_date = fields.Date(string="End Date")
 
+    file_data = fields.Binary(string="Upload File")
+    file_name = fields.Char(string="File Name")
+    hr_head_name = fields.Many2one('res.users', string="Head Name")
+    hr_description = fields.Char(string="Description")
+
     def action_send_job_email(self):
         self.ensure_one()
 

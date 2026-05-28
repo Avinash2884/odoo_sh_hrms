@@ -11,6 +11,21 @@
                         string="Send Email"
                         class="oe_highlight"/>
             </xpath>
+            <xpath expr="//notebook" position="inside">
+            <page string="HR Head Details">
+
+                <group>
+                    <field name="file_data" filename="file_name"/>
+                    <field name="file_name" invisible="1"/>
+                </group>
+
+                <group>
+                    <field name="hr_head_name"/>
+                    <field name="hr_description"/>
+                </group>
+
+            </page>
+        </xpath>
             <xpath expr="//field[@name='department_id']" position="after">
                 <field name="approval_experience_minimum"/>
                 <field name="approval_experience_maximum"/>

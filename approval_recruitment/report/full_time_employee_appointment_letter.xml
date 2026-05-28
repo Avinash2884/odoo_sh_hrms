@@ -15,7 +15,7 @@
             <t t-foreach="docs" t-as="object">
                 <t t-call="web.external_layout">
 
-                    <div style="margin: 20px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+                    <div style="margin: 20px; font-family: 'DM Sans'; font-weight:normal; font-size: 14px; line-height: 1.8;">
 
                         <!-- Title -->
                         <h2 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
@@ -314,7 +314,7 @@
                         <p style="margin-top: 0px;">Head – Human Resources </p>
 
 
-                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+                        <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
                             <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">
                                 <strong>Annexure I</strong>
@@ -386,7 +386,7 @@
                                 </li>
                             </ul>
                         </div>
-                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+                        <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
                             <!-- Title -->
                             <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">

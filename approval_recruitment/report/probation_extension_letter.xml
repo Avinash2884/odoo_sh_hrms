@@ -19,7 +19,7 @@
             <t t-foreach="docs" t-as="object">
                 <t t-call="web.external_layout">
 
-                    <div style="margin: 30px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+                    <div style="margin: 30px; font-family: 'DM Sans'; font-weight:normal; font-size: 14px; line-height: 1.8;">
 
                         <!-- Header -->
                         <p>

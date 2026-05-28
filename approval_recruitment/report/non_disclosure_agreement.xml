@@ -15,7 +15,7 @@
             <t t-foreach="docs" t-as="object">
                 <t t-call="web.external_layout">
 
-                    <div style="margin: 20px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+                    <div style="margin: 20px; font-family: 'DM Sans'; font-weight:normal; font-size: 14px; line-height: 1.8;">
 
                         <!-- Title -->
                         <h2 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
@@ -81,7 +81,7 @@
                         <p style="text-indent: 40px;">
                             4.	Whereas Member understands that intellectual property and the confidential/proprietary information of Company are the most important and valuable assets of Company to enable Company to achieve its overall business objectives. The protection of this valuable information is critical to Company’s business.
                         </p>
-                        <div style="page-break-before: always; font-family: Arial, sans-serif;">
+                        <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
                             <p style="margin-bottom: 10px;">
                                 <strong>
                                 IN CONSIDERATION OF THE PROMISES AND COVENANTS CONTAINED IN THIS AGREEMENT AND THE DISCLOSURE OF CONFIDENTIAL INFORMATION FROM THE COMPANY TO THE MEMBER, THE PARTIES HERETO AGREE AS FOLLOWS:
