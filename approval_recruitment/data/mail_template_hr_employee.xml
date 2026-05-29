@@ -86,7 +86,6 @@
         <field name="model_id" ref="hr.model_hr_employee"/>
         <field name="email_from">{{object.company_id.email or 'info@yourcompany.com'}}</field>
         <field name="email_to">{{ object.work_email }}</field>
-        <field name="email_cc">{{ object.hr_id.login if object.hr_id else '' }}</field>
         <field name="subject">Your Probation Period is Ending Soon</field>
 
         <field name="body_html" type="html">
