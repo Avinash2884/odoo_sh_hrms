@@ -188,17 +188,22 @@ class HrEmployeeInherit(models.Model):
     @api.model
     def _cron_probation_expiry_reminder(self):
         """Send reminder email 2 days before probation end date"""
+
         today = date.today()
-        target_date = today + timedelta(days=1)  # reminder 2 days before expiry
+        target_date = today + timedelta(days=1)
+
         employees = self.env['hr.employee'].search([])
         print(employees, "Employees with probation expiring soon")
 
+        template = self.env.ref('approval_recruitment.email_template_probation_reminder')
+
         for emp in employees:
             if emp.work_email:
-                # Get base URL of Odoo
+
+                # Base URL
                 base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
 
-                # Fetch appraisal record (pending/new)
+                # Appraisal கண்டுபிடிக்க
                 appraisal = self.env['hr.appraisal'].search(
                     [('employee_id', '=', emp.id), ('state', 'in', ['new', 'pending'])],
                     limit=1
@@ -211,147 +216,102 @@ class HrEmployeeInherit(models.Model):
                     action_id = self.env.ref('hr_appraisal.open_view_hr_appraisal_tree').id
                     appraisal_url = f"{base_url}/web#action={action_id}"
 
-                print(f"Sending probation expiry mail to: {emp.work_email} for probation ending on {emp.probation_date_end}")
+                print(
+                    f"Sending probation expiry mail to: {emp.work_email} for probation ending on {emp.probation_date_end}")
+
+                # ✅ Template render (context important)
+                template_ctx = template.with_context(appraisal_url=appraisal_url)
+
+                body = template_ctx._render_field('body_html', emp.ids)[emp.id]
+                subject = template_ctx._render_field('subject', emp.ids)[emp.id]
+                email_from = template_ctx._render_field('email_from', emp.ids)[emp.id]
+                email_to = template_ctx._render_field('email_to', emp.ids)[emp.id]
+                email_cc = template_ctx._render_field('email_cc', emp.ids)[emp.id]
+
                 mail_values = {
-                    'subject': f"Your Probation Period is Ending on {emp.contract_date_end}",
-                    'body_html': f"""
-                        <p>Dear {emp.name},</p>
-                        <p>Your probation period is set to end on <b>{emp.contract_date_end}</b>.</p>
-                        <p>Please contact HR for confirmation or extension discussion.</p>
-                        <p>
-                        <a href="{appraisal_url}" style="
-                            display:inline-block;
-                            padding:10px 20px;
-                            background-color:#0a6ebd;
-                            color:white;
-                            text-decoration:none;
-                            border-radius:5px;">
-                            Fill Appraisal Form
-                        </a>
-                        </p>
-                        <p>Regards,<br/>HR Department</p>
-                    """,
-                    'email_from': emp.company_id.email or 'info@yourcompany.com',
-                    'email_to': emp.work_email,
-                    'email_cc': emp.hr_id.login if emp.hr_id else False,  # CC to HR user
+                    'subject': subject,
+                    'body_html': body,
+                    'email_from': email_from,
+                    'email_to': email_to,
+                    'email_cc': email_cc,
                 }
+
                 self.env['mail.mail'].create(mail_values).send()
 
     def action_assign_buddy(self):
+        emails_sent = []
+
         for emp in self:
             if not emp.buddy_id:
                 raise ValidationError(_("Please select a Buddy before assigning."))
 
-            base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-            employee_url = f"{base_url}/web#id={emp.id}&model=hr.employee&view_type=form"
-
-            # -------------------------
-            # Mail to Buddy
-            # -------------------------
+            # Buddy mail
             if emp.buddy_id.email:
-                buddy_mail_values = {
-                    'subject': f"You are assigned as Buddy for {emp.name}",
-                    'body_html': f"""
-                        <p>Dear {emp.buddy_id.name},</p>
-                        <p>You have been assigned as a <b>Buddy</b> for the employee <b>{emp.name}</b>.</p>
-                        <p>Please help them during their onboarding period.</p>
-                        <p>
-                            <a href="{employee_url}" style="
-                                display:inline-block;
-                                padding:10px 20px;
-                                background-color:#0a6ebd;
-                                color:white;
-                                text-decoration:none;
-                                border-radius:5px;">
-                                View Employee
-                            </a>
-                        </p>
-                        <p>Regards,<br/>HR Department</p>
-                    """,
+                template = self.env.ref('approval_recruitment.email_template_buddy_assign')
+                body = template._render_field('body_html', emp.ids)[emp.id]
+                subject = template._render_field('subject', emp.ids)[emp.id]
+
+                self.env['mail.mail'].create({
+                    'subject': subject,
+                    'body_html': body,
                     'email_from': emp.company_id.email or 'info@yourcompany.com',
                     'email_to': emp.buddy_id.email,
-                }
-                self.env['mail.mail'].create(buddy_mail_values).send()
-            # -------------------------
-            # Mail to Employee (with Buddy details)
-            # -------------------------
+                }).send()
+
+            # Employee mail
             if emp.work_email:
-                buddy = emp.buddy_id
+                template = self.env.ref('approval_recruitment.email_template_employee_buddy')
+                body = template._render_field('body_html', emp.ids)[emp.id]
+                subject = template._render_field('subject', emp.ids)[emp.id]
 
-                employee_mail_values = {
-                    'subject': "Your Buddy has been Assigned",
-                    'body_html': f"""
-                        <p>Dear {emp.name},</p>
-
-                        <p>Your onboarding <b>Buddy</b> has been assigned.</p>
-
-                        <table style="border-collapse:collapse; margin-top:10px;">
-                            <tr>
-                                <td style="padding:6px;"><b>Name</b></td>
-                                <td style="padding:6px;">{buddy.name}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:6px;"><b>Email</b></td>
-                                <td style="padding:6px;">
-                                    <a href="mailto:{buddy.work_email or ''}">
-                                        {buddy.work_email or 'N/A'}
-                                    </a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:6px;"><b>Phone</b></td>
-                                <td style="padding:6px;">
-                                    {buddy.mobile_phone or buddy.work_phone or 'N/A'}
-                                </td>
-                            </tr>
-                        </table>
-
-                        <p style="margin-top:15px;">
-                            You can contact your buddy anytime for guidance and support.
-                        </p>
-
-                        <p>Regards,<br/>HR Department</p>
-                    """,
+                self.env['mail.mail'].create({
+                    'subject': subject,
+                    'body_html': body,
                     'email_from': emp.company_id.email or 'info@yourcompany.com',
                     'email_to': emp.work_email,
-                }
+                }).send()
 
-                self.env['mail.mail'].create(employee_mail_values).send()
-
-    from odoo import models
-
-    class HrEmployee(models.Model):
-        _inherit = 'hr.employee'
-
-        def action_send_employee_email(self):
-            self.ensure_one()
-
-            partner = False
-
-            if self.work_email:
-                # Check if partner already exists
-                partner = self.env['res.partner'].search([
-                    ('email', '=', self.work_email)
-                ], limit=1)
-
-                # If not found → create new partner
-                if not partner:
-                    partner = self.env['res.partner'].create({
-                        'name': self.name,
-                        'email': self.work_email,
-                    })
-
-            return {
-                'type': 'ir.actions.act_window',
-                'name': 'Send Email',
-                'res_model': 'mail.compose.message',
-                'view_mode': 'form',
-                'target': 'new',
-                'context': {
-                    'default_model': 'hr.employee',
-                    'default_res_ids': self.ids,
-                    'default_composition_mode': 'comment',
-                    'default_partner_ids': [(6, 0, [partner.id])] if partner else [],
-                    'default_email_to': self.work_email,
-                }
+            emails_sent.append(emp.name)
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Mail Sent!',
+                'message': f'Buddy & Employee mail sent for: {", ".join(emails_sent)}',
+                'type': 'success',
+                'sticky': False,
             }
+        }
+
+    def action_send_employee_email(self):
+        self.ensure_one()
+
+        partner = False
+
+        if self.work_email:
+            # Check if partner already exists
+            partner = self.env['res.partner'].search([
+                ('email', '=', self.work_email)
+            ], limit=1)
+
+            # If not found → create new partner
+            if not partner:
+                partner = self.env['res.partner'].create({
+                    'name': self.name,
+                    'email': self.work_email,
+                })
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Send Email',
+            'res_model': 'mail.compose.message',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_model': 'hr.employee',
+                'default_res_ids': self.ids,
+                'default_composition_mode': 'comment',
+                'default_partner_ids': [(6, 0, [partner.id])] if partner else [],
+                'default_email_to': self.work_email,
+            }
+        }

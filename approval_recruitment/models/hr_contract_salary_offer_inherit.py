@@ -42,6 +42,7 @@ class HrContractSalaryOffer(models.Model):
     hse_intern_hospital_name = fields.Char(string="HSE Intern (Hospital Name)")
     hse_intern_hospital_city = fields.Char(string="HSE Intern (Hospital City)")
 
+
     # def write(self, vals):
     #     res = super().write(vals)
     #

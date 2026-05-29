@@ -10,7 +10,6 @@
             </xpath>
             <xpath expr="//sheet" position="inside">
                 <notebook>
-
                     <page string="CMT Full Time Appointment Letter"
                           invisible="offer_letter_type != 'cmt_full_time_appointment_letter'">
 

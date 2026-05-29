@@ -24,6 +24,7 @@
         "data/hr_recruitment_mail_templates.xml",
         "data/hr_applicant_refuse_reason.xml",
         "data/calendar_mail_template.xml",
+        "data/mail_template_hr_employee.xml",
 
         "views/approval_category_inherit.xml",
         "views/approval_request_inherit.xml",
@@ -91,6 +92,9 @@
             ],
             'web.assets_backend': [
                 'approval_recruitment/static/src/scss/custom_buttons.scss',
+            ],
+            'web.report_assets_common': [
+                'approval_recruitment/static/src/css/fonts.css',
             ],
         },
     'installable': True,
