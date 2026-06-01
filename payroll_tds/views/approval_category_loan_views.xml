@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="approval_category_loan_form_view" model="ir.ui.view">
+        <field name="name">approval.category.loan.form.view</field>
+        <field name="model">approval.category</field>
+        <field name="inherit_id" ref="approvals.approval_category_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='has_location']" position="after">
+
+                <field name="has_loan_type"
+                       string="Loan Type"
+                       widget="radio"
+                       options="{'horizontal': true}"/>
+
+                <field name="has_loan_amount"
+                       string="Loan Amount"
+                       widget="radio"
+                       options="{'horizontal': true}"/>
+
+                <field name="has_repayment_period"
+                       string="Repayment Period"
+                       widget="radio"
+                       options="{'horizontal': true}"/>
+
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Payslip Form View -->
+    <record id="view_hr_payslip_form_inherit_timeoff_balance" model="ir.ui.view">
+        <field name="name">hr.payslip.form.inherit.timeoff.balance</field>
+        <field name="model">hr.payslip</field>
+
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+
+        <field name="arch" type="xml">
+
+            <!-- Statusbar -->
+            <xpath expr="//field[@name='state']" position="replace">
+
+                <field name="state"
+                       widget="statusbar"
+                       statusbar_visible="draft,timeoff_balance,validated,paid"/>
+
+            </xpath>
+
+
+        </field>
+    </record>
+
+
+    <!-- Payslip List View -->
+    <record id="view_hr_payslip_tree_inherit_timeoff_balance" model="ir.ui.view">
+        <field name="name">hr.payslip.tree.inherit.timeoff.balance</field>
+        <field name="model">hr.payslip</field>
+
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_tree"/>
+
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='state_display']" position="replace">
+
+                <field
+                    name="state_display"
+                    widget="badge"
+                    decoration-info="state_display == 'draft'"
+                    decoration-warning="state_display == 'timeoff_balance'"
+                    decoration-success="state_display == 'validated'"
+                    decoration-primary="state_display == 'paid'"
+                    decoration-danger="state_display == 'error'"
+                />
+
+            </xpath>
+
+
+        </field>
+    </record>
+
+</odoo>

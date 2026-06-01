@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record id="approval_request_form_inherit" model="ir.ui.view">
+
+        <field name="name">approval.request.form.inherit</field>
+
+        <field name="model">approval.request</field>
+
+        <field name="inherit_id" ref="approvals.approval_request_view_form"/>
+
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='request_owner_id']" position="after">
+
+                <field name="ls_employee_code" readonly="1"/>
+
+                <field name="ls_department_id" readonly="1"/>
+
+                <field name="loan_type"/>
+
+                <field name="loan_amount"/>
+                <field name="currency_id" invisible="1"/>
+
+                <field name="repayment_period"/>
+
+                 <field name="approved_date" readonly="1"/>
+
+            </xpath>
+
+        </field>
+
+    </record>
+
+</odoo>
