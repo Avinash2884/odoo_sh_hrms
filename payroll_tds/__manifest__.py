@@ -1,7 +1,7 @@
 {
     'name': "Payroll TDS",
     'version': '1.0.0',
-    'depends': ['base', 'hr','approvals','hr_payroll','l10n_in_hr_payroll','hr_holidays'],
+    'depends': ['base', 'hr','approvals','hr_payroll','l10n_in_hr_payroll','hr_holidays','hr_payroll_holidays' ],
     'author': "Unisas ITBusiness Solutions Private Limited",
     'category': 'HRMS/Payroll',
     'summary': "Complete HRMS Payroll management with TDS, PF, ESI and automated payslip processing",    'description': """
