@@ -132,12 +132,19 @@ class HrVersion(models.Model):
     # HRA Calculation Based On Gross Wage
     # ---------------------------------------
 
-    @api.depends('l10n_in_basic_salary_amount', 'l10n_in_hra_percentage', 'wage')
+    @api.depends('wage', 'l10n_in_hra_percentage')
     def _compute_l10n_in_hra(self):
+
+        # Remove old compute queue
+        self.env.remove_to_compute(
+            self._fields['l10n_in_hra_percentage'],
+            self
+        )
+
         for version in self:
-            hra = version.l10n_in_basic_salary_amount * version.l10n_in_hra_percentage
+            # HRA = Gross Wage × HRA %
+            version.l10n_in_hra = (
+                    version.wage *
+                    version.l10n_in_hra_percentage
+            )
 
-            if hra + version.l10n_in_basic_salary_amount > version.wage:
-                hra = 0.0
-
-            version.l10n_in_hra = hra

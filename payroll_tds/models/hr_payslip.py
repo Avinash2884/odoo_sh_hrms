@@ -36,21 +36,36 @@ class HrPayslip(models.Model):
 
         for slip in self:
 
-            employee = slip.employee_id
+            # 1. FORCE MONTH FROM PAYSLIP DATE
+            month = slip.date_from.month
 
-            annual_salary = employee.payslip_yearly_cost or 0.0
+            slip.employee_id.write({
+                'payslip_month': str(month),
+            })
 
-            applicable_tds = (
-                employee.tds_amount_month
-                if employee.tax_regime == 'old'
-                else employee.tds_amount_new_month
-            )
+            # 2. GROSS WAGE FROM EMPLOYEE (NO contract_id)
+            gross = slip.employee_id.payslip_gross_wage or 0.0
 
-            if annual_salary > 1200000 and not applicable_tds:
-                raise ValidationError(
-                    f"TDS is applicable for employee {employee.name}.\n\n"
-                    f"Please configure Monthly TDS before validating payslip."
-                )
+            slip.employee_id.write({
+                'payslip_gross_wage': gross,
+            })
+
+            # 3. GET ANNUAL SALARY (IMPORTANT CHECK FIRST)
+            annual_salary = slip.employee_id.payslip_yearly_cost or 0.0
+
+            # 🚀 SKIP instead of error
+            if annual_salary <= 1200000:
+                continue
+
+            # 3. COMPUTE SHEET FIRST
+            slip.compute_sheet()
+
+            # 4. TDS CHECK (IMPORTANT FIX)
+            tds_line = slip.line_ids.filtered(lambda l: l.code in ['TDS', 'TDS_NEW'])
+
+            if not tds_line:
+                slip.state = 'timeoff_balance'
+                continue
 
             pending_leave = self.env['hr.leave'].search([
                 ('employee_id', '=', slip.employee_id.id),
@@ -161,6 +176,11 @@ class HrPayslip(models.Model):
 
         return True
 
+   # def action_print_payslip(self):
+        return self.env.ref(
+            'l10n_in_hr_payroll.payslip_details_report'
+        ).report_action(self)
+
     def action_print_payslip(self):
         return self.env.ref(
             'l10n_in_hr_payroll.payslip_details_report'
@@ -183,3 +203,4 @@ class HrPayslip(models.Model):
                                                      ) + 1
 
         return res
+
