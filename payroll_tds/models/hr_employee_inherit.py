@@ -55,7 +55,7 @@ class Employee(models.Model):
     currency_id = fields.Many2one(
         'res.currency',
         string='Currency',
-        default=lambda self: self.env.company.currency_id
+        # default=lambda self: self.env.company.currency_id
     )
 
     l10n_in_pf_employee_type = fields.Selection(
