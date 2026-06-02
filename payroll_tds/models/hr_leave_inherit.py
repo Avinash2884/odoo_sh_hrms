@@ -111,6 +111,10 @@ class HrLeave(models.Model):
     # ----------------------------------------
     @api.constrains('holiday_status_id', 'number_of_days', 'attachment_ids')
     def _check_support_document_required(self):
+
+        if self.env.context.get('install_mode'):
+            return
+
         for leave in self:
             if leave.holiday_status_id.support_document and leave.number_of_days > 2:
                 if not leave.attachment_ids:
