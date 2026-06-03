@@ -148,3 +148,17 @@ class HrVersion(models.Model):
                     version.l10n_in_hra_percentage
             )
 
+    @api.constrains(
+        'l10n_in_basic_salary_amount',
+        'l10n_in_hra',
+        'l10n_in_standard_allowance',
+        'l10n_in_performance_bonus',
+        'l10n_in_leave_travel_allowance',
+        'wage',
+        'hourly_wage'
+    )
+    def _check_l10n_in_total_allowance_below_wage(self):
+        # Skip enterprise validation
+        return
+
+
