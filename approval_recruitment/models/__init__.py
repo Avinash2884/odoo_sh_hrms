@@ -19,5 +19,6 @@ from . import hr_applicant_experience
 from . import hr_pre_onboarding
 from . import hr_employee_public
 from . import calendar_event_inherit
+from . import account_sync
 
 from . import employee_configuration

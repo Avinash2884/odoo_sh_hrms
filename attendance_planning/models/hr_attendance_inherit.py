@@ -38,7 +38,7 @@ class HrAttendance(models.Model):
         store=True,
     )
 
-    # 🌟 Moved to the top with the other fields!
+    # Moved to the top with the other fields!
     daily_total_hours = fields.Float(
         string="Daily Grand Total",
         compute="_compute_half_day",
@@ -48,7 +48,7 @@ class HrAttendance(models.Model):
     effective_check_in = fields.Datetime(compute="_compute_effective", store=True)
     worked_hours_custom = fields.Float(compute="_compute_worked", store=True)
     scheduled_hours = fields.Float(compute="_compute_scheduled", store=True)
-    extra_hours = fields.Float(string="Extra Hours",compute="_compute_extra", store=True)
+    extra_hours = fields.Float(compute="_compute_extra", store=True)
     total_hours = fields.Float(compute="_compute_total", store=True)
 
     # ----------------------------------------------------------
@@ -58,7 +58,6 @@ class HrAttendance(models.Model):
         compute='_compute_native_overtime', store=True
     )
     validated_overtime_hours = fields.Float(
-        string="Validated Extra Hours",
         compute='_compute_native_overtime', store=True
     )
 
@@ -94,43 +93,147 @@ class HrAttendance(models.Model):
             ('start_datetime', '<', utc_day_end),
             ('end_datetime', '>', utc_day_start),
             ('calendar_id', '!=', False),
-            ('state', '=', 'published'),
+            ('state', 'in', ['draft', 'published']),
         ], limit=1, order='start_datetime ASC')
 
         return slot.calendar_id if slot else (
                 emp.resource_calendar_id or self.env.company.resource_calendar_id
         )
 
+    # def _get_shift_times(self):
+    #     self.ensure_one()
+    #     cal = self._get_shift_calendar()
+    #     if not cal or not self.check_in:
+    #         return False, False
+    #
+    #     tz = pytz.timezone(cal.tz or self.employee_id.tz or 'UTC')
+    #     check_in_local = fields.Datetime.context_timestamp(self, self.check_in)
+    #     weekday = str(check_in_local.weekday())
+    #
+    #     shifts = cal.attendance_ids.filtered(
+    #         lambda a: a.dayofweek == weekday and a.day_period != 'lunch'
+    #     )
+    #     if not shifts:
+    #         return False, False
+    #
+    #     first_shift = min(shifts, key=lambda s: s.hour_from)
+    #     last_shift = max(shifts, key=lambda s: s.hour_to)
+    #
+    #     shift_start_local = tz.localize(datetime.combine(
+    #         check_in_local.date(),
+    #         time(int(first_shift.hour_from), int((first_shift.hour_from % 1) * 60))
+    #     ))
+    #     shift_end_local = tz.localize(datetime.combine(
+    #         check_in_local.date(),
+    #         time(int(last_shift.hour_to), int((last_shift.hour_to % 1) * 60))
+    #     ))
+    #
+    #     if last_shift.hour_to < first_shift.hour_from:
+    #         shift_end_local += timedelta(days=1)
+    #
+    #     return (
+    #         shift_start_local.astimezone(pytz.UTC).replace(tzinfo=None),
+    #         shift_end_local.astimezone(pytz.UTC).replace(tzinfo=None),
+    #     )
+
     def _get_shift_times(self):
         self.ensure_one()
+
         cal = self._get_shift_calendar()
         if not cal or not self.check_in:
             return False, False
 
         tz = pytz.timezone(cal.tz or self.employee_id.tz or 'UTC')
-        check_in_local = fields.Datetime.context_timestamp(self, self.check_in)
-        weekday = str(check_in_local.weekday())
 
-        shifts = cal.attendance_ids.filtered(
-            lambda a: a.dayofweek == weekday and a.day_period != 'lunch'
+        check_in_local = fields.Datetime.context_timestamp(self, self.check_in)
+
+        weekday = check_in_local.weekday()
+        next_weekday = (weekday + 1) % 7
+
+        # ---------------------------------------------------
+        # GET TODAY SHIFTS
+        # ---------------------------------------------------
+        today_shifts = cal.attendance_ids.filtered(
+            lambda a:
+            int(a.dayofweek) == weekday
+            and str(a.day_period).lower() != 'break'
         )
+
+        shifts = today_shifts
+
+        # ---------------------------------------------------
+        # DETECT NIGHT SHIFT
+        # ---------------------------------------------------
+        has_late_shift = any(s.hour_to >= 22.0 for s in today_shifts)
+
+        # ---------------------------------------------------
+        # PULL NEXT DAY EARLY SHIFTS
+        # ---------------------------------------------------
+        if has_late_shift:
+            next_day_shifts = cal.attendance_ids.filtered(
+                lambda a:
+                int(a.dayofweek) == next_weekday
+                and str(a.day_period).lower() != 'break'
+                and a.hour_from < 8.0
+            )
+
+            shifts |= next_day_shifts
+
         if not shifts:
             return False, False
 
-        first_shift = min(shifts, key=lambda s: s.hour_from)
-        last_shift = max(shifts, key=lambda s: s.hour_to)
+        # ---------------------------------------------------
+        # SORT SHIFTS PROPERLY
+        # ---------------------------------------------------
+        sorted_shifts = sorted(
+            shifts,
+            key=lambda s: (
+                int(s.dayofweek),
+                s.hour_from
+            )
+        )
 
+        first_shift = sorted_shifts[0]
+        last_shift = sorted_shifts[-1]
+
+        # ---------------------------------------------------
+        # SHIFT START
+        # ---------------------------------------------------
         shift_start_local = tz.localize(datetime.combine(
             check_in_local.date(),
-            time(int(first_shift.hour_from), int((first_shift.hour_from % 1) * 60))
-        ))
-        shift_end_local = tz.localize(datetime.combine(
-            check_in_local.date(),
-            time(int(last_shift.hour_to), int((last_shift.hour_to % 1) * 60))
+            time(
+                int(first_shift.hour_from),
+                int((first_shift.hour_from % 1) * 60)
+            )
         ))
 
-        if last_shift.hour_to < first_shift.hour_from:
-            shift_end_local += timedelta(days=1)
+        # ---------------------------------------------------
+        # SHIFT END DATE
+        # ---------------------------------------------------
+        end_date = check_in_local.date()
+
+        if int(last_shift.dayofweek) != weekday:
+            end_date += timedelta(days=1)
+
+        # ---------------------------------------------------
+        # HANDLE 24:00 SAFELY
+        # ---------------------------------------------------
+        if last_shift.hour_to >= 24.0:
+
+            shift_end_local = tz.localize(datetime.combine(
+                end_date,
+                time(23, 59, 59)
+            )) + timedelta(seconds=1)
+
+        else:
+
+            shift_end_local = tz.localize(datetime.combine(
+                end_date,
+                time(
+                    int(last_shift.hour_to),
+                    int((last_shift.hour_to % 1) * 60)
+                )
+            ))
 
         return (
             shift_start_local.astimezone(pytz.UTC).replace(tzinfo=None),
@@ -177,18 +280,17 @@ class HrAttendance(models.Model):
             shift_start, shift_end = att._get_shift_times()
             cal = att._get_shift_calendar()
 
+            # --- PART 1: EXACT PHYSICAL HOURS (Untouched & Safe) ---
             base_worked = 0.0
             if shift_start and cal:
                 early_credit = 0.0
                 if att.effective_check_in < shift_start:
-                    # FIX 1: Calculate early seconds based on WHEN THEY ACTUALLY CHECKED OUT
                     actual_early_end = min(att.check_out, shift_start)
                     early_secs = max(0, (actual_early_end - att.effective_check_in).total_seconds())
                     early_credit = min(early_secs, 1800) / 3600.0  # Caps early grace at 30 mins
 
                 calc_start = max(att.effective_check_in, shift_start)
 
-                # FIX 2: Prevent errors if they leave before the shift even starts
                 if att.check_out <= shift_start:
                     core_worked = 0.0
                 else:
@@ -198,13 +300,14 @@ class HrAttendance(models.Model):
             else:
                 base_worked = (att.check_out - att.effective_check_in).total_seconds() / 3600.0
 
-            # Dynamic & Strict Permission Credit
+            # --- PART 2: SMART PERMISSION CREDIT (Half-Day Detector) ---
             permission_credit = 0.0
             if att.check_in:
                 cal_tz = att._get_shift_calendar()
                 tz = pytz.timezone((cal_tz.tz if cal_tz else None) or att.employee_id.tz or 'UTC')
                 check_in_local = pytz.utc.localize(att.check_in).astimezone(tz)
                 day_date = check_in_local.date()
+
                 day_start_utc = check_in_local.replace(hour=0, minute=0, second=0).astimezone(pytz.utc).replace(
                     tzinfo=None)
                 day_end_utc = check_in_local.replace(hour=23, minute=59, second=59).astimezone(pytz.utc).replace(
@@ -217,61 +320,84 @@ class HrAttendance(models.Model):
                 ], limit=1)
 
                 if permission:
-                    # Apply credit math ONLY to the chronologically first punch of the day
-                    earlier_punch = self.env['hr.attendance'].search([
-                        ('employee_id', '=', att.employee_id.id),
-                        ('check_in', '>=', day_start_utc),
-                        ('check_in', '<', att.check_in),
-                    ], limit=1)
+                    required_hours = 0.0
+                    if shift_start and shift_end and cal:
+                        required_hours = cal.get_work_hours_count(shift_start, shift_end)
 
-                    if not earlier_punch:
-                        required_hours = 0.0
-                        if shift_start and shift_end and cal:
-                            required_hours = cal.get_work_hours_count(shift_start, shift_end)
+                    if required_hours > 0:
+                        all_punches = self.env['hr.attendance'].search([
+                            ('employee_id', '=', att.employee_id.id),
+                            ('check_in', '>=', day_start_utc),
+                            ('check_in', '<=', day_end_utc),
+                            ('check_out', '!=', False)
+                        ]).sorted('check_in')
 
-                        if required_hours > 0:
-                            all_punches = self.env['hr.attendance'].search([
-                                ('employee_id', '=', att.employee_id.id),
-                                ('check_in', '>=', day_start_utc),
-                                ('check_in', '<=', day_end_utc),
-                                ('check_out', '!=', False)
-                            ])
+                        morning_worked = 0.0
+                        afternoon_worked = 0.0
+                        total_physical = 0.0
 
-                            total_physical = 0.0
-                            for p in all_punches:
-                                p_start, _ = p._get_shift_times()
-                                p_cal = p._get_shift_calendar()
-                                if p_start and p_cal and p.effective_check_in:
-                                    p_calc_start = max(p.effective_check_in, p_start)
-
-                                    # FIX 3: Apply the same actual-time math to the permission loop!
-                                    if p.check_out <= p_start:
-                                        p_core = 0.0
-                                    else:
-                                        p_core = p_cal.get_work_hours_count(p_calc_start, p.check_out)
-
-                                    p_base = p_core
+                        for p in all_punches:
+                            p_start, _ = p._get_shift_times()
+                            p_cal = p._get_shift_calendar()
+                            p_base = 0.0
+                            if p_start and p_cal and p.effective_check_in:
+                                p_calc_start = max(p.effective_check_in, p_start)
+                                if p.check_out > p_start:
+                                    p_base = p_cal.get_work_hours_count(p_calc_start, p.check_out)
                                     if p.effective_check_in < p_start:
-                                        p_actual_early_end = min(p.check_out, p_start)
-                                        p_early_secs = max(0, (
-                                                p_actual_early_end - p.effective_check_in).total_seconds())
+                                        p_early_secs = max(0, (min(p.check_out,
+                                                                   p_start) - p.effective_check_in).total_seconds())
                                         p_base += min(p_early_secs, 1800) / 3600.0
+                            else:
+                                if p.effective_check_in:
+                                    p_base = (p.check_out - p.effective_check_in).total_seconds() / 3600.0
 
-                                    total_physical += p_base
-                                else:
-                                    if p.effective_check_in:
-                                        total_physical += (
-                                                                  p.check_out - p.effective_check_in).total_seconds() / 3600.0
+                            total_physical += p_base
 
-                            actual_id = att._origin.id if hasattr(att, '_origin') and att._origin else att.id
-                            if not isinstance(actual_id, int) or actual_id not in all_punches.ids:
-                                total_physical += base_worked
+                            # Split into First/Second Half based on 1:00 PM (13:00)
+                            p_check_in_local = pytz.utc.localize(p.check_in).astimezone(tz)
+                            if p_check_in_local.hour < 13:
+                                morning_worked += p_base
+                            else:
+                                afternoon_worked += p_base
 
-                            shortfall = required_hours - total_physical
-                            if shortfall > 0:
-                                # Company policy restricts permission to max 1.0 hour
-                                permission_credit = min(shortfall, 1.0)
-                                # Client Rule: Consume the permission even if they still get a penalty!
+                        # Handle current punch if not saved yet
+                        actual_id = att._origin.id if hasattr(att, '_origin') and att._origin else att.id
+                        if not isinstance(actual_id, int) or actual_id not in all_punches.ids:
+                            total_physical += base_worked
+                            if check_in_local.hour < 13:
+                                morning_worked += base_worked
+                            else:
+                                afternoon_worked += base_worked
+
+                        overall_shortfall = required_hours - total_physical
+
+                        if overall_shortfall > 0:
+                            half_target = required_hours / 2.0
+                            morning_shortfall = max(0, half_target - morning_worked)
+                            afternoon_shortfall = max(0, half_target - afternoon_worked)
+
+                            max_credit = min(overall_shortfall, 1.0)
+                            is_morning_punch = check_in_local.hour < 13
+
+                            # Inject credit ONLY where the hours are missing
+                            if is_morning_punch and morning_shortfall > 0:
+                                morning_punches = [p for p in all_punches if
+                                                   pytz.utc.localize(p.check_in).astimezone(tz).hour < 13]
+                                first_morning_id = morning_punches[0].id if morning_punches else actual_id
+                                if actual_id == first_morning_id or not isinstance(actual_id, int):
+                                    permission_credit = min(morning_shortfall, max_credit)
+
+                            elif not is_morning_punch and afternoon_shortfall > 0:
+                                afternoon_punches = [p for p in all_punches if
+                                                     pytz.utc.localize(p.check_in).astimezone(tz).hour >= 13]
+                                first_afternoon_id = afternoon_punches[0].id if afternoon_punches else actual_id
+                                if actual_id == first_afternoon_id or not isinstance(actual_id, int):
+                                    # Ensure we don't exceed max_credit if morning also took some
+                                    morning_taken = min(morning_shortfall,
+                                                        max_credit) if morning_shortfall > 0 else 0.0
+                                    remaining_credit = max(0, max_credit - morning_taken)
+                                    permission_credit = min(afternoon_shortfall, remaining_credit)
 
             att.permission_credit_applied = round(permission_credit, 2)
             att.worked_hours_custom = round(base_worked + permission_credit, 2)
@@ -332,9 +458,18 @@ class HrAttendance(models.Model):
                     att.half_day_absent = True
 
                     shift_start, shift_end = att._get_shift_times()
-                    if shift_start and shift_end and att.check_out:
-                        missed_morning = max(0, (att.check_in - shift_start).total_seconds())
-                        missed_afternoon = max(0, (shift_end - att.check_out).total_seconds())
+                    if shift_start and shift_end:
+                        # SURGICAL FIX: Combine all records for the day to find the true start and end times
+                        all_records = other_records + att
+                        first_check_in = min(all_records.mapped('check_in'))
+
+                        # Safely get the latest check out (ignoring if they haven't checked out yet)
+                        valid_check_outs = [c for c in all_records.mapped('check_out') if c]
+                        last_check_out = max(valid_check_outs) if valid_check_outs else att.check_in
+
+                        # Now measure the missed time against the TRUE day boundaries
+                        missed_morning = max(0, (first_check_in - shift_start).total_seconds())
+                        missed_afternoon = max(0, (shift_end - last_check_out).total_seconds())
 
                         if missed_morning > missed_afternoon:
                             att.half_day_type = 'first'
@@ -551,8 +686,12 @@ class HrAttendance(models.Model):
         for att in self:
             manager = att.employee_id.parent_id
             current_employee = self.env.user.employee_id
+
+            # Allow HR Administrators to approve/reject as well
+            is_admin = self.env.user.has_group('hr_attendance.group_hr_attendance_manager')
+
             att.can_approve_late_checkout = bool(
-                manager and current_employee and manager.id == current_employee.id
+                (manager and current_employee and manager.id == current_employee.id) or is_admin
             )
 
     @api.depends('worked_hours_custom', 'extra_hours', 'approved_extra_hours', 'late_checkout_state')
@@ -564,9 +703,9 @@ class HrAttendance(models.Model):
                 att.display_name = f"Std: {std}h"
                 continue
             if att.late_checkout_state == 'approved':
-                status = "✅ Appr"
+                status = " Appr"
             elif att.late_checkout_state == 'rejected':
-                status = "❌ Rej"
+                status = " Rej"
             else:
-                status = "⏳ Pend"
+                status = " Pend"
             att.display_name = f"Std: {std}h | Ext: {ext}h ({status})"

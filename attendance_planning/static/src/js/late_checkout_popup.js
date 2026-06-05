@@ -1,25 +1,29 @@
-// ===========================================================
-// Late Checkout JS
-// ===========================================================
 
-const TEST_MODE = true;   // 🔥 CHANGE TO true FOR TESTING
 
-console.log("🚀 Late checkout JS loaded");
+const TEST_MODE = false;   //  CHANGE TO true FOR TESTING
+
+console.log(" Late checkout JS loaded");
 
 
 document.addEventListener("click", function (ev) {
 
-    const btn = ev.target.closest("button.btn.btn-warning");
+    // Look for either the specific warning button OR Odoo's standard sign-out icon
+    const btn = ev.target.closest("button.btn.btn-warning, .o_hr_attendance_sign_out_icon");
     if (!btn) return;
 
-    if (btn.innerText.trim() !== "Check out") return;
+    // Flexible check: handle "Sign out", "Check out", or just the FontAwesome icon
+    const text = btn.innerText.trim().toLowerCase();
+    const hasSignOutIcon = btn.querySelector('.fa-sign-out');
 
-    console.log("✅ Check out clicked");
+    if (!text.includes("check out") && !text.includes("sign out") && !hasSignOutIcon) {
+        return;
+    }
+
+    console.log(" Check out clicked");
 
     // Allow backend compute
     setTimeout(checkLateCheckout, 5000);
 });
-
 
 /* ===========================================================
    CHECK LATE CHECKOUT
@@ -27,38 +31,38 @@ document.addEventListener("click", function (ev) {
 async function checkLateCheckout() {
 
     try {
-        console.log("🔎 Checking latest attendance...");
+        console.log(" Checking latest attendance...");
 
         const attendance = await getLatestAttendance();
 
         if (!attendance) {
-            console.warn("⚠️ No attendance found");
+            console.warn(" No attendance found");
             return;
         }
 
-        console.log("📊 Attendance received:", attendance);
+        console.log(" Attendance received:", attendance);
 
         // ==============================
-        // 🔥 TEST MODE
+        //  TEST MODE
         // ==============================
         if (TEST_MODE) {
-            console.warn("⚠️ TEST MODE ACTIVE – forcing popup");
+            console.warn(" TEST MODE ACTIVE – forcing popup");
             showLateCheckoutPopup(attendance);
             return;
         }
 
         // ==============================
-        // ✅ PRODUCTION MODE
+        //  PRODUCTION MODE
         // ==============================
-        if (attendance.extra_hours > 0) {
-            console.log("🕒 Extra hours detected:", attendance.extra_hours);
+        if (attendance.extra_hours >= 1) {
+            console.log(" Extra hours detected:", attendance.extra_hours);
             showLateCheckoutPopup(attendance);
         } else {
-            console.log("🟢 No extra hours – no popup");
+            console.log(" No extra hours – no popup");
         }
 
     } catch (err) {
-        console.error("❌ Error checking late checkout:", err);
+        console.error(" Error checking late checkout:", err);
     }
 }
 
@@ -86,7 +90,7 @@ async function getLatestAttendance() {
 
     const data = await res.json();
 
-    console.log("📡 Server response:", data);
+    console.log(" Server response:", data);
 
     return data.result || null;
 }
@@ -98,11 +102,11 @@ async function getLatestAttendance() {
 function showLateCheckoutPopup(attendance) {
 
     if (document.querySelector(".late-overlay")) {
-        console.warn("⚠️ Popup already open");
+        console.warn("️ Popup already open");
         return;
     }
 
-    console.log("📢 Showing late checkout popup");
+    console.log(" Showing late checkout popup");
 
     const overlay = document.createElement("div");
     overlay.className = "late-overlay";
@@ -112,7 +116,7 @@ function showLateCheckoutPopup(attendance) {
 
     popup.innerHTML = `
         <div class="late-popup-header">
-            <h3>🕒 Late Checkout</h3>
+            <h3> Late Checkout</h3>
         </div>
 
         <div class="late-popup-body">
@@ -139,7 +143,7 @@ function showLateCheckoutPopup(attendance) {
 
     // ===== SKIP =====
     document.getElementById("late_skip").onclick = () => {
-        console.log("⏭️ Late checkout skipped");
+        console.log(" Late checkout skipped");
         document.body.removeChild(overlay);
     };
 
@@ -154,7 +158,7 @@ function showLateCheckoutPopup(attendance) {
             return;
         }
 
-        console.log("📤 Submitting late reason:", reason);
+        console.log(" Submitting late reason:", reason);
 
         try {
             await fetch('/web/dataset/call_kw', {
@@ -173,11 +177,11 @@ function showLateCheckoutPopup(attendance) {
                 })
             });
 
-            console.log("✅ Late checkout reason saved");
+            console.log(" Late checkout reason saved");
             document.body.removeChild(overlay);
 
         } catch (err) {
-            console.error("❌ Failed to save reason:", err);
+            console.error(" Failed to save reason:", err);
         }
     };
 }

@@ -126,6 +126,10 @@ class HrEmployeeInherit(models.Model):
         ('account_transfer', 'Account Transfer'),
         ('cash', 'Cash'),
     ],string="Payment Mode")
+    account_id = fields.Many2one(
+        'account.sync',
+        string="Account"
+    )
 
     # Validations
     @api.constrains('ls_aadhar')

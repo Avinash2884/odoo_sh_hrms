@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError, UserError
 from datetime import datetime, timedelta
 import pytz
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 class PlanningSlot(models.Model):
     _inherit = 'planning.slot'
@@ -9,6 +14,42 @@ class PlanningSlot(models.Model):
     calendar_id = fields.Many2one('resource.calendar', string='Shift Template')
     allocated_hours = fields.Float(compute='_compute_allocated_hours', store=True, readonly=False)
     allocated_percentage = fields.Float(compute='_compute_allocated_percentage', store=True, readonly=False)
+
+    ls_employee_id = fields.Char(
+        string="Employee ID",
+        related='employee_id.ls_employee_id',
+        store=True,  # Important: store=True allows you to search/filter by this ID in the list view!
+        tracking=True
+    )
+    import_employee_id = fields.Char(string="Import Employee ID")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            # 🚨 INJECT DIRECTLY INTO ODOO LOGS
+            _logger.warning("🔥" * 25)
+            _logger.warning(f"🚨 RAW DICTIONARY RECEIVED: {vals}")
+
+            if vals.get('import_employee_id'):
+                custom_id = str(vals['import_employee_id']).strip()
+                _logger.warning(f"✅ SCRIPT SAW ID: {custom_id}")
+
+                employee = self.env['hr.employee'].search([('ls_employee_id', '=', custom_id)], limit=1)
+
+                if employee:
+                    vals['employee_id'] = employee.id
+                    vals['resource_id'] = employee.resource_id.id
+                    vals['import_employee_id'] = False
+                    _logger.warning(f"✅ SUCCESSFULLY LINKED TO EMPLOYEE: {employee.name}")
+                else:
+                    raise UserError(f"IMPORT HALTED: Could not find Employee ID '{custom_id}'.")
+            else:
+                _logger.warning("❌ NO 'import_employee_id' FOUND IN THIS ROW!")
+
+            _logger.warning("🔥" * 25)
+
+        return super(PlanningSlot, self).create(vals_list)
+
 
     def _get_work_hours(self, calendar, date_local):
         dayofweek = str(date_local.weekday())
@@ -105,13 +146,9 @@ class PlanningSlot(models.Model):
     def get_gantt_data(self, *args, **kwargs):
         result = super().get_gantt_data(*args, **kwargs)
         if isinstance(result, dict) and 'working_periods' in result:
-            # 🌟 Odoo JS bypass: Give the UI an infinite working period so it stops chopping the Total row math!
+            #  Odoo JS bypass: Give the UI an infinite working period so it stops chopping the Total row math!
             for res_id in result['working_periods'].keys():
                 result['working_periods'][res_id] = [
                     ["1970-01-01 00:00:00", "2099-12-31 23:59:59"]
                 ]
         return result
-
-
-
-

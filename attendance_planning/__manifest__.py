@@ -1,9 +1,8 @@
 {
     'name': 'Custom Attendance & Planning',
     'version': '1.0',
-    'category': 'Human Resource',
+    'category': 'Human Resources',
     'summary': 'Advanced late policies, exact worked hours, and shift templates',
-    'author': "Unisas ITBusiness Solutions Private Limited",
     'depends': [
         'base',
         'hr_attendance',
@@ -11,6 +10,7 @@
         'approvals',
         'mail',
         'hr',
+        'approval_recruitment',
     ],
     'data': [
         'security/ir.model.access.csv',
@@ -47,5 +47,4 @@
     },
     'installable': True,
     'application': False,
-    'license': 'LGPL-3',
 }

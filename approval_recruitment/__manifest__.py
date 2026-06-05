@@ -32,6 +32,7 @@
         "views/hr_applicant_inherit.xml",
         "views/hr_appraisal_inherit.xml",
         "views/hr_employee_inherit.xml",
+        "views/account_sync.xml",
         "views/hr_department_inherit_views.xml",
         "views/hr_recruitment_stages_views.xml",
         "views/res_company_inherit.xml",
