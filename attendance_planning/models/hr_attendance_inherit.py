@@ -570,3 +570,7 @@ class HrAttendance(models.Model):
             else:
                 status = "⏳ Pend"
             att.display_name = f"Std: {std}h | Ext: {ext}h ({status})"
+
+
+
+
