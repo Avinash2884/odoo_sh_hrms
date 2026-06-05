@@ -19,37 +19,9 @@ class PlanningSlot(models.Model):
         string="Employee ID",
         related='employee_id.ls_employee_id',
         store=True,  # Important: store=True allows you to search/filter by this ID in the list view!
-        tracking=True
+        # Removed tracking=True to fix the server warning
     )
     import_employee_id = fields.Char(string="Import Employee ID")
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            # 🚨 INJECT DIRECTLY INTO ODOO LOGS
-            _logger.warning("🔥" * 25)
-            _logger.warning(f"🚨 RAW DICTIONARY RECEIVED: {vals}")
-
-            if vals.get('import_employee_id'):
-                custom_id = str(vals['import_employee_id']).strip()
-                _logger.warning(f"✅ SCRIPT SAW ID: {custom_id}")
-
-                employee = self.env['hr.employee'].search([('ls_employee_id', '=', custom_id)], limit=1)
-
-                if employee:
-                    vals['employee_id'] = employee.id
-                    vals['resource_id'] = employee.resource_id.id
-                    vals['import_employee_id'] = False
-                    _logger.warning(f"✅ SUCCESSFULLY LINKED TO EMPLOYEE: {employee.name}")
-                else:
-                    raise UserError(f"IMPORT HALTED: Could not find Employee ID '{custom_id}'.")
-            else:
-                _logger.warning("❌ NO 'import_employee_id' FOUND IN THIS ROW!")
-
-            _logger.warning("🔥" * 25)
-
-        return super(PlanningSlot, self).create(vals_list)
-
 
     def _get_work_hours(self, calendar, date_local):
         dayofweek = str(date_local.weekday())
@@ -79,9 +51,23 @@ class PlanningSlot(models.Model):
             else:
                 super(PlanningSlot, slot)._compute_allocated_percentage()
 
+    # 🌟 MERGED CREATE METHOD 🌟
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            # 1. Handle Employee ID Import mapping
+            if vals.get('import_employee_id'):
+                custom_id = str(vals['import_employee_id']).strip()
+                employee = self.env['hr.employee'].search([('ls_employee_id', '=', custom_id)], limit=1)
+
+                if employee:
+                    vals['employee_id'] = employee.id
+                    vals['resource_id'] = employee.resource_id.id
+                    vals['import_employee_id'] = False
+                else:
+                    raise UserError(f"IMPORT HALTED: Could not find Employee ID '{custom_id}'.")
+
+            # 2. Handle Allocated Hours pre-calculation
             if vals.get('calendar_id') and vals.get('start_datetime'):
                 calendar = self.env['resource.calendar'].browse(vals['calendar_id'])
                 start_dt = vals['start_datetime']
@@ -98,8 +84,10 @@ class PlanningSlot(models.Model):
                     vals['allocated_hours'] = sum(att.hour_to - att.hour_from for att in work_lines)
                     vals['allocated_percentage'] = 100.0
 
-        records = super().create(vals_list)
+        # Run the actual creation
+        records = super(PlanningSlot, self).create(vals_list)
 
+        # 3. Handle Allocated Hours post-creation cleanup
         for record in records:
             if record.calendar_id and record.start_datetime:
                 tz_name = record.calendar_id.tz or self.env.user.tz or 'UTC'
