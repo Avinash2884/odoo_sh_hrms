@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="attendance_planning.FaceVerificationPopup" owl="1">
+        <Dialog title="'Face ID Verification'" size="'md'">
+            <div class="d-flex flex-column align-items-center justify-content-center w-100" style="background-color: #1a1a1a; color: white; padding: 20px; border-radius: 8px;">
+
+                <p t-esc="state.statusMessage" class="mb-3 text-info" style="font-size: 1.2rem; font-weight: bold;"/>
+
+                <div class="video-container mb-3" style="border: 3px solid #00A09D; border-radius: 10px; overflow: hidden; background: #000; position: relative;">
+                    <video t-ref="videoElement" autoplay="1" playsinline="1" style="width: 100%; max-width: 400px; height: auto; transform: scaleX(-1);"></video>
+                </div>
+
+                <div t-if="state.isProcessing" class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+
+            </div>
+
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="props.close">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

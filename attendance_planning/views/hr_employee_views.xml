@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_employee_form_face_inherit" model="ir.ui.view">
+        <field name="name">hr.employee.form.face.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="biometrics_face_id" string="Face ID">
+
+                    <field name="has_registered_face" invisible="1"/>
+                    <field name="is_current_user" invisible="1"/>
+
+                    <group>
+                        <group string="My Face Registration" invisible="is_current_user == False">
+                            <button name="action_open_face_registration"
+                                    type="object"
+                                    string=" Register My Face "
+                                    class="btn-primary"
+                                    invisible="has_registered_face == True"/>
+
+                            <div invisible="has_registered_face == False" class="text-success fw-bold">
+                                <i class="fa fa-check-circle"/> Your face is successfully registered and secured.
+                            </div>
+                        </group>
+
+                        <group string="Admin Security &amp; Controls" groups="hr.group_hr_user">
+                            <field name="face_descriptor" readonly="1" placeholder="No face registered yet."/>
+
+                            <button name="action_open_face_registration"
+                                    type="object"
+                                    string="Open Camera (Manual Override)"
+                                    class="btn-primary"
+                                    icon="fa-camera"
+                                    invisible="has_registered_face == True"/>
+
+                            <button name="action_delete_face"
+                                    type="object"
+                                    string="Delete Face Data"
+                                    class="btn-danger"
+                                    icon="fa-trash"
+                                    invisible="has_registered_face == False"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_employee_public_form_face_inherit" model="ir.ui.view">
+        <field name="name">hr.employee.public.form.face.inherit</field>
+        <field name="model">hr.employee.public</field>
+        <field name="inherit_id" ref="hr.hr_employee_public_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//sheet" position="inside">
+                <field name="has_registered_face" invisible="1"/>
+                <field name="is_current_user" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <div invisible="has_registered_face == True or is_current_user == False" class="alert alert-info text-center" role="alert" style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 10px;">Face ID Registration Required</h3>
+                    <button name="action_open_face_registration"
+                            type="object"
+                            string="Click Here to Register Your Face"
+                            class="btn btn-primary btn-lg"/>
+                </div>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

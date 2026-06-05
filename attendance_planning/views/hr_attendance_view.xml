@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="hr_attendance_form_custom_times" model="ir.ui.view">
+        <field name="name">hr.attendance.form.custom.times</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.hr_attendance_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='overtime_status']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='overtime_hours']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='validated_overtime_hours']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_approve_overtime']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_refuse_overtime']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//notebook" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_approve_late_checkout"
+                            type="object"
+                            string="Approve Extra Hours"
+                            class="btn btn-success me-2"
+                            invisible="not can_approve_late_checkout or late_checkout_state != 'draft' or extra_hours &lt;= 0"/>
+
+                    <button name="action_reject_late_checkout"
+                            type="object"
+                            string="Reject Extra Hours"
+                            class="btn btn-danger"
+                            invisible="not can_approve_late_checkout or late_checkout_state != 'draft' or extra_hours &lt;= 0"/>
+
+                    <field name="late_checkout_state" widget="statusbar" statusbar_visible="draft,approved,rejected"/>
+                </header>
+            </xpath>
+
+            <xpath expr="//field[@name='worked_hours']" position="replace">
+
+                <separator string="Shift &amp; Custom Calculations"/>
+                <field name="effective_check_in" readonly="1"/>
+                <field name="base_scheduled_hours" widget="float_time" readonly="1"/>
+                <field name="permission_credit_applied" widget="float_time" readonly="1"/>
+                <field name="worked_hours_custom" widget="float_time" readonly="1" string="Standard Worked Hours"/>
+
+                <field name="daily_total_hours" widget="float_time" decoration-bf="1" string="Daily Grand Total (All Sessions)"/>
+
+                <separator string="Extra Time &amp; Pay"/>
+                <field name="extra_hours" widget="float_time" readonly="1" string="Extra Hours"/>
+                <field name="approved_extra_hours" widget="float_time" readonly="1" string="Approved Extra Hours"/>
+                <field name="total_hours" widget="float_time" readonly="1" string="Total Payable Hours"/>
+                <field name="late_checkout_reason" placeholder="Reason for working beyond shift" readonly="1"/>
+
+                <separator string="Penalty Status"/>
+                <field name="full_day_absent" readonly="1"/>
+                <field name="half_day_absent" readonly="1"/>
+                <field name="half_day_type" readonly="1" invisible="not half_day_absent"/>
+
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>
