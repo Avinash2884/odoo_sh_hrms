@@ -13,9 +13,13 @@ class PlanningWizardLine(models.TransientModel):
     calendar_id = fields.Many2one(
         'resource.calendar',
         string='Shift Template',
-        domain=[('name', 'ilike', 'shift')]
+        # domain=[('name', 'ilike', 'shift')]
     )
 
+    ls_employee_id = fields.Char(
+        string="Employee ID",
+        related='employee_id.ls_employee_id'
+    )
 
 class PlanningDepartmentWizard(models.TransientModel):
     _name = 'planning.department.wizard'
@@ -57,9 +61,8 @@ class PlanningDepartmentWizard(models.TransientModel):
 
             print(f"\n👤 Processing Employee: {line.employee_id.name} | TZ: {tz_name}")
 
-            start_date = fields.Date.from_string(str(self.start_date))
-            end_date = fields.Date.from_string(str(self.end_date))
-            current_date = start_date
+            current_date = self.start_date
+            end_date = self.end_date
 
             while current_date <= end_date:
                 dayofweek = str(current_date.weekday())

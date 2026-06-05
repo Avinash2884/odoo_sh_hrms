@@ -3,6 +3,7 @@ from odoo import models, fields, api
 from datetime import timedelta
 from odoo.exceptions import UserError
 
+
 class HrAttendancePermission(models.Model):
     _name = "hr.attendance.permission"
     _description = "Employee Permission Request"
@@ -14,7 +15,7 @@ class HrAttendancePermission(models.Model):
     employee_id = fields.Many2one(
         'hr.employee', string="Employee", required=True,
         default=lambda self: self.env.user.employee_id,
-        tracking=True # Added tracking so changes show in chatter
+        tracking=True  # Added tracking so changes show in chatter
     )
     date = fields.Date(
         string="Date", required=True,
@@ -80,6 +81,32 @@ class HrAttendancePermission(models.Model):
     def action_reset_draft(self):
         # Allow moving back to draft from any state
         self.write({'state': 'draft'})
+
+    def write(self, vals):
+        res = super(HrAttendancePermission, self).write(vals)
+
+        # WAKE UP THE ATTENDANCE MATH WHEN APPROVED/REJECTED
+        if 'state' in vals:
+            for rec in self:
+                from datetime import datetime, time
+                # Create a 24-hour search window for the date of the permission
+                day_start = datetime.combine(rec.date, time.min)
+                day_end = datetime.combine(rec.date, time.max)
+
+                # Find the employee's attendance record for this exact day
+                attendances = self.env['hr.attendance'].search([
+                    ('employee_id', '=', rec.employee_id.id),
+                    ('check_in', '>=', day_start),
+                    ('check_in', '<=', day_end)
+                ])
+
+                # Force the Attendance record to recalculate everything!
+                if attendances:
+                    attendances._compute_worked()
+                    attendances._compute_half_day()
+                    attendances._compute_total()
+
+        return res
 
     @api.model_create_multi
     def create(self, vals_list):
