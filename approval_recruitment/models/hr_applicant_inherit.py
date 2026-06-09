@@ -29,6 +29,23 @@ class HrApplicantInherit(models.Model):
     )
     is_hold = fields.Boolean(default=False)
 
+    is_offer_letter_approval_stage = fields.Boolean(
+        compute="_compute_offer_letter_approval_stage"
+    )
+
+    def _compute_offer_letter_approval_stage(self):
+        stage = self.env.ref('approval_recruitment.stage_job10', raise_if_not_found=False)
+        for rec in self:
+            rec.is_offer_letter_approval_stage = (
+                rec.stage_id.id == stage.id if stage else False
+            )
+
+    def action_move_to_offer_release(self):
+        stage = self.env.ref('hr_recruitment.stage_job4')
+
+        for rec in self:
+            rec.write({'stage_id': stage.id})
+
     def _compute_show_evaluation_page(self):
         stage_1 = self.env.ref('hr_recruitment.stage_job0', raise_if_not_found=False)
         stage_2 = self.env.ref('hr_recruitment.stage_job1', raise_if_not_found=False)
@@ -124,55 +141,104 @@ class HrApplicantInherit(models.Model):
                 rec.mark = 0.0
 
     def write(self, vals):
+        # 🟡 Store old stage before update
         old_stage_map = {rec.id: rec.stage_id.id for rec in self}
+
+        # 🚨 Call super first
         res = super().write(vals)
+
+        # 🚨 If stage not changed → exit
+        if 'stage_id' not in vals:
+            return res
+
+        # ===============================
+        # 🟢 STAGES
+        # ===============================
         stage_pre_offer = self.env.ref(
             'approval_recruitment.stage_job9',
             raise_if_not_found=False
         )
-        template = self.env.ref(
+
+        stage_offer_approval = self.env.ref(
+            'approval_recruitment.stage_job10',
+            raise_if_not_found=False
+        )
+
+        # ===============================
+        # 🟢 EMAIL TEMPLATES
+        # ===============================
+        template_pre_offer = self.env.ref(
             'approval_recruitment.mail_template_pre_offer_documents',
             raise_if_not_found=False
         )
+
+        template_offer_approval = self.env.ref(
+            'approval_recruitment.mail_template_offer_approval_hr_head',
+            raise_if_not_found=False
+        )
+
+        # ===============================
+        # 🔁 LOOP RECORDS
+        # ===============================
         for rec in self:
             old_stage = old_stage_map.get(rec.id)
+            new_stage = vals.get('stage_id')
+
+            # =========================
+            # 📧 PRE OFFER MAIL
+            # =========================
             if (
                     stage_pre_offer
-                    and template
-                    and rec.stage_id.id == stage_pre_offer.id
+                    and template_pre_offer
+                    and new_stage == stage_pre_offer.id
                     and old_stage != stage_pre_offer.id
             ):
-                template.send_mail(rec.id, force_send=True)
+                template_pre_offer.send_mail(rec.id, force_send=True)
 
+            # =========================
+            # 📧 OFFER APPROVAL MAIL
+            # =========================
+            if (
+                    stage_offer_approval
+                    and template_offer_approval
+                    and new_stage == stage_offer_approval.id
+                    and old_stage != stage_offer_approval.id
+            ):
+                hr_head = rec.job_id.hr_head
+
+                if hr_head:
+                    email_to = hr_head.work_email or hr_head.private_email
+
+                    if email_to:
+                        template_offer_approval.send_mail(
+                            rec.id,
+                            force_send=True,
+                            email_values={'email_to': email_to}
+                        )
+
+        # ===============================
+        # 🧠 INTERVIEWER SYNC LOGIC
+        # ===============================
         for rec in self:
             if rec.job_id:
 
                 job_interviewers = set(rec.job_id.hr_interviewer_ids.ids)
                 applicant_interviewers = set(rec.interviewer_ids.ids)
 
-                # ADD new interviewers
                 to_add = job_interviewers - applicant_interviewers
-
-                # ➖ REMOVE deleted interviewers
                 to_remove = applicant_interviewers - job_interviewers
 
-                # REMOVE INTERVIEWERS
+                # REMOVE
                 if to_remove:
-                    print("Removing interviewers from applicant:", to_remove)
-
                     rec.interviewer_ids = [(3, user_id) for user_id in to_remove]
 
-                    # delete related evaluations too
                     self.env['hr.applicant.evaluation'].search([
                         ('applicant_id', '=', rec.id),
                         ('interviewer_id', 'in', list(to_remove))
                     ]).unlink()
 
-                # ADD INTERVIEWERS
-
+                # ADD
                 if to_add:
-                    print("Adding new interviewers:", to_add)
-
                     rec.interviewer_ids = [(4, user_id) for user_id in to_add]
 
                     for user_id in to_add:
@@ -181,6 +247,9 @@ class HrApplicantInherit(models.Model):
                             'interviewer_id': user_id,
                         })
 
+        # ===============================
+        # 🔄 REORDER LOGIC
+        # ===============================
         self._reorder_contract_proposal_stage()
 
         return res

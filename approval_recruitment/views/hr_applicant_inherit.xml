@@ -23,6 +23,12 @@
                         type="object"
                         string="Position Filled"
                         class="btn-secondary"/>
+                <button name="action_move_to_offer_release"
+                        type="object"
+                        string="Move to Offer Release"
+                        class="btn-secondary"
+                        groups="hr_recruitment.group_hr_recruitment_user"
+                        invisible="not is_offer_letter_approval_stage"/>
 
             </xpath>
 
