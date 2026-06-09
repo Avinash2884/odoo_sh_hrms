@@ -43,7 +43,7 @@
         'views/hr_contract_salary_offer_inherit.xml',
 
         'report/evaluation_report_template.xml',
-        'report/evaluation_report.xml',
+        # 'report/evaluation_report.xml',
         'report/cmt_full_time_appointment_letter.xml',
         'report/full_time_employee_appointment_letter.xml',
         'report/hse_appointment_letter.xml',
@@ -60,7 +60,7 @@
         'report/contract_engagement_letter.xml',
         'report/non_disclosure_agreement.xml',
         'report/offer_letter_approval_template.xml',
-        'report/offer_letter_approval_report.xml',
+        # 'report/offer_letter_approval_report.xml',
 
         # Employee Configuration
         "views/employee_configuration/employment_type.xml",
