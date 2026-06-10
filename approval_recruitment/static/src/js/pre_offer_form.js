@@ -4,28 +4,86 @@ console.log('Pre-Offer / Pre-Onboarding JS Loaded');
     'use strict';
 
     // ─────────────────────────────────────────────────────────
-    // 1. DYNAMIC DROPDOWN LOGIC (Show/Hide/Require)
+    // 1. DYNAMIC DROPDOWN LOGIC (Universal Fix for Both Forms)
     // ─────────────────────────────────────────────────────────
     function initDynamicDropdowns() {
-        // A. Joining Category (Fresher vs Experienced)
         var categorySelect = document.getElementById('doc_type_selector');
         var dynamicSections = document.getElementById('dynamic_sections');
         var expDocs = document.getElementById('exp_docs');
+        var incomeSelect = document.getElementById('income_type_select');
 
+        // --- C. Handle Income Proof (Specific to Pre-Offer) ---
+        function handleIncomeChange() {
+            var payslipWrap = document.getElementById('payslip_wrapper');
+            var bankWrap = document.getElementById('bank_wrapper');
+            var payslipInput = document.getElementById('payslip_input') || document.querySelector('input[name="payslips"]');
+            var bankInput = document.getElementById('bank_input') || document.querySelector('input[name="income_bank_statement"]');
+
+            var payslipUploaded = payslipWrap ? payslipWrap.querySelector('.text-success') !== null : false;
+            var bankUploaded = bankWrap ? bankWrap.querySelector('.text-success') !== null : false;
+
+            if(payslipWrap) payslipWrap.classList.add('d-none');
+            if(bankWrap) bankWrap.classList.add('d-none');
+            if(payslipInput) payslipInput.required = false;
+            if(bankInput) bankInput.required = false;
+
+            if (categorySelect && categorySelect.value === 'experienced' && incomeSelect) {
+                if (incomeSelect.value === 'payslip') {
+                    if(payslipWrap) payslipWrap.classList.remove('d-none');
+                    if(payslipInput && !payslipUploaded) payslipInput.required = true;
+                } else if (incomeSelect.value === 'bank') {
+                    if(bankWrap) bankWrap.classList.remove('d-none');
+                    if(bankInput && !bankUploaded) bankInput.required = true;
+                }
+            }
+        }
+
+        if (incomeSelect) {
+            incomeSelect.addEventListener('change', handleIncomeChange);
+        }
+
+        // --- A. Handle Category (Fresher vs Exp) for BOTH pages ---
         if (categorySelect && dynamicSections && expDocs) {
             function handleCategoryChange() {
-                dynamicSections.classList.remove('d-none');
-                if (categorySelect.value === 'experienced') {
-                    expDocs.classList.remove('d-none');
+                // Fallback for Pre-Onboarding (No incomeSelect, payslips are direct)
+                var payslipInput = document.querySelector('input[name="payslips"]');
+                var payslipUploaded = payslipInput ? payslipInput.closest('.ob-upload-zone').querySelector('.text-success') !== null : false;
+
+                // FIX: Only reveal sections if an actual track is chosen
+                if (categorySelect.value === 'experienced' || categorySelect.value === 'fresher') {
+                    dynamicSections.classList.remove('d-none');
+
+                    if (categorySelect.value === 'experienced') {
+                        expDocs.classList.remove('d-none');
+
+                        if (incomeSelect) {
+                            handleIncomeChange(); // Pre-Offer track
+                        } else if (payslipInput && !payslipUploaded) {
+                            payslipInput.required = true; // Pre-Onboarding track
+                        }
+                    } else {
+                        // FRESHER TRACK SELECTED
+                        expDocs.classList.add('d-none');
+
+                        // Cleanly wipe required states off hidden inputs
+                        var expInputs = expDocs.querySelectorAll('input, select, textarea');
+                        expInputs.forEach(function(inp) {
+                            inp.required = false;
+                        });
+                    }
                 } else {
+                    // FORCE HIDE EVERYTHING if on "-- SELECT CATEGORY --"
+                    dynamicSections.classList.add('d-none');
                     expDocs.classList.add('d-none');
                 }
             }
+
             categorySelect.addEventListener('change', handleCategoryChange);
-            if (categorySelect.value) handleCategoryChange();
+            handleCategoryChange();
+            setTimeout(handleCategoryChange, 150);
         }
 
-        // B. Education Level (UG vs PG) - THE FIX IS HERE!
+        // --- B. Education Level (UG vs PG) (Pre-Offer Only) ---
         var eduSelect = document.getElementById('edu_level_select');
         if (eduSelect) {
             function handleEduChange() {
@@ -36,11 +94,9 @@ console.log('Pre-Offer / Pre-Onboarding JS Loaded');
                 var ugInput = document.getElementById('ug_file_input');
                 var pgInput = document.getElementById('pg_file_input');
 
-                // Safety Check: Did they already upload these?
-                var ugUploaded = document.querySelector('#ug_file_wrapper .text-success') !== null;
-                var pgUploaded = document.querySelector('#pg_file_wrapper .text-success') !== null;
+                var ugUploaded = ugWrap ? ugWrap.querySelector('.text-success') !== null : false;
+                var pgUploaded = pgWrap ? pgWrap.querySelector('.text-success') !== null : false;
 
-                // Reset all to hidden/not required
                 if(detailWrap) detailWrap.classList.add('d-none');
                 if(ugWrap) ugWrap.classList.add('d-none');
                 if(pgWrap) pgWrap.classList.add('d-none');
@@ -53,12 +109,10 @@ console.log('Pre-Offer / Pre-Onboarding JS Loaded');
                     if(detailInput && !detailInput.hasAttribute('readonly')) detailInput.required = true;
 
                     if (eduSelect.value === 'ug') {
-                        // UG SELECTED: Show UG only
                         if(ugWrap) ugWrap.classList.remove('d-none');
                         if(ugInput && !ugUploaded) ugInput.required = true;
 
                     } else if (eduSelect.value === 'pg') {
-                        // PG SELECTED: Show BOTH UG and PG boxes!
                         if(ugWrap) ugWrap.classList.remove('d-none');
                         if(ugInput && !ugUploaded) ugInput.required = true;
 
@@ -68,34 +122,8 @@ console.log('Pre-Offer / Pre-Onboarding JS Loaded');
                 }
             }
             eduSelect.addEventListener('change', handleEduChange);
-            if (eduSelect.value) handleEduChange();
-        }
-
-        // C. Income Proof (Payslip vs Bank)
-        var incomeSelect = document.getElementById('income_type_select');
-        if (incomeSelect) {
-            function handleIncomeChange() {
-                var payslipWrap = document.getElementById('payslip_wrapper');
-                var bankWrap = document.getElementById('bank_wrapper');
-                var payslipInput = document.getElementById('payslip_input');
-                var bankInput = document.getElementById('bank_input');
-
-                // Reset
-                if(payslipWrap) payslipWrap.classList.add('d-none');
-                if(bankWrap) bankWrap.classList.add('d-none');
-                if(payslipInput) payslipInput.required = false;
-                if(bankInput) bankInput.required = false;
-
-                if (incomeSelect.value === 'payslip') {
-                    if(payslipWrap) payslipWrap.classList.remove('d-none');
-                    if(payslipInput) payslipInput.required = true;
-                } else if (incomeSelect.value === 'bank') {
-                    if(bankWrap) bankWrap.classList.remove('d-none');
-                    if(bankInput) bankInput.required = true;
-                }
-            }
-            incomeSelect.addEventListener('change', handleIncomeChange);
-            if (incomeSelect.value) handleIncomeChange();
+            handleEduChange();
+            setTimeout(handleEduChange, 150);
         }
     }
 
@@ -164,7 +192,6 @@ console.log('Pre-Offer / Pre-Onboarding JS Loaded');
     // 3. INITIALIZE EVERYTHING ON PAGE LOAD
     // ─────────────────────────────────────────────────────────
     function initPreOfferForm() {
-        // Only run this script if we are actually on the Pre-Offer or Pre-Onboarding page
         if (!document.getElementById('obForm')) {
             return;
         }

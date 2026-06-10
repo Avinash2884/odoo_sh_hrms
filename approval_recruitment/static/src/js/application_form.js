@@ -253,18 +253,15 @@ console.log('Custom Job Form JS Loaded');
             body: formData,
         })
         .then(function(response) {
-
             if (!response.ok) {
                 throw new Error("Server crashed with status: " + response.status);
             }
             return response.text();
         })
         .then(function(text) {
-
             if (text.trim() === "SUCCESS") {
                 window.location.href = '/contactus-thank-you';
             } else {
-
                 document.open();
                 document.write(text);
                 document.close();
@@ -281,8 +278,13 @@ console.log('Custom Job Form JS Loaded');
     // MAIN INIT
     // ─────────────────────────────────────────────────────────
     function initForm() {
-        setRegistrationNumber();
+        // *** FIX: Do NOT run on Pre-Offer or Pre-Onboarding pages ***
+        if (document.getElementById('obForm')) {
+            console.log('Pre-Offer/Onboarding page detected. Skipping application_form.js init.');
+            return;
+        }
 
+        setRegistrationNumber();
 
         var form = document.getElementById('hr_recruitment_form')
             || document.querySelector('form[action*="/website/form"]')
