@@ -186,3 +186,5 @@ class HrPayslip(models.Model):
 
         return res
 
+
+
