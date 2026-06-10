@@ -30,6 +30,7 @@ class HrPayslip(models.Model):
     )
 
     def action_payslip_done(self):
+
         if self.env.context.get('install_demo'):
             return super().action_payslip_done()
 
@@ -89,21 +90,21 @@ class HrPayslip(models.Model):
                     mail_values = {
                         'subject': 'Pending Leave Approval',
                         'body_html': f"""
-                                  <p>Dear {manager.name},</p>
+                            <p>Dear {manager.name},</p>
 
-                                  <p>
-                                      Employee <b>{slip.employee_id.name}</b>
-                                      has a pending leave request which is still pending approval.
-                                  </p>
+                            <p>
+                                Employee <b>{slip.employee_id.name}</b>
+                                has a pending leave request which is still pending approval.
+                            </p>
 
-                                  <p>
-                                      Please approve or reject the leave request before payroll validation.
-                                  </p>
+                            <p>
+                                Please approve or reject the leave request before payroll validation.
+                            </p>
 
 
 
-                                  <p>Thanks</p>
-                              """,
+                            <p>Thanks</p>
+                        """,
                         'email_to': manager.user_id.email,
                     }
 
@@ -124,26 +125,26 @@ class HrPayslip(models.Model):
                     employee_mail_values = {
                         'subject': 'Pending Time Off Request',
                         'body_html': f"""
-                                  <p>Dear {slip.employee_id.name},</p>
+                            <p>Dear {slip.employee_id.name},</p>
 
-                                  <p>
-                                      Your Time Off request is still pending approval.
-                                  </p>
+                            <p>
+                                Your Time Off request is still pending approval.
+                            </p>
 
-                                  <p>
-                                      Because of the pending request,
-                                      your payslip could not be validated
-                                      and moved to <b>Time Off Balance</b> state.
-                                  </p>
+                            <p>
+                                Because of the pending request,
+                                your payslip could not be validated
+                                and moved to <b>Time Off Balance</b> state.
+                            </p>
 
-                                  <p>
-                                      Kindly check with your reporting manager.
-                                  </p>
+                            <p>
+                                Kindly check with your reporting manager.
+                            </p>
 
 
 
-                                  <p>Thanks</p>
-                              """,
+                            <p>Thanks</p>
+                        """,
                         'email_to': employee_email,
                     }
 
@@ -157,11 +158,11 @@ class HrPayslip(models.Model):
             else:
                 valid_slips |= slip
 
-            # Validate only valid payslips
+        # Validate only valid payslips
         if valid_slips:
             super(HrPayslip, valid_slips).action_payslip_done()
 
-            # Notification only
+        # Notification only
         if blocked_count:
             return {
                 'type': 'ir.actions.client',
