@@ -178,6 +178,18 @@
                     </p>
 
                     <p>
+                        <b>Budget:</b>
+                        <t t-out="object.job_id.approval_budget_for_each_employee_position"/>
+                    </p>
+
+                    <p>
+                        <b>Location:</b>
+                        <t t-out="object.job_id.address_id.name"/>,
+                        <t t-out="object.job_id.address_id.city"/>,
+                        <t t-out="object.job_id.address_id.country_id.name"/>
+                    </p>
+
+                    <p>
                         Kindly review the candidate details and proceed with the offer approval process.
                     </p>
 
