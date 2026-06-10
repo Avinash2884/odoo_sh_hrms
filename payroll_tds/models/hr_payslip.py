@@ -32,7 +32,7 @@ class HrPayslip(models.Model):
     def action_payslip_done(self):
         if self.env.context.get('install_demo'):
             return super().action_payslip_done()
-
+        print("Hai iam from validate")
         valid_slips = self.env['hr.payslip']
         blocked_count = 0
 
