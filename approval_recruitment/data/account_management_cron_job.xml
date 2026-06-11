@@ -1,0 +1,11 @@
+<odoo>
+    <record id="ir_cron_sync_accounts" model="ir.cron">
+        <field name="name">Get Account Management Name</field>
+        <field name="model_id" ref="model_account_office_name"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_get_account_management_name()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

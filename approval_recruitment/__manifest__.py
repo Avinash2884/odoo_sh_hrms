@@ -25,6 +25,7 @@
         "data/hr_applicant_refuse_reason.xml",
         "data/calendar_mail_template.xml",
         "data/mail_template_hr_employee.xml",
+        "data/account_management_cron_job.xml",
 
         "views/approval_category_inherit.xml",
         "views/approval_request_inherit.xml",

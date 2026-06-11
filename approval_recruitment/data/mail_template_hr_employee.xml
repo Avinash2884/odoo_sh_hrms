@@ -87,51 +87,6 @@
         <field name="email_from">{{object.company_id.email or 'info@yourcompany.com'}}</field>
         <field name="email_to">{{ object.work_email }}</field>
         <field name="subject">Your Probation Period is Ending Soon</field>
-
-        <field name="body_html" type="html">
-            <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
-
-                <p>Dear <t t-esc="object.name"/>,</p>
-
-                <p>
-                    This is a reminder that your <b>probation period</b> is scheduled to end on
-                    <b><t t-esc="object.contract_date_end"/></b>.
-                </p>
-
-                <p>
-                    Kindly connect with the HR team for confirmation or any extension discussion.
-                </p>
-
-                <p style="margin-top:15px;">
-                    <a t-att-href="ctx.get('appraisal_url')" style="
-                        display:inline-block;
-                        padding:10px 20px;
-                        background-color:#0a6ebd;
-                        color:white;
-                        text-decoration:none;
-                        border-radius:5px;">
-                        Fill Appraisal Form
-                    </a>
-                </p>
-
-                <p style="margin-top:15px;">
-                    If you have any questions, feel free to reach out to HR.
-                </p>
-
-                <p>
-                    Regards,<br/>
-                    <t t-esc="object.company_id.name"/>
-                </p>
-
-            </div>
-        </field>
-    </record>
-    <record id="email_template_probation_reminder" model="mail.template">
-        <field name="name">Probation Expiry Reminder</field>
-        <field name="model_id" ref="hr.model_hr_employee"/>
-        <field name="email_from">{{object.company_id.email or 'info@yourcompany.com'}}</field>
-        <field name="email_to">{{ object.work_email }}</field>
-        <field name="subject">Your Probation Period is Ending Soon</field>
         <field name="body_html" type="html">
             <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
 
