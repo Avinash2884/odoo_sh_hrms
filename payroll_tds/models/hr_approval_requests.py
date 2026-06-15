@@ -49,9 +49,6 @@ class ApprovalRequest(models.Model):
         copy=False
     )
     category_id = fields.Many2one('approval.category', string="Category", required=True)
-    has_loan_type = fields.Selection(related="category_id.has_loan_type")
-    has_loan_amount = fields.Selection(related="category_id.has_loan_amount")
-    has_repayment_period = fields.Selection(related="category_id.has_repayment_period")
 
     @api.depends('request_owner_id')
     def _compute_employee_details(self):
