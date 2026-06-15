@@ -48,6 +48,18 @@ class Employee(models.Model):
         compute='_compute_tds_amount_new_month',
         store=True
     )
+    surcharge_amount = fields.Monetary(
+        string='Surcharge Amount',
+        currency_field='currency_id',
+        compute='_compute_tds_amount_new',
+        store=True
+    )
+    relief_amount = fields.Monetary(
+        string='Marginal Relief Amount',
+        currency_field='currency_id',
+        compute='_compute_tds_amount_new',
+        store=True
+    )
     l10n_in_incentive_percentage = fields.Monetary(
         readonly=False,
     )
@@ -430,11 +442,55 @@ class Employee(models.Model):
                             + (taxable_income - 2400000) * 0.30
                     )
 
+                # rebate
+                rebate_relief = 0.0
+
+                if taxable_income <= 1200000:
+                    rebate_relief = tds
+                    tds = 0.0
+
+                # Surcharge
+                surcharge = 0.0
+
+                if taxable_income > 5000000 and taxable_income <= 10000000:
+                    surcharge = tds * 0.10
+
+                elif taxable_income > 10000000 and taxable_income <= 20000000:
+                    surcharge = tds * 0.15
+
+                elif taxable_income > 20000000 and taxable_income <= 50000000:
+                    surcharge = tds * 0.25
+
+                elif taxable_income > 50000000:
+                    surcharge = tds * 0.25  # New Regime
+
+                emp.surcharge_amount = round(surcharge, 2)
+
+                # Add surcharge
+                tds += surcharge
+
+                # Marginal Relief u/s 156(b)
+                marginal_relief = 0.0
+
+                if 1200000 < taxable_income <= 1260000:
+                    excess_income = taxable_income - 1200000
+
+                    if tds > excess_income:
+                        marginal_relief = tds - excess_income
+                        tds = excess_income
+
+                emp.relief_amount = round(
+                    rebate_relief + marginal_relief,
+                    2
+                )
+
                 # Add 4% cess
                 tds += tds * 0.04
 
             else:
                 tds = 0.0
+                emp.surcharge_amount = 0.0
+                emp.relief_amount = 0.0
 
             emp.tds_amount_new = round(tds, 2)
 
