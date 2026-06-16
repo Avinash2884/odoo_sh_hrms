@@ -66,11 +66,11 @@
               parent="menu_hr_master_configuration"
               action="action_employee_status"
               sequence="10"/>
-    <menuitem id="menu_designation"
-              name="Designations"
-              parent="menu_hr_master_configuration"
-              action="action_designation"
-              sequence="11"/>
+<!--    <menuitem id="menu_designation"-->
+<!--              name="Designations"-->
+<!--              parent="menu_hr_master_configuration"-->
+<!--              action="action_designation"-->
+<!--              sequence="11"/>-->
     <menuitem id="menu_ls_roles"
               name="Roles"
               parent="menu_hr_master_configuration"

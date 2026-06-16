@@ -38,7 +38,14 @@ class HrEmployeeInherit(models.Model):
     vertical_id = fields.Many2one('vertical', 'Vertical',tracking=True)
     function_id = fields.Many2one('function', 'Function',tracking=True)
     parent_account_id = fields.Many2one('parent.account', 'Parent Account',tracking=True)
-    account_office_name_id = fields.Many2one('account.office.name', 'Account/Office Name',tracking=True)
+    account_office_name_ids = fields.Many2many(
+        'account.office.name',
+        'approval_account_office_rel',  # relation table name
+        'approval_id',  # current model field
+        'office_id',  # related model field
+        string='Account/Office Name',
+        tracking=True
+    )
     region_id = fields.Many2one('region', 'Region',tracking=True)
     employee_status_id = fields.Many2one('employee.status', 'Employee Status',tracking=True)
     ls_designation_id = fields.Many2one('designation', 'Designation',tracking=True)

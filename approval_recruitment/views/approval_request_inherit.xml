@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="approval_request_inherit_form_view" model="ir.ui.view">
+    <record id="approval_request_inherit_form_views" model="ir.ui.view">
         <field name="name">approval.request.inherit.form</field>
         <field name="model">approval.request</field>
         <field name="inherit_id" ref="approvals.approval_request_view_form"/>

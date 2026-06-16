@@ -56,7 +56,15 @@ class HrEmployeeInherit(models.Model):
     function_id = fields.Many2one('function', related='employee_id.function_id', readonly=True)
 
     parent_account_id = fields.Many2one('parent.account', related='employee_id.parent_account_id', readonly=True)
-    account_office_name_id = fields.Many2one('account.office.name', related='employee_id.account_office_name_id', readonly=True)
+    account_office_name_ids = fields.Many2many(
+        'account.office.name',
+        'approval_account_office_rel',  # relation table name
+        'approval_id',  # current model field
+        'office_id',  # related model field
+        string='Account/Office Name',
+        tracking=True,
+        readonly = True
+    )
     region_id = fields.Many2one('region', related='employee_id.region_id', readonly=True)
 
     employee_status_id = fields.Many2one('employee.status', related='employee_id.employee_status_id', readonly=True)

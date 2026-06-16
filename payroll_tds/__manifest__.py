@@ -20,7 +20,6 @@
         'views/hr_payslip_fnf_views.xml',
         'views/hr_payslip_views.xml',
         'views/approval_requests_views.xml',
-        'views/approval_category_loan_views.xml',
         #'views/hr_salary_rule_ind_emp_data_views.xml', #Error
         'report/leave_report.xml',
         'report/fnf_report.xml',

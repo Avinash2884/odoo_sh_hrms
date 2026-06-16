@@ -5,6 +5,28 @@
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//group[@name='note']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='ssnid']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='distance_home_work']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sim_card']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='internet_invoice']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='job_title']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='job_id']" position="attributes">
+                <attribute name="string">Designation</attribute>
+            </xpath>
+
             <xpath expr="//header" position="inside">
                 <button name="action_send_employee_email"
                         type="object"
@@ -45,10 +67,10 @@
                 <field name="vertical_id" />
                 <field name="function_id" />
                 <field name="parent_account_id" />
-                <field name="account_office_name_id" />
+                <field name="account_office_name_ids" widget="many2many_tags" />
                 <field name="region_id" />
                 <field name="employee_status_id" />
-                <field name="ls_designation_id" />
+                <field name="ls_designation_id" invisible="1"/>
                 <field name="ls_source_of_hire_id" />
             </xpath>
 
