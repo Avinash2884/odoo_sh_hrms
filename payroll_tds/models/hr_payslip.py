@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
 
@@ -17,6 +17,24 @@ class HrPayslip(models.Model):
         readonly=True
     )
 
+    total_period_days = fields.Integer(
+        string='Working Days',
+        compute='_compute_total_period_days',
+        store=True
+    )
+
+    unpaid_days = fields.Float(
+        string="LOP",
+        compute="_compute_unpaid_days",
+        store=True,
+    )
+
+    attendance_days = fields.Float(
+        string="Paid Days",
+        compute="_compute_attendance_days",
+        store=True,
+    )
+
     state = fields.Selection(
         selection_add=[
             ('timeoff_balance', 'Time Off Balance')
@@ -28,6 +46,34 @@ class HrPayslip(models.Model):
             ('timeoff_balance', 'Time Off Balance')
         ]
     )
+
+    @api.depends('date_from', 'date_to')
+    def _compute_total_period_days(self):
+        for rec in self:
+            if rec.date_from and rec.date_to:
+                rec.total_period_days = (
+                                                rec.date_to - rec.date_from
+                                        ).days + 1
+            else:
+                rec.total_period_days = 0
+
+    @api.depends('worked_days_line_ids.number_of_days', 'worked_days_line_ids.code')
+    def _compute_attendance_days(self):
+        for rec in self:
+            rec.attendance_days = sum(
+                line.number_of_days
+                for line in rec.worked_days_line_ids
+                if line.code == 'WORK100'
+            )
+
+    @api.depends('worked_days_line_ids.number_of_days', 'worked_days_line_ids.work_entry_type_id')
+    def _compute_unpaid_days(self):
+        for rec in self:
+            rec.unpaid_days = sum(
+                line.number_of_days
+                for line in rec.worked_days_line_ids
+                if line.work_entry_type_id.code == 'LEAVE90'
+            )
 
     def action_payslip_done(self):
 

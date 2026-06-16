@@ -64,5 +64,21 @@
 
         </field>
     </record>
+     <record id="view_hr_payslip_form_inherit_total_period_days" model="ir.ui.view">
+    <field name="name">hr.payslip.form.inherit.total.period.days</field>
+    <field name="model">hr.payslip</field>
+    <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+    <field name="arch" type="xml">
+
+        <xpath expr="//field[@name='struct_id']" position="after">
+    <field name="total_period_days"/>
+            <field name="unpaid_days"/>
+
+            <field name="attendance_days"/>
+</xpath>
+
+    </field>
+</record>
+
 
 </odoo>
