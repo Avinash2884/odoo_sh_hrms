@@ -62,7 +62,6 @@ class HrEmployeeInherit(models.Model):
         'approval_id',  # current model field
         'office_id',  # related model field
         string='Account/Office Name',
-        tracking=True,
         readonly = True
     )
     region_id = fields.Many2one('region', related='employee_id.region_id', readonly=True)
