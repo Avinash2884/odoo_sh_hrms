@@ -9,43 +9,47 @@ class EmployeeAPI(http.Controller):
     @http.route('/hrms/api/employees', type='http', auth='none', methods=['GET'], csrf=False)
     def get_employees(self, **kwargs):
         try:
+            # 🔐 Token validation
             token = request.httprequest.headers.get('X-API-TOKEN')
             if token != self.API_TOKEN:
                 return request.make_response(
-                    json.dumps({"status": "error", "message": "Unauthorized"}),
+                    json.dumps({
+                        "status": "error",
+                        "message": "Unauthorized"
+                    }),
                     status=401,
                     headers=[('Content-Type', 'application/json')]
                 )
 
+            # ✅ Fetch employees
             employees = request.env['hr.employee'].sudo().search([])
             data = []
 
             for emp in employees:
                 try:
-                    # ✅ GET ACCOUNT IDS INSTEAD OF NAMES
-                    account_ids = []
-                    if 'account_office_name_ids' in emp._fields:
-                        try:
-                            account_ids = emp.account_office_name_ids.ids
-                        except Exception:
-                            account_ids = []
+                    # ✅ Account IDs (SAFE)
+                    account_ids = emp.account_office_name_ids.ids if 'account_office_name_ids' in emp._fields else []
 
-                    doj = ''
-                    if 'joining_date_recruit' in emp._fields and emp.joining_date_recruit:
-                        doj = str(emp.joining_date_recruit)
+                    # ✅ Date formatting (clean)
+                    doj = emp.joining_date_recruit.strftime('%Y-%m-%d') \
+                        if 'joining_date_recruit' in emp._fields and emp.joining_date_recruit else ''
 
+                    # ✅ Append data
                     data.append({
+                        'employee_id': emp.id,  # 🔥 add this (useful for future)
                         'name': emp.name or '',
                         'email': emp.work_email or '',
-                        'designation': emp.job_title or '',
+                        'designation': emp.job_id or '',
                         'phone': emp.mobile_phone or '',
                         'doj': doj,
-                        'account_ids': account_ids  # 🔥 UPDATED
+                        'account_ids': account_ids
                     })
 
-                except Exception:
+                except Exception as inner_error:
+                    # 🔥 Optional: log error instead of silent skip
                     continue
 
+            # ✅ Success response
             return request.make_response(
                 json.dumps({
                     "status": "success",
@@ -57,6 +61,7 @@ class EmployeeAPI(http.Controller):
             )
 
         except Exception as e:
+            # ❌ Global error
             return request.make_response(
                 json.dumps({
                     "status": "error",

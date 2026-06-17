@@ -33,7 +33,7 @@
                         <group>
                             <field name="name"/>
                             <field name="account_manager"/>
-                            <field name="external_id" readonly="1" invisible="1"/>
+                            <field name="external_id" readonly="1" invisible="0"/>
                             <field name="company_id"/>
 
                         </group>
