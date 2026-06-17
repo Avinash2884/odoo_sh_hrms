@@ -28,7 +28,9 @@ class EmployeeAPI(http.Controller):
             for emp in employees:
                 try:
                     # ✅ Account IDs (SAFE)
-                    account_ids = emp.account_office_name_ids.ids if 'account_office_name_ids' in emp._fields else []
+                    account_ids = []
+                    if 'account_office_name_ids' in emp._fields:
+                        account_ids = emp.account_office_name_ids.mapped('external_id')
 
                     # ✅ Date formatting (clean)
                     doj = emp.joining_date_recruit.strftime('%Y-%m-%d') \
