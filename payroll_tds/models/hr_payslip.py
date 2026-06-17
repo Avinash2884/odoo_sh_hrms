@@ -49,7 +49,7 @@ class HrPayslip(models.Model):
     job_position_id = fields.Many2one(
         'hr.job',
         related='employee_id.job_id',
-        string='Job Position',
+        string='Employee Job Position',
         readonly=True
     )
 
@@ -61,7 +61,7 @@ class HrPayslip(models.Model):
 
     dob = fields.Date(
         related='employee_id.birthday',
-        string='DOB',
+        string='Date of Birth',
         readonly=True
     )
 
