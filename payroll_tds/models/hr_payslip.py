@@ -5,6 +5,270 @@ from odoo.exceptions import ValidationError
 class HrPayslip(models.Model):
     _inherit = 'hr.payslip'
 
+    pay_register_no = fields.Char(string="Pay Register No")
+    pay_register_date = fields.Date(string="Pay Register Date")
+
+    pay_period = fields.Char(
+        string="Pay Period",
+        compute="_compute_pay_period",
+        store=True,
+    )
+
+    @api.depends('date_from')
+    def _compute_pay_period(self):
+        for rec in self:
+            if rec.date_from:
+                rec.pay_period = rec.date_from.strftime('%B %Y')
+            else:
+                rec.pay_period = ''
+
+    date_of_joining = fields.Date(
+        related='employee_id.contract_date_start',
+        string='Date of Joining',
+        readonly=True
+    )
+    dob_display = fields.Char(
+        string='DOB',
+        compute='_compute_display_dates'
+    )
+
+    date_of_joining_display = fields.Char(
+        string='Date of Joining',
+        compute='_compute_display_dates'
+    )
+
+    @api.depends('employee_id.birthday', 'employee_id.contract_date_start')
+    def _compute_display_dates(self):
+        for rec in self:
+            rec.dob_display = (
+                rec.employee_id.birthday.strftime('%d/%m/%Y')
+                if rec.employee_id.birthday else ''
+            )
+
+            rec.date_of_joining_display = (
+                rec.employee_id.contract_date_start.strftime('%d/%m/%Y')
+                if rec.employee_id.contract_date_start else ''
+            )
+
+    job_position_id = fields.Many2one(
+        'hr.job',
+        related='employee_id.job_id',
+        string='Job Position',
+        readonly=True
+    )
+
+    gender = fields.Selection(
+        related='employee_id.sex',
+        string='Gender',
+        readonly=True
+    )
+
+    dob = fields.Date(
+        related='employee_id.birthday',
+        string='DOB',
+        readonly=True
+    )
+
+    department_id = fields.Many2one(
+        'hr.department',
+        related='employee_id.department_id',
+        string='Department',
+        readonly=True
+    )
+
+    pan = fields.Char(
+        related='employee_id.l10n_in_pan',
+        string='PAN',
+        readonly=True
+    )
+
+    uan = fields.Char(
+        related='employee_id.l10n_in_uan',
+        string='UAN',
+        readonly=True
+    )
+
+    state_id = fields.Many2one(
+        'res.country.state',
+        related='employee_id.private_state_id',
+        string='State',
+        readonly=True
+    )
+
+    city = fields.Char(
+        related='employee_id.private_city',
+        string='City',
+        readonly=True
+    )
+
+    salary_type_id = fields.Many2one(
+        'hr.payroll.structure.type',
+        related='employee_id.structure_type_id',
+        string='Salary Type',
+        readonly=True
+    )
+
+    bank_name = fields.Char(
+        string="Bank Name",
+        compute="_compute_bank_details",
+    )
+
+    ifsc_code = fields.Char(
+        string="IFSC Code",
+        compute="_compute_bank_details",
+    )
+
+    account_number = fields.Char(
+        string="Account Number",
+        compute="_compute_bank_details",
+    )
+
+    @api.depends(
+        "employee_id.bank_account_ids",
+        "employee_id.bank_account_ids.bank_name",
+        "employee_id.bank_account_ids.ls_ifsc_code",
+        "employee_id.bank_account_ids.acc_number",
+    )
+    def _compute_bank_details(self):
+        for rec in self:
+            bank = rec.employee_id.bank_account_ids[:1]
+
+            rec.bank_name = bank.bank_name if bank else ""
+            rec.ifsc_code = bank.ls_ifsc_code if bank else ""
+            rec.account_number = bank.acc_number if bank else ""
+
+    # account_number = fields.Char(
+    #     related='employee_id.acc_number',
+    #     string='Account Number',
+    #     readonly=True
+    # )
+    #
+    # ifsc_code = fields.Char(
+    #     related='employee_id.ls_ifsc_code',
+    #     string='IFSC',
+    #     readonly=True
+    # )
+
+    basic = fields.Monetary(
+        related='employee_id.l10n_in_basic_salary_amount',
+        string='Basic',
+        readonly=True
+    )
+
+    hra = fields.Monetary(
+        related='employee_id.l10n_in_hra',
+        string='HRA',
+        readonly=True
+    )
+
+    special_allowance = fields.Monetary(
+        related='employee_id.l10n_in_fixed_allowance',
+        string='Special Allowance',
+        readonly=True
+    )
+
+    stipend = fields.Monetary(
+        related='employee_id.stipend',
+        string='Stipend',
+        readonly=True
+    )
+
+    bonus = fields.Monetary(
+        related='employee_id.variable_bonus',
+        string='Bonus',
+        readonly=True
+    )
+
+    incentive = fields.Monetary(
+        related='employee_id.employee_incentive',
+        string='Incentive',
+        readonly=True
+    )
+
+    referral = fields.Monetary(
+        related='employee_id.referral_incentive',
+        string='Referral',
+        readonly=True
+    )
+
+    other_deductions = fields.Monetary(
+        related='employee_id.other_deductions',
+        string='Other Deductions',
+        readonly=True
+    )
+
+    gross = fields.Monetary(
+        related='employee_id.wage',
+        string='Fixed Monthly Earnings',
+        readonly=True
+    )
+
+    epf_contribution = fields.Monetary(
+        related='employee_id.l10n_in_pf_employee_amount',
+        string='EPF Contribution',
+        readonly=True
+    )
+
+    pt = fields.Float(
+        string="PT",
+        compute="_compute_pt",
+        store=True,
+    )
+
+    @api.depends("employee_id.pt_rule_parameter_id")
+    def _compute_pt(self):
+        for rec in self:
+            rec.pt = 0.0
+
+            pt_rule = rec.employee_id.pt_rule_parameter_id
+
+            if pt_rule and pt_rule.name == "Tamilnadu: Professional Tax":
+                rec.pt = 208.0
+
+    income_tax = fields.Float(
+        string="Income Tax",
+        compute="_compute_income_tax",
+        store=True
+    )
+
+    loan_deduction = fields.Monetary(
+        related='employee_id.loan_deduction',
+        string='Loan Deduction',
+        readonly=True
+    )
+
+    total_deduction = fields.Monetary(
+        string="Total Deduction",
+        currency_field="currency_id",
+        compute="_compute_total_deduction",
+        store=True,
+    )
+
+    net_wage = fields.Monetary(
+        string="Net Pay",
+        currency_field="currency_id",
+    )
+
+    @api.depends(
+        'employee_id.tds_amount_new_month',
+        'employee_id.tds_amount_month'
+    )
+    def _compute_income_tax(self):
+        for rec in self:
+            rec.income_tax = (
+                    rec.employee_id.tds_amount_new_month
+                    or rec.employee_id.tds_amount_month
+                    or 0.0
+            )
+
+    @api.depends('payslip_gross_wage', 'net_wage')
+    def _compute_total_deduction(self):
+        for rec in self:
+            rec.total_deduction = (
+                    (rec.payslip_gross_wage or 0.0)
+                    - (rec.net_wage or 0.0)
+            )
+
     payslip_month = fields.Selection(
         related='employee_id.payslip_month',
         string='Payslip Month',
@@ -13,7 +277,7 @@ class HrPayslip(models.Model):
 
     payslip_gross_wage = fields.Monetary(
         related='employee_id.payslip_gross_wage',
-        string='Payslip Gross Wage',
+        string='Total Gross Earnings',
         readonly=True
     )
 

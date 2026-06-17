@@ -79,6 +79,81 @@
 
     </field>
 </record>
+    <record id="view_hr_payslip_form_inherit_pay_register_tab" model="ir.ui.view">
+    <field name="name">hr.payslip.form.inherit.pay.register.tab</field>
+    <field name="model">hr.payslip</field>
+    <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+    <field name="arch" type="xml">
+
+        <xpath expr="//page[@name='account_info']" position="after">
+
+            <page string="Pay Register" name="pay_register">
+
+                <group>
+                    <field name="employee_id" readonly="1"/>
+                    <field name="pay_period" readonly="1"/>
+                  <!--  <field name="date_of_joining"
+                           string="Date of Joining"
+                           readonly="1"/> -->
+                    <field name="date_of_joining_display"
+       string="Date of Joining"
+       readonly="1"/>
+
+<field name="dob_display"
+       string="DOB"
+       readonly="1"/>
+                    <field name="job_position_id"
+                           string="Job Position"
+                           readonly="1"/>
+                    <field name="gender"
+                           string="Gender"
+                           readonly="1"/>
+                  <!--  <field name="dob"
+                           string="DOB"
+                           readonly="1"/> -->
+                    <field name="department_id"
+                           string="Department"
+                           readonly="1"/>
+                    <field name="pan" string="PAN"/>
+                    <field name="uan" string="UAN"/>
+                    <field name="state_id" string="State"/>
+                    <field name="city" string="City"/>
+                    <field name="salary_type_id" string="Salary Type"/>
+                  <field name="bank_name" string="Bank Name"/>
+                    <field name="account_number" string="Account Number"/>
+                    <field name="ifsc_code" string="IFSC"/>
+                    <field name="basic" string="Basic"/>
+                    <field name="hra" string="HRA"/>
+                    <field name="special_allowance" string="Special Allowance"/>
+                    <field name="stipend" string="Stipend"/>
+                    <field name="bonus" string="Bonus"/>
+                    <field name="incentive" string="Incentive"/>
+                    <field name="referral" string="Referral"/>
+                    <field name="other_deductions" string="Other Deductions"/>
+                    <field name="total_period_days" readonly="1"/>
+                    <field name="attendance_days" readonly="1"/>
+                    <field name="unpaid_days" readonly="1"/>
+                    <field name="gross"/>
+                    <field name="payslip_gross_wage"
+                           string="Total Gross Earnings"
+                           readonly="1"/>
+                     <field name="epf_contribution"
+                           string="EPF Contribution"/>
+                    <field name="pt" string="PT" readonly="1"/>
+                    <field name="income_tax" string="Income Tax" readonly="1"/>
+                    <field name="loan_deduction"
+                           string="Loan Deduction"
+                           readonly="1"/>
+                    <field name="total_deduction" string="Total Deduction" readonly="1"/>
+                    <field name="net_wage" string="Net Pay"/>
+                </group>
+
+            </page>
+
+        </xpath>
+
+    </field>
+</record>
 
 
 </odoo>
