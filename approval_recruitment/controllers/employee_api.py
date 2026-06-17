@@ -9,7 +9,6 @@ class EmployeeAPI(http.Controller):
     @http.route('/hrms/api/employees', type='http', auth='none', methods=['GET'], csrf=False)
     def get_employees(self, **kwargs):
         try:
-            # 🔐 Token validation
             token = request.httprequest.headers.get('X-API-TOKEN')
             if token != self.API_TOKEN:
                 return request.make_response(
@@ -18,22 +17,19 @@ class EmployeeAPI(http.Controller):
                     headers=[('Content-Type', 'application/json')]
                 )
 
-            # 👇 Avoid crash (don't filter on risky field)
             employees = request.env['hr.employee'].sudo().search([])
-
             data = []
 
             for emp in employees:
                 try:
-                    # ✅ Safe account names fetch
-                    account_names = []
+                    # ✅ GET ACCOUNT IDS INSTEAD OF NAMES
+                    account_ids = []
                     if 'account_office_name_ids' in emp._fields:
                         try:
-                            account_names = emp.account_office_name_ids.mapped('name')
+                            account_ids = emp.account_office_name_ids.ids
                         except Exception:
-                            account_names = []
+                            account_ids = []
 
-                    # ✅ Safe DOJ
                     doj = ''
                     if 'joining_date_recruit' in emp._fields and emp.joining_date_recruit:
                         doj = str(emp.joining_date_recruit)
@@ -44,11 +40,10 @@ class EmployeeAPI(http.Controller):
                         'designation': emp.job_title or '',
                         'phone': emp.mobile_phone or '',
                         'doj': doj,
-                        'account_names': account_names
+                        'account_ids': account_ids  # 🔥 UPDATED
                     })
 
-                except Exception as inner_error:
-                    # 🔥 Skip single record error (important in production)
+                except Exception:
                     continue
 
             return request.make_response(
@@ -62,7 +57,6 @@ class EmployeeAPI(http.Controller):
             )
 
         except Exception as e:
-            # 🔥 Proper 500 response
             return request.make_response(
                 json.dumps({
                     "status": "error",
