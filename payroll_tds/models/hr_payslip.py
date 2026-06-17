@@ -87,7 +87,7 @@ class HrPayslip(models.Model):
     state_id = fields.Many2one(
         'res.country.state',
         related='employee_id.private_state_id',
-        string='State',
+        string='Employee State',
         readonly=True
     )
 
