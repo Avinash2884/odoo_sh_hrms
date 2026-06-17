@@ -7,7 +7,8 @@ class AccountOfficeName(models.Model):
     _description = 'Account Office Name'
 
     name = fields.Char(string="Name")
-    external_id = fields.Integer(string="External ID")   # 🔥 important
+    external_id = fields.Integer(string="External ID")
+    account_manager = fields.Many2one('hr.employee', string="Account Manager")
     company_id = fields.Many2one(
         'res.company',
         string="Company",
