@@ -22,11 +22,7 @@ class HrPayslip(models.Model):
             else:
                 rec.pay_period = ''
 
-    date_of_joining = fields.Date(
-        related='employee_id.contract_date_start',
-        string='Date of Joining',
-        readonly=True
-    )
+
     dob_display = fields.Char(
         string='DOB',
         compute='_compute_display_dates'
@@ -137,17 +133,6 @@ class HrPayslip(models.Model):
             rec.ifsc_code = bank.ls_ifsc_code if bank else ""
             rec.account_number = bank.acc_number if bank else ""
 
-    # account_number = fields.Char(
-    #     related='employee_id.acc_number',
-    #     string='Account Number',
-    #     readonly=True
-    # )
-    #
-    # ifsc_code = fields.Char(
-    #     related='employee_id.ls_ifsc_code',
-    #     string='IFSC',
-    #     readonly=True
-    # )
 
     basic = fields.Monetary(
         related='employee_id.l10n_in_basic_salary_amount',
