@@ -48,8 +48,6 @@ class EmployeeAPI(http.Controller):
                     "status": "error",
                     "message": str(e)
                 }),
-                status=500,
-                headers=[('Content-Type', 'application/json')]
             )
 
     @http.route('/hrms/api/employees/name', type='http', auth='none', methods=['GET'], csrf=False)
@@ -89,5 +87,4 @@ class EmployeeAPI(http.Controller):
                     "status": "error",
                     "message": "Internal Server Error"
                 }),
-                status=500,
-                headers=[('Content-Type', 'application/json')])
+            )
