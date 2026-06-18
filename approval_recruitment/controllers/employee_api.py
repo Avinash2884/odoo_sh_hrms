@@ -67,14 +67,14 @@ class EmployeeAPI(http.Controller):
                                 request.env.user.with_context(tz=user_tz),
                                 slot.start_datetime
                             )
-                            planned_from = start.strftime('%b %d, %I:%M %p')
+                            planned_from = start.strftime('%Y-%m-%d %H:%M:%S')
 
                         if slot.end_datetime:
                             end = fields.Datetime.context_timestamp(
                                 request.env.user.with_context(tz=user_tz),
                                 slot.end_datetime
                             )
-                            planned_to = end.strftime('%b %d, %I:%M %p')
+                            planned_to = end.strftime('%Y-%m-%d %H:%M:%S')
 
                         if slot.start_datetime and slot.end_datetime:
                             duration = slot.end_datetime - slot.start_datetime
