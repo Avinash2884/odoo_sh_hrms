@@ -137,14 +137,15 @@
                     <field name="payslip_gross_wage"
                            string="Total Gross Earnings"
                            readonly="1"/>
+                    <field name="leave_encashment" string="Leave Encashment"/>
                      <field name="epf_contribution"
                            string="EPF Contribution"/>
-                    <field name="pt" string="PT" readonly="1"/>
+                    <field name="pt" string="PT" />
                     <field name="income_tax" string="Income Tax" readonly="1"/>
                     <field name="loan_deduction"
                            string="Loan Deduction"
                            readonly="1"/>
-                    <field name="total_deduction" string="Total Deduction" readonly="1"/>
+                    <field name="total_deduction" string="Total Deduction" />
                     <field name="net_wage" string="Net Pay"/>
                 </group>
 

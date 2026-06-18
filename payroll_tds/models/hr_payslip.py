@@ -181,6 +181,13 @@ class HrPayslip(models.Model):
         readonly=True
     )
 
+    leave_encashment = fields.Monetary(
+        related='employee_id.leave_encashment',
+        string='Leave Encashment',
+        readonly=False,
+        store=True,
+    )
+
     other_deductions = fields.Monetary(
         related='employee_id.other_deductions',
         string='Other Deductions',
@@ -201,19 +208,13 @@ class HrPayslip(models.Model):
 
     pt = fields.Float(
         string="PT",
-        compute="_compute_pt",
-        store=True,
     )
 
-    @api.depends("employee_id.pt_rule_parameter_id")
-    def _compute_pt(self):
-        for rec in self:
-            rec.pt = 0.0
-
-            pt_rule = rec.employee_id.pt_rule_parameter_id
-
-            if pt_rule and pt_rule.name == "Tamilnadu: Professional Tax":
-                rec.pt = 208.0
+    @api.onchange("employee_id")
+    def _onchange_pt(self):
+        if self.employee_id.pt_rule_parameter_id and \
+                self.employee_id.pt_rule_parameter_id.name == "Tamilnadu: Professional Tax":
+            self.pt = 208.0
 
     income_tax = fields.Float(
         string="Income Tax",
@@ -230,7 +231,6 @@ class HrPayslip(models.Model):
     total_deduction = fields.Monetary(
         string="Total Deduction",
         currency_field="currency_id",
-        compute="_compute_total_deduction",
         store=True,
     )
 
@@ -251,13 +251,44 @@ class HrPayslip(models.Model):
                     or 0.0
             )
 
-    @api.depends('payslip_gross_wage', 'net_wage')
-    def _compute_total_deduction(self):
+    # @api.depends('payslip_gross_wage', 'net_wage')
+    # def _compute_total_deduction(self):
+    #     for rec in self:
+    #         rec.total_deduction = (
+    #                 (rec.payslip_gross_wage or 0.0)
+    #                 - (rec.net_wage or 0.0)
+    #         )
+
+    @api.onchange(
+        'epf_contribution',
+        'pt',
+        'income_tax',
+        'other_deductions',
+        'loan_deduction',
+        'payslip_gross_wage',
+        'net_wage'
+    )
+    def _onchange_total_deduction(self):
         for rec in self:
-            rec.total_deduction = (
+
+            deduction_sum = (
+                    (rec.epf_contribution or 0.0)
+                    + (rec.pt or 0.0)
+                    + (rec.income_tax or 0.0)
+                    + (rec.other_deductions or 0.0)
+                    + (rec.loan_deduction or 0.0)
+            )
+
+            gross_net_diff = (
                     (rec.payslip_gross_wage or 0.0)
                     - (rec.net_wage or 0.0)
             )
+
+            if not rec.total_deduction:
+                if round(deduction_sum, 2) == round(gross_net_diff, 2):
+                    rec.total_deduction = deduction_sum
+                else:
+                    rec.total_deduction = gross_net_diff
 
     payslip_month = fields.Selection(
         related='employee_id.payslip_month',
