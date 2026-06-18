@@ -17,7 +17,7 @@ access_ls_role,access.ls.role,model_ls_role,base.group_user,1,1,1,1
 access_source_of_hire,access.source.of.hire,model_source_of_hire,base.group_user,1,1,1,1
 access_blood_group,access.blood.group,model_blood_group,base.group_user,1,1,1,1
 access_ls_account_type,access.ls.account.type,model_ls_account_type,base.group_user,1,1,1,1
-access_ls_hr_employee_education,access.hr.employee.education,model_hr_employee_education,base.group_user,1,1,1,0
+access_ls_hr_employee_education,access.hr.employee.education,model_hr_employee_education,base.group_user,1,1,1,1
 access_hr_applicant_education_user,hr.applicant.education.user,model_hr_applicant_education,base.group_user,1,1,1,1
 access_hr_applicant_experience_user,hr.applicant.experience.user,model_hr_applicant_experience,base.group_user,1,1,1,1
 access_hr_applicant_education_public,hr.applicant.education.public,model_hr_applicant_education,base.group_public,1,1,1,0
