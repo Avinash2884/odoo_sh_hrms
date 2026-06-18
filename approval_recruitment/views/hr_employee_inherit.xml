@@ -114,7 +114,7 @@
             <xpath expr="//group[@name='hr_education_group']" position="after">
                 <group string="Education" name="education_group">
                     <field name="education_ids" string="">
-                        <list editable="bottom">
+                        <list editable="bottom" delete="1">
                             <field name="ls_degree"/>
                             <field name="specialisation"/>
                             <field name="college_university_name"/>
