@@ -1,6 +1,7 @@
 import json
-from odoo import http
+from odoo import http, fields
 from odoo.http import request
+from datetime import timedelta
 
 class EmployeeAPI(http.Controller):
 
@@ -36,6 +37,54 @@ class EmployeeAPI(http.Controller):
                     doj = emp.joining_date_recruit.strftime('%Y-%m-%d') \
                         if 'joining_date_recruit' in emp._fields and emp.joining_date_recruit else ''
 
+                    shift_name = ''
+                    if 'shift_id' in emp._fields and emp.shift_id:
+                        shift_name = emp.shift_id.name
+
+                    attendance_status = 'Absent'
+
+                    attendance = request.env['hr.attendance'].sudo().search([
+                        ('employee_id', '=', emp.id),
+                        ('check_in', '>=', fields.Date.today())
+                    ], limit=1)
+
+                    if attendance:
+                        attendance_status = 'Present'
+
+                    planned_from = ''
+                    planned_to = ''
+                    planned_duration = ''
+
+                    slot = request.env['planning.slot'].sudo().search([
+                        ('employee_id', '=', emp.id)
+                    ], limit=1, order="start_datetime desc")
+
+                    if slot:
+                        user_tz = request.env.user.tz or 'Asia/Kolkata'
+
+                        if slot.start_datetime:
+                            start = fields.Datetime.context_timestamp(
+                                request.env.user.with_context(tz=user_tz),
+                                slot.start_datetime
+                            )
+                            planned_from = start.strftime('%b %d, %I:%M %p')
+
+                        if slot.end_datetime:
+                            end = fields.Datetime.context_timestamp(
+                                request.env.user.with_context(tz=user_tz),
+                                slot.end_datetime
+                            )
+                            planned_to = end.strftime('%b %d, %I:%M %p')
+
+                        if slot.start_datetime and slot.end_datetime:
+                            duration = slot.end_datetime - slot.start_datetime
+
+                            total_seconds = int(duration.total_seconds())
+                            hours = total_seconds // 3600
+                            minutes = (total_seconds % 3600) // 60
+
+                            planned_duration = f"{hours:02d}:{minutes:02d}"
+
                     data.append({
                         'employee_id': emp.id,
                         'name': emp.name or '',
@@ -43,7 +92,12 @@ class EmployeeAPI(http.Controller):
                         'designation': emp.job_id.name if emp.job_id else '',
                         'phone': emp.mobile_phone or '',
                         'doj': doj,
-                        'account_names': account_names
+                        'account_names': account_names,
+                        'shift': shift_name,
+                        'attendance_status': attendance_status,
+                        'planned_from': planned_from,
+                        'planned_to': planned_to,
+                        'planned_duration': planned_duration,
                     })
 
                 except Exception as inner_error:
