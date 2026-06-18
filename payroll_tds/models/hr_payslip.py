@@ -64,11 +64,11 @@ class HrPayslip(models.Model):
         readonly=True
     )
 
-    dob = fields.Date(
-        related='employee_id.birthday',
-        string='DOB',
-        readonly=True
-    )
+    # dob = fields.Date(
+    #     related='employee_id.birthday',
+    #     string='DOB',
+    #     readonly=True
+    # )
 
     department_id = fields.Many2one(
         'hr.department',
