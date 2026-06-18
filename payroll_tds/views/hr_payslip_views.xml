@@ -90,7 +90,7 @@
             <page string="Pay Register" name="pay_register">
 
                 <group>
-                    <field name="employee_id" readonly="1"/>
+                    <field name="employee_id" string="Employee Name" readonly="1"/>
                     <field name="pay_period" readonly="1"/>
                   <!--  <field name="date_of_joining"
                            string="Date of Joining"

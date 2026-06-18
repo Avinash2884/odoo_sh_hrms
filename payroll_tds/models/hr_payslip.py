@@ -5,6 +5,11 @@ from odoo.exceptions import ValidationError
 class HrPayslip(models.Model):
     _inherit = 'hr.payslip'
 
+    employee_id = fields.Many2one(
+        'hr.employee',
+        string='Employee Name',
+    )
+
     pay_register_no = fields.Char(string="Pay Register No")
     pay_register_date = fields.Date(string="Pay Register Date")
 
