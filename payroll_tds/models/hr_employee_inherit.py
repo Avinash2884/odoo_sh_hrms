@@ -202,6 +202,7 @@ class Employee(models.Model):
     leave_encashment = fields.Monetary(
         string="Leave Encashment Amount",
         compute="_compute_leave_encashment",
+        inverse="_inverse_leave_encashment",
         store=True
     )
 
@@ -304,7 +305,14 @@ class Employee(models.Model):
     @api.depends('per_day_basic')
     def _compute_leave_encashment(self):
         for emp in self:
-            emp.leave_encashment = (emp.el_balance or 0.0) * (emp.per_day_basic or 0.0)
+            if not emp.leave_encashment:
+                emp.leave_encashment = (
+                        (emp.el_balance or 0.0)
+                        * (emp.per_day_basic or 0.0)
+                )
+
+        def _inverse_leave_encashment(self):
+            pass
 
     @api.depends(
         'prorated_salary',
