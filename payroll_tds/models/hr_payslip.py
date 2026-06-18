@@ -61,7 +61,7 @@ class HrPayslip(models.Model):
 
     dob = fields.Date(
         related='employee_id.birthday',
-        string='Date of Birth',
+        string='DOB',
         readonly=True
     )
 
