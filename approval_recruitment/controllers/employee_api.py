@@ -28,27 +28,25 @@ class EmployeeAPI(http.Controller):
             for emp in employees:
                 try:
                     # ✅ Account IDs (SAFE)
-                    account_ids = []
-                    if 'account_office_name_ids' in emp._fields:
-                        account_ids = emp.account_office_name_ids.mapped('external_id')
+                    account_names = []
 
-                    # ✅ Date formatting (clean)
+                    if 'account_office_name_ids' in emp._fields:
+                        account_names = emp.account_office_name_ids.mapped('name')
+
                     doj = emp.joining_date_recruit.strftime('%Y-%m-%d') \
                         if 'joining_date_recruit' in emp._fields and emp.joining_date_recruit else ''
 
-                    # ✅ Append data
                     data.append({
-                        'employee_id': emp.id,  # 🔥 add this (useful for future)
+                        'employee_id': emp.id,
                         'name': emp.name or '',
                         'email': emp.work_email or '',
-                        'designation': emp.job_id or '',
+                        'designation': emp.job_id.name if emp.job_id else '',
                         'phone': emp.mobile_phone or '',
                         'doj': doj,
-                        'account_ids': account_ids
+                        'account_names': account_names
                     })
 
                 except Exception as inner_error:
-                    # 🔥 Optional: log error instead of silent skip
                     continue
 
             # ✅ Success response
