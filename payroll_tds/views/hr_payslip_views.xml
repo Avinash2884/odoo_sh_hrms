@@ -96,8 +96,11 @@
                            string="Date of Joining"
                            readonly="1"/> -->
                     <field name="date_of_joining_display"
-       string="Date of Joining"
-       readonly="1"/>
+                           string="Date of Joining"
+                           readonly="1"/>
+                    <field name="date_of_leaving_display"
+                           string="Date of Leaving"
+                           readonly="1"/>
 
 <field name="dob_display"
        string="DOB"
@@ -138,6 +141,7 @@
                            string="Total Gross Earnings"
                            readonly="1"/>
                     <field name="leave_encashment" string="Leave Encashment"/>
+                    <field name="notice_pay" string="Notice Pay"/>
                      <field name="epf_contribution"
                            string="EPF Contribution"/>
                     <field name="pt" string="PT" />

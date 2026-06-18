@@ -38,7 +38,16 @@ class HrPayslip(models.Model):
         compute='_compute_display_dates'
     )
 
-    @api.depends('employee_id.birthday', 'employee_id.contract_date_start')
+    date_of_leaving_display = fields.Char(
+        string='Date of Leaving',
+        compute='_compute_display_dates'
+    )
+
+    @api.depends(
+        'employee_id.birthday',
+        'employee_id.contract_date_start',
+        'employee_id.contract_date_end'
+    )
     def _compute_display_dates(self):
         for rec in self:
             rec.dob_display = (
@@ -49,6 +58,11 @@ class HrPayslip(models.Model):
             rec.date_of_joining_display = (
                 rec.employee_id.contract_date_start.strftime('%d/%m/%Y')
                 if rec.employee_id.contract_date_start else ''
+            )
+
+            rec.date_of_leaving_display = (
+                rec.employee_id.contract_date_end.strftime('%d/%m/%Y')
+                if rec.employee_id.contract_date_end else ''
             )
 
     job_position_id = fields.Many2one(
@@ -184,6 +198,13 @@ class HrPayslip(models.Model):
     leave_encashment = fields.Monetary(
         related='employee_id.leave_encashment',
         string='Leave Encashment',
+        readonly=False,
+        store=True,
+    )
+
+    notice_pay = fields.Monetary(
+        related='employee_id.notice_period',
+        string='Notice Pay',
         readonly=False,
         store=True,
     )
