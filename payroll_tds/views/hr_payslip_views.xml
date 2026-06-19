@@ -109,8 +109,9 @@
                            readonly="1"/>
 
                     <field name="job_position_id"
-                           string="Job Position"
+                           string="Designation"
                            readonly="1"/>
+
                     <field name="gender"
                            string="Gender"
                            readonly="1"/>

@@ -22,7 +22,7 @@
                             <field name="ff_paid_days1"/>
                             <field name="prorated_salary" help="Prorated Salary = Per Day Gross × Paid Days" readonly="1"/>
                             <field name="el_balance" readonly="1"/>
-                            <field name="leave_encashment" help="Leave Encashment = EL Balance × Per Day Basic" readonly="1"/>
+                            <field name="leave_encashment" help="Leave Encashment = EL Balance × Per Day Basic" readonly="0"/>
                             <field name="l10n_in_gratuity" readonly="1"/>
                             <field name="other_earnings" readonly="1"/>
                             <field name="total_earnings" readonly="1" help="Total Earnings = Prorated Salary + Leave Encashment + Gratuity + Other Earnings"/>

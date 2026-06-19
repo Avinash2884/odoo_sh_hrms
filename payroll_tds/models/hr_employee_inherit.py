@@ -67,7 +67,7 @@ class Employee(models.Model):
     currency_id = fields.Many2one(
         'res.currency',
         string='Currency',
-        default=lambda self: self.env.company.currency_id
+        #default=lambda self: self.env.company.currency_id
     )
 
     l10n_in_pf_employee_type = fields.Selection(
@@ -201,7 +201,6 @@ class Employee(models.Model):
 
     leave_encashment = fields.Monetary(
         string="Leave Encashment Amount",
-        compute="_compute_leave_encashment",
     )
 
     total_earnings = fields.Monetary(
@@ -300,12 +299,12 @@ class Employee(models.Model):
             else:
                 emp.el_balance = 0.0
 
-    @api.depends('el_balance', 'per_day_basic')
-    def _compute_leave_encashment(self):
-        for emp in self:
-            emp.leave_encashment = (
-                    (emp.el_balance or 0.0)
-                    * (emp.per_day_basic or 0.0)
+    @api.onchange('el_balance', 'per_day_basic')
+    def _onchange_leave_encashment(self):
+        if not self.leave_encashment:
+            self.leave_encashment = (
+                    (self.el_balance or 0.0)
+                    * (self.per_day_basic or 0.0)
             )
 
 
