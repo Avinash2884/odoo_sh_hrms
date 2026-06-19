@@ -64,8 +64,7 @@
 
         </field>
     </record>
-
-    <record id="view_hr_payslip_form_inherit_total_period_days" model="ir.ui.view">
+     <record id="view_hr_payslip_form_inherit_total_period_days" model="ir.ui.view">
     <field name="name">hr.payslip.form.inherit.total.period.days</field>
     <field name="model">hr.payslip</field>
     <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
@@ -91,7 +90,7 @@
             <page string="Pay Register" name="pay_register">
 
                 <group>
-                    <field name="employee_id"  string="Employee Name" readonly="1"/>
+                    <field name="employee_id" string="Employee Name" readonly="1"/>
                     <field name="pay_period" readonly="1"/>
                   <!--  <field name="date_of_joining"
                            string="Date of Joining"
@@ -99,19 +98,16 @@
                     <field name="date_of_joining_display"
                            string="Date of Joining"
                            readonly="1"/>
-
                     <field name="date_of_leaving_display"
                            string="Date of Leaving"
                            readonly="1"/>
 
-                    <field name="dob_display"
-                           string="DOB"
-                           readonly="1"/>
-
+<field name="dob_display"
+       string="DOB"
+       readonly="1"/>
                     <field name="job_position_id"
                            string="Designation"
                            readonly="1"/>
-
                     <field name="gender"
                            string="Gender"
                            readonly="1"/>
@@ -144,16 +140,16 @@
                     <field name="payslip_gross_wage"
                            string="Total Gross Earnings"
                            readonly="1"/>
-                    <field name="leave_encashment" string="Leave Encashment"/>
+                  <field name="leave_encashment" string="Leave Encashment" readonly="0"/>
                     <field name="notice_pay" string="Notice Pay"/>
                      <field name="epf_contribution"
                            string="EPF Contribution"/>
-                    <field name="pt" string="PT"/>
+                    <field name="pt" string="PT" />
                     <field name="income_tax" string="Income Tax" readonly="1"/>
                     <field name="loan_deduction"
                            string="Loan Deduction"
                            readonly="1"/>
-                    <field name="total_deduction" string="Total Deduction"/>
+                    <field name="total_deduction" string="Total Deduction" />
                     <field name="net_wage" string="Net Pay"/>
                 </group>
 

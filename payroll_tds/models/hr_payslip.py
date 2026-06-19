@@ -27,11 +27,7 @@ class HrPayslip(models.Model):
             else:
                 rec.pay_period = ''
 
-    # date_of_joining = fields.Date(
-    #     related='employee_id.contract_date_start',
-    #     string='Date of Joining',
-    #     readonly=True
-    # )
+
     dob_display = fields.Char(
         string='DOB',
         compute='_compute_display_dates'
@@ -156,17 +152,6 @@ class HrPayslip(models.Model):
             rec.ifsc_code = bank.ls_ifsc_code if bank else ""
             rec.account_number = bank.acc_number if bank else ""
 
-    # account_number = fields.Char(
-    #     related='employee_id.acc_number',
-    #     string='Account Number',
-    #     readonly=True
-    # )
-    #
-    # ifsc_code = fields.Char(
-    #     related='employee_id.ls_ifsc_code',
-    #     string='IFSC',
-    #     readonly=True
-    # )
 
     basic = fields.Monetary(
         related='employee_id.l10n_in_basic_salary_amount',
@@ -219,7 +204,7 @@ class HrPayslip(models.Model):
 
     notice_pay = fields.Monetary(
         related='employee_id.notice_period',
-        string='NOTICE PAY',
+        string='Notice Pay',
         readonly=False,
         store=True,
     )
@@ -295,36 +280,6 @@ class HrPayslip(models.Model):
     #                 - (rec.net_wage or 0.0)
     #         )
 
-    # @api.depends(
-    #     'payslip_gross_wage',
-    #     'net_wage',
-    #     'epf_contribution',
-    #     'pt',
-    #     'income_tax',
-    #     'other_deductions',
-    #     'loan_deduction'
-    # )
-    # def _compute_total_deduction(self):
-    #     for rec in self:
-    #
-    #         deduction_sum = (
-    #                 (rec.epf_contribution or 0.0)
-    #                 + (rec.pt or 0.0)
-    #                 + (rec.income_tax or 0.0)
-    #                 + (rec.other_deductions or 0.0)
-    #                 + (rec.loan_deduction or 0.0)
-    #         )
-    #
-    #         gross_net_diff = (
-    #                 (rec.payslip_gross_wage or 0.0)
-    #                 - (rec.net_wage or 0.0)
-    #         )
-    #
-    #         if round(deduction_sum, 2) == round(gross_net_diff, 2):
-    #             rec.total_deduction = deduction_sum
-    #         else:
-    #             rec.total_deduction = gross_net_diff
-
     @api.onchange(
         'epf_contribution',
         'pt',
@@ -369,19 +324,19 @@ class HrPayslip(models.Model):
     )
 
     total_period_days = fields.Integer(
-        string='Total Period Days',
+        string='Working Days',
         compute='_compute_total_period_days',
         store=True
     )
 
     unpaid_days = fields.Float(
-        string="Unpaid Days",
+        string="LOP",
         compute="_compute_unpaid_days",
         store=True,
     )
 
     attendance_days = fields.Float(
-        string="Attendance Days",
+        string="Paid Days",
         compute="_compute_attendance_days",
         store=True,
     )
@@ -437,11 +392,11 @@ class HrPayslip(models.Model):
         for slip in self:
 
             # 1. FORCE MONTH FROM PAYSLIP DATE
-            month = slip.date_from.month
-
-            slip.employee_id.write({
-                'payslip_month': str(month),
-            })
+            if slip.date_from:
+                month = slip.date_from.month
+                slip.employee_id.write({
+                    'payslip_month': str(month),
+                })
 
             # 2. GROSS WAGE FROM EMPLOYEE (NO contract_id)
             gross = slip.employee_id.payslip_gross_wage or 0.0
@@ -455,13 +410,16 @@ class HrPayslip(models.Model):
 
             # 🚀 SKIP instead of error
             if annual_salary <= 1200000:
+                valid_slips |= slip
                 continue
 
             # 3. COMPUTE SHEET FIRST
             slip.compute_sheet()
 
             # 4. TDS CHECK (IMPORTANT FIX)
-            tds_line = slip.line_ids.filtered(lambda l: l.code in ['TDS', 'TDS_NEW'])
+            tds_line = slip.line_ids.filtered(
+                lambda l: l.code in ['TDS', 'TDS_NEW']
+            )
 
             if not tds_line:
                 slip.state = 'timeoff_balance'
@@ -484,27 +442,20 @@ class HrPayslip(models.Model):
                 manager = pending_leave.employee_id.parent_id
 
                 if manager and manager.user_id and manager.user_id.email:
-                    mail_values = {
+                    self.env['mail.mail'].sudo().create({
                         'subject': 'Pending Leave Approval',
                         'body_html': f"""
                             <p>Dear {manager.name},</p>
-
-                            <p>
-                                Employee <b>{slip.employee_id.name}</b>
-                                has a pending leave request which is still pending approval.
-                            </p>
-
-                            <p>
-                                Please approve or reject the leave request before payroll validation.
-                            </p>
-
-                            <br/>
-                            <p>Thanks</p>
-                        """,
+                                    <p>
+                                        Employee <b>{slip.employee_id.name}</b>
+                                        has a pending leave request.
+                                    </p>
+                                    <p>Kindly approve/reject before payroll validation.</p>
+                                    <p>Thanks</p>
+                                """,
                         'email_to': manager.user_id.email,
-                    }
+                    }).send()
 
-                    self.env['mail.mail'].sudo().create(mail_values).send()
 
                 # Employee Mail
                 employee_email = (
@@ -512,43 +463,20 @@ class HrPayslip(models.Model):
                         or slip.employee_id.user_id.email
                 )
 
-                print("EMPLOYEE EMAIL:", employee_email)
-
                 if employee_email:
 
                     print("EMPLOYEE MAIL SENDING")
 
-                    employee_mail_values = {
+                    self.env['mail.mail'].sudo().create({
                         'subject': 'Pending Time Off Request',
                         'body_html': f"""
                             <p>Dear {slip.employee_id.name},</p>
-
-                            <p>
-                                Your Time Off request is still pending approval.
-                            </p>
-
-                            <p>
-                                Because of the pending request,
-                                your payslip could not be validated
-                                and moved to <b>Time Off Balance</b> state.
-                            </p>
-
-                            <p>
-                                Kindly check with your reporting manager.
-                            </p>
-
-                            <br/>
-                            <p>Thanks</p>
-                        """,
+                                    <p>Your Time Off request is still pending.</p>
+                                    <p>Payslip moved to <b>Time Off Balance</b>.</p>
+                                    <p>Thanks</p>
+                                """,
                         'email_to': employee_email,
-                    }
-
-                    self.env['mail.mail'].sudo().create(
-                        employee_mail_values
-                    ).send()
-
-                else:
-                    print("NO EMPLOYEE EMAIL FOUND")
+                    }).send()
 
             else:
                 valid_slips |= slip
@@ -556,8 +484,9 @@ class HrPayslip(models.Model):
         # Validate only valid payslips
         if valid_slips:
             super(HrPayslip, valid_slips).action_payslip_done()
-
-
+            res = super(HrPayslip, valid_slips).action_payslip_done()
+        else:
+            res = True
 
         # Notification only
         if blocked_count:
@@ -566,20 +495,13 @@ class HrPayslip(models.Model):
                 'tag': 'display_notification',
                 'params': {
                     'title': 'Pending Time Off Leave Request',
-                    'message': (
-                        f'Count: {blocked_count}'
-                    ),
+                    'message': f'Blocked Payslips: {blocked_count}',
                     'sticky': True,
                     'type': 'warning',
                 }
             }
 
-        return True
-
-   # def action_print_payslip(self):
-        return self.env.ref(
-            'l10n_in_hr_payroll.payslip_details_report'
-        ).report_action(self)
+        return res
 
     def action_print_payslip(self):
         return self.env.ref(
@@ -603,4 +525,6 @@ class HrPayslip(models.Model):
                                                      ) + 1
 
         return res
+
+
 

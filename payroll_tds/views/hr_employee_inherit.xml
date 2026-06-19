@@ -8,7 +8,7 @@
         <field name="arch" type="xml">
             <!-- Insert custom fields after parent_id -->
             <xpath expr="//page[@name='hr_settings']" position="after">
-                <page name="f_and_f_calculation" string="F &amp; F Calculation" groups="hr.group_hr_user">
+                <page name="f_and_f_calculation" string="F &amp; F Calculation">
                     <group>
                         <group string="F &amp; F Details">
                             <field name="month"/>
@@ -60,14 +60,14 @@
 </group>
                     </group>
                 </page>
-                <page name="loan_details" string="Loan" groups="hr.group_hr_user">
+                <page name="loan_details" string="Loan">
     <group>
 
         <group string="Loan Information">
 
             <field name="loan_amount"/>
 
-          <!--  <field name="loan_interest"/> -->
+            <field name="loan_interest"/>
 
             <field name="loan_months"/>
 
@@ -92,7 +92,6 @@
 </page>
             </xpath>
             <xpath expr="//div[@name='wage_on_signature']" position="after">
-                 <group groups="hr.group_hr_user">
                 <field name="payslip_gross_wage"
        widget="monetary"
        options="{'currency_field': 'currency_id'}"/>
@@ -168,7 +167,6 @@
                 <div name="tds_amount_month" class="o_row">
                     <field name="tds_amount_month" invisible="tax_regime != 'old'" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
                 </div>
-                 </group>
             </xpath>
             <xpath expr="//field[@name='l10n_in_fixed_allowance']/ancestor::div[1]" position="after">
 
