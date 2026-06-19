@@ -140,7 +140,7 @@
                     <field name="payslip_gross_wage"
                            string="Total Gross Earnings"
                            readonly="1"/>
-                    <field name="leave_encashment" string="Leave Encashment" readonly="0"/>
+<!--                    <field name="leave_encashment" string="Leave Encashment" readonly="0"/>-->
                     <field name="notice_pay" string="Notice Pay"/>
                      <field name="epf_contribution"
                            string="EPF Contribution"/>

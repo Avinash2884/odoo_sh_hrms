@@ -195,12 +195,12 @@ class HrPayslip(models.Model):
         readonly=True
     )
 
-    leave_encashment = fields.Monetary(
-        related='employee_id.leave_encashment',
-        string='Leave Encashment',
-        readonly=False,
-        store=True,
-    )
+    # leave_encashment = fields.Monetary(
+    #     related='employee_id.leave_encashment',
+    #     string='Leave Encashment',
+    #     readonly=False,
+    #     store=True,
+    # )
 
     notice_pay = fields.Monetary(
         related='employee_id.notice_period',

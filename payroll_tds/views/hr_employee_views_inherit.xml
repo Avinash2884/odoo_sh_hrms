@@ -56,11 +56,11 @@
                     <span>/ month</span>
                 </div>
 
-            <label for="leave_encashment"/>
-                <div class="o_row">
-                    <field name="leave_encashment" class="o_hr_narrow_field"/>
-                    <span>/ month</span>
-                </div>
+<!--            <label for="leave_encashment"/>-->
+<!--                <div class="o_row">-->
+<!--                    <field name="leave_encashment" class="o_hr_narrow_field"/>-->
+<!--                    <span>/ month</span>-->
+<!--                </div>-->
 
             <label for="hold_salary"/>
                 <div class="o_row">
