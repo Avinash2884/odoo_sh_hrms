@@ -161,4 +161,3 @@ class HrVersion(models.Model):
         # Skip enterprise validation
         return
 
-

@@ -67,7 +67,7 @@ class Employee(models.Model):
     currency_id = fields.Many2one(
         'res.currency',
         string='Currency',
-        # default=lambda self: self.env.company.currency_id
+        default=lambda self: self.env.company.currency_id
     )
 
     l10n_in_pf_employee_type = fields.Selection(
@@ -199,18 +199,16 @@ class Employee(models.Model):
         store=False
     )
 
-    # leave_encashment = fields.Monetary(
-    #     string="Leave Encashment Amount",
-    #     compute="_compute_leave_encashment",
-    #     inverse="_inverse_leave_encashment",
-    #     store=True
-    # )
+    leave_encashment = fields.Monetary(
+        string="Leave Encashment Amount",
+        compute="_compute_leave_encashment",
+    )
 
-    # total_earnings = fields.Monetary(
-    #     string="Total Earnings",
-    #     compute="_compute_total_earnings",
-    #     store=True
-    # )
+    total_earnings = fields.Monetary(
+        string="Total Earnings",
+        compute="_compute_total_earnings",
+        store=True
+    )
 
     period_days = fields.Float(string="Notice Period (Days)")
     notice_served_days = fields.Float(string="Notice Served (Days)")
@@ -302,32 +300,32 @@ class Employee(models.Model):
             else:
                 emp.el_balance = 0.0
 
-    # @api.depends('per_day_basic')
-    # def _compute_leave_encashment(self):
-    #     for emp in self:
-    #         if not emp.leave_encashment:
-    #             emp.leave_encashment = (
-    #                     (emp.el_balance or 0.0)
-    #                     * (emp.per_day_basic or 0.0)
-    #             )
-    #
-    #     def _inverse_leave_encashment(self):
-    #         pass
+    @api.depends('el_balance', 'per_day_basic')
+    def _compute_leave_encashment(self):
+        for emp in self:
+            emp.leave_encashment = (
+                    (emp.el_balance or 0.0)
+                    * (emp.per_day_basic or 0.0)
+            )
 
-    # @api.depends(
-    #     'prorated_salary',
-    #     'leave_encashment',
-    #     'l10n_in_gratuity',
-    #     'other_earnings'
-    # )
-    # def _compute_total_earnings(self):
-    #     for emp in self:
-    #         emp.total_earnings = (
-    #                 (emp.prorated_salary or 0.0)
-    #                 + (emp.leave_encashment or 0.0)
-    #                 + (emp.l10n_in_gratuity or 0.0)
-    #                 + (emp.other_earnings or 0.0)
-    #         )
+
+
+
+
+    @api.depends(
+        'prorated_salary',
+        'leave_encashment',
+        'l10n_in_gratuity',
+        'other_earnings'
+    )
+    def _compute_total_earnings(self):
+        for emp in self:
+            emp.total_earnings = (
+                    (emp.prorated_salary or 0.0)
+                    + (emp.leave_encashment or 0.0)
+                    + (emp.l10n_in_gratuity or 0.0)
+                    + (emp.other_earnings or 0.0)
+            )
 
     @api.depends('total_advance', 'amount_recovered')
     def _compute_outstanding_amount(self):
