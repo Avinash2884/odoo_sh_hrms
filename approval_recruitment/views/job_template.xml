@@ -10,7 +10,7 @@
             <header>
                 <div class="container py-3">
                     <a href="/">
-                        <img src="/website_job_custom/static/src/img/LS_logo.svg"
+                        <img src="/approval_recruitment/static/src/img/LS_logo.svg"
                              alt="Lifesigns"
                              style="max-height: 60px;"/>
                     </a>
@@ -20,14 +20,14 @@
 
     </template>
 
-<!--    <template id="hide_navbar_job_detail"-->
-<!--          inherit_id="website_hr_recruitment.detail">-->
+    <template id="hide_navbar_job_detail"
+              inherit_id="website_hr_recruitment.detail">
 
-<!--        <xpath expr="//nav[hasclass('navbar')]" position="attributes" optional="1">-->
-<!--            <attribute name="style">display:none !important;</attribute>-->
-<!--        </xpath>-->
+        <!-- Remove the navbar only on job detail page -->
+        <xpath expr="//nav[contains(@class,'navbar')]" position="replace"/>
 
-<!--    </template>-->
+    </template>
+
     <!-- 2. CUSTOM JOB PAGE -->
     <template id="custom_job_page"
               inherit_id="website_hr_recruitment.detail"
@@ -47,13 +47,13 @@
 
                                 <p class="mb-2" t-if="job.contract_type_id">
                                     <i class="fa fa-briefcase me-2"/>
-                                    <span t-field="job.contract_type_id.name"/>
+                                    "job.contract_type_id.name"/>
                                 </p>
 
                                 <t t-if="job.address_id">
                                     <p class="mb-3">
                                         <i class="fa fa-map-marker me-2"/>
-                                        <span t-esc="job.sudo().address_id.city"/>
+                                        "job.sudo().address_id.city"/>
                                     </p>
                                 </t>
 
@@ -90,7 +90,8 @@
                                     <h4 class="fw-bold mb-3">Job Summary</h4>
                                     <p>
                                         We are looking for a passionate Product Designer (0–5 years) who can think
-                                        deeply, design effectively, and collaborate cross-functionally to craft seamless user
+                                        deeply, design effectively, and collaborate cross-functionally to craft seamless
+                                        user
                                         experiences across our digital health products.
                                     </p>
                                     <p>
@@ -108,19 +109,25 @@
                                     <h4 class="fw-bold mb-3">Key Responsibilities</h4>
                                     <ul>
                                         <li>Understand user needs through research, interviews, data insights, and
-                                            real-world healthcare scenarios.</li>
+                                            real-world healthcare scenarios.
+                                        </li>
                                         <li>Translate requirements into user journeys, wireframes, prototypes, and
-                                            high-fidelity designs.</li>
+                                            high-fidelity designs.
+                                        </li>
                                         <li>Create UX artefacts such as flowcharts, IA maps, wireframes, usability test
-                                            plans, and research summaries.</li>
+                                            plans, and research summaries.
+                                        </li>
                                         <li>Design intuitive interfaces for web and mobile health monitoring
-                                            applications.</li>
+                                            applications.
+                                        </li>
                                         <li>Collaborate closely with design lead, product, and engineering to ensure
-                                            design feasibility and clarity.</li>
+                                            design feasibility and clarity.
+                                        </li>
                                         <li>Participate in design reviews, usability testing, and iteration cycles.</li>
                                         <li>Contribute to and maintain the design system.</li>
                                         <li>Advocate for user-centered design in a domain with complex regulatory,
-                                            privacy, and safety constraints.</li>
+                                            privacy, and safety constraints.
+                                        </li>
                                     </ul>
                                 </section>
 
@@ -129,15 +136,19 @@
                                     <ul>
                                         <li>0–5 years of experience in Product/UI/UX Design.</li>
                                         <li>A strong portfolio highlighting your design process, UX artefacts, problem
-                                            framing, and solutioning — not just visuals.</li>
+                                            framing, and solutioning — not just visuals.
+                                        </li>
                                         <li>Proficiency in Figma.</li>
                                         <li>Ability to break down ambiguous problems into structured flows and
-                                            interactions.</li>
+                                            interactions.
+                                        </li>
                                         <li>Good understanding of interaction design, usability principles, and
-                                            responsive design.</li>
+                                            responsive design.
+                                        </li>
                                         <li>Strong communication skills to present design rationale clearly.</li>
                                         <li>Ability to work in agile, cross-functional teams.</li>
-                                        <li>Curiosity, empathy, and a passion for solving real problems in healthcare.</li>
+                                        <li>Curiosity, empathy, and a passion for solving real problems in healthcare.
+                                        </li>
                                     </ul>
                                 </section>
 
@@ -147,9 +158,11 @@
                                         <li>Competitive salary and performance-based incentives.</li>
                                         <li>Opportunities for professional growth and leadership development.</li>
                                         <li>Comprehensive training programs and continuous learning opportunities.</li>
-                                        <li>A collaborative and agile work environment focused on making real impact.</li>
+                                        <li>A collaborative and agile work environment focused on making real impact.
+                                        </li>
                                         <li>An inclusive culture that values innovation, collaboration, and independent
-                                            thinking.</li>
+                                            thinking.
+                                        </li>
                                     </ul>
 
                                     <p class="mt-3">
