@@ -144,7 +144,8 @@ class EmployeeAPI(http.Controller):
             for emp in employees:
                 data.append({
                     "id": emp.id,
-                    "name": emp.name or ''
+                    "name": emp.name or '',
+                    "email": emp.work_email or ''
                 })
 
             return request.make_response(
