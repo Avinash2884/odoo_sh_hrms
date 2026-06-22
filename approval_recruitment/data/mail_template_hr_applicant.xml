@@ -88,8 +88,8 @@
                     <p>Please use the link below to access your form:</p>
 
                     <p>
-                        <a t-attf-href="http://localhost:8071/job/pre_onboarding/{{object.access_token}}">
-                            http://localhost:8071/job/pre_onboarding/
+                        <a t-attf-href="https://lifesigns-hr-odoohrms.odoo.com/job/pre_onboarding/{{object.access_token}}">
+                            https://lifesigns-hr-odoohrms.odoo.com/job/pre_onboarding/
                             <t t-out="object.access_token"/>
                         </a>
                     </p>
@@ -152,8 +152,8 @@
                     <p>Please use the link below to access your form:</p>
 
                     <p>
-                        <a t-attf-href="http://localhost:8071/job/pre_offer/{{object.access_token}}">
-                            http://localhost:8071/job/pre_offer/
+                        <a t-attf-href="https://lifesigns-hr-odoohrms.odoo.com/job/pre_offer/{{object.access_token}}">
+                            https://lifesigns-hr-odoohrms.odoo.com/job/pre_offer/
                             <t t-out="object.access_token"/>
                         </a>
                     </p>
