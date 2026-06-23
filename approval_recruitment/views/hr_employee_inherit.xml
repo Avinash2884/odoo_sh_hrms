@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_employee_search_inherit_ls_id" model="ir.ui.view">
+        <field name="name">hr.employee.search.inherit.ls.id</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="arch" type="xml">
+
+            <!-- Add search field -->
+            <xpath expr="//search" position="inside">
+                <field name="ls_employee_id" string="Employee ID"/>
+            </xpath>
+
+        </field>
+    </record>
     <record id="hr_employee_inherit_approval" model="ir.ui.view">
         <field name="name">hr.employee.inherit.approval</field>
         <field name="model">hr.employee</field>
@@ -84,14 +97,6 @@
                 <field name="buddy_id" widget="many2one_avatar_user" groups="hr.group_hr_user"/>
                 <field name="joining_date_recruit"/>
                 <field name="date_of_confirmation"/>
-            </xpath>
-            <xpath expr="//field[@name='structure_type_id']" position="after">
-                <field name="probation_status" />
-                <field name="probation_reason"/>
-            </xpath>
-            <xpath expr="//field[@name='employee_type']" position="before">
-                <field name="probation_date_start" placeholder="Probation Start Date" />
-                <field name="probation_date_end" placeholder="Probation End Date" />
             </xpath>
             <xpath expr="//field[@name='parent_id']" position="attributes">
                 <attribute name="string">Reporting Manager</attribute>
@@ -253,6 +258,14 @@
                     <group string="Exit Details">
                         <field name="ls_date_of_exit" placeholder="Date of Exit"/>
                         <field name="ls_date_of_resignation" placeholder="Date of Resignation"/>
+                    </group>
+                </page>
+                <page name="probation" string="Probation">
+                    <group string="Probation Details">
+                        <field name="probation_date_start" placeholder="Probation Start Date" />
+                        <field name="probation_date_end" placeholder="Probation End Date" />
+                        <field name="probation_status" />
+                        <field name="probation_reason"/>
                     </group>
                 </page>
             </xpath>

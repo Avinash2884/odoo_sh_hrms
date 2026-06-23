@@ -28,7 +28,7 @@ class HrEmployeeInherit(models.Model):
     probation_date_end = fields.Date(string="Probation End Date",tracking=True)
 
     buddy_id = fields.Many2one('res.users', 'Buddy',tracking=True)
-    ls_employee_id = fields.Char(string="Employee ID",tracking=True)
+    ls_employee_id = fields.Char(string="Employee ID",tracking=True, store=True)
     hr_contract_type_id = fields.Many2one('hr.contract.type', 'Employment Type',tracking=True)
     entity_name_id = fields.Many2one('entity.name', 'Entity Name',tracking=True)
     base_location_id = fields.Many2one('base.location', 'Base Location',tracking=True)
