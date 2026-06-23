@@ -3,7 +3,7 @@
     <record id="email_template_buddy_assign" model="mail.template">
         <field name="name">Buddy Assignment - Buddy</field>
         <field name="model_id" ref="hr.model_hr_employee"/>
-        <field name="email_from">{{object.company_id.email or 'info@yourcompany.com'}}</field>
+        <field name="email_from">{{object.company_id.email}}</field>
         <field name="email_to">{{ object.buddy_id.email }}</field>
         <field name="subject">You are assigned as Buddy for {{ object.name }}</field>
         <field name="body_html" type="html">
@@ -37,7 +37,7 @@
     <record id="email_template_employee_buddy" model="mail.template">
         <field name="name">Buddy Assignment - Employee</field>
         <field name="model_id" ref="hr.model_hr_employee"/>
-        <field name="email_from">{{object.company_id.email or 'info@yourcompany.com'}}</field>
+        <field name="email_from">{{object.company_id.email}}</field>
         <field name="email_to">{{ object.work_email }}</field>
         <field name="subject">Your Buddy has been Assigned</field>
         <field name="body_html" type="html">
@@ -84,7 +84,7 @@
     <record id="email_template_probation_reminder" model="mail.template">
         <field name="name">Probation Expiry Reminder</field>
         <field name="model_id" ref="hr.model_hr_employee"/>
-        <field name="email_from">{{object.company_id.email or 'info@yourcompany.com'}}</field>
+        <field name="email_from">{{object.company_id.email}}</field>
         <field name="email_to">{{ object.work_email }}</field>
         <field name="subject">Your Probation Period is Ending Soon</field>
         <field name="body_html" type="html">
@@ -124,7 +124,7 @@
     <record id="email_template_manager_buddy_assign" model="mail.template">
         <field name="name">Manager - Buddy Assignment</field>
         <field name="model_id" ref="hr.model_hr_employee"/>
-        <field name="email_from">{{object.company_id.email or 'info@yourcompany.com'}}</field>
+        <field name="email_from">{{object.company_id.email}}</field>
         <field name="email_to">{{ object.parent_id.work_email }}</field>
 
         <field name="subject">New Employee Created – Buddy Assignment Required</field>
