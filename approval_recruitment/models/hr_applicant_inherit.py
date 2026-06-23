@@ -32,6 +32,13 @@ class HrApplicantInherit(models.Model):
     is_offer_letter_approval_stage = fields.Boolean(
         compute="_compute_offer_letter_approval_stage"
     )
+    show_preoffer_buttons = fields.Boolean(string="Show Pre Offer Buttons", compute="_compute_show_preoffer_buttons")
+
+    @api.depends('stage_id')
+    def _compute_show_preoffer_buttons(self):
+        stage = self.env.ref('approval_recruitment.stage_job9', raise_if_not_found=False)
+        for rec in self:
+            rec.show_preoffer_buttons = rec.stage_id == stage
 
     def _compute_offer_letter_approval_stage(self):
         stage = self.env.ref('approval_recruitment.stage_job10', raise_if_not_found=False)

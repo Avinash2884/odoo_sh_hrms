@@ -111,13 +111,15 @@
                         name="action_send_pre_offer_mail"
                         type="object"
                         class="btn-primary"
-                        groups="hr_recruitment.group_hr_recruitment_user,hr_recruitment.group_hr_recruitment_manager"/>
+                        groups="hr_recruitment.group_hr_recruitment_user,hr_recruitment.group_hr_recruitment_manager"
+                        invisible="not show_preoffer_buttons"/>
                 <button
                         name="action_send_pre_onboarding_mail"
                         string="Send Pre-Onboarding Form"
                         type="object"
                         class="btn-primary"
-                        groups="hr_recruitment.group_hr_recruitment_user,hr_recruitment.group_hr_recruitment_manager"/>
+                        groups="hr_recruitment.group_hr_recruitment_user,hr_recruitment.group_hr_recruitment_manager"
+                        invisible="not show_preoffer_buttons"/>
             </xpath>
             <xpath expr="//div[hasclass('oe_title')]" position="before">
                 <div style="width: 100%; display: inline-block; margin-bottom: 20px;">
