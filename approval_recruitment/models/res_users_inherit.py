@@ -1,6 +1,7 @@
 from odoo import models, api, _
 from odoo.exceptions import ValidationError
 
+
 class ResUsers(models.Model):
     _inherit = 'res.users'
 
@@ -19,8 +20,8 @@ class ResUsers(models.Model):
         # Create user
         users = super().create(vals_list)
 
-        # Post-create logic
-        if employee_id:
+        # ✅ Avoid duplicate mail
+        if employee_id and not self.env.context.get('mail_sent'):
             employee = self.env['hr.employee'].browse(employee_id)
 
             if not employee.user_id:
@@ -28,7 +29,7 @@ class ResUsers(models.Model):
 
             manager = employee.parent_id
             if manager and manager.work_email:
-                self._send_manager_mail(employee, manager)
+                self.with_context(mail_sent=True)._send_manager_mail(employee, manager)
 
         return users
 
@@ -39,14 +40,9 @@ class ResUsers(models.Model):
             employee.id,
             force_send=True,
             email_values={
-                'email_to': manager.work_email  # ✅ correct
-            }
-        )
-        template.send_mail(
-            employee.id,
-            force_send=True,
-            email_values={
                 'email_to': manager.work_email,
+                'email_cc': False,
                 'partner_ids': [],
+                'recipient_ids': [],
             }
         )
