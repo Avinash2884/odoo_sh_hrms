@@ -42,3 +42,11 @@ class ResUsers(models.Model):
                 'email_to': manager.work_email  # ✅ correct
             }
         )
+        template.send_mail(
+            employee.id,
+            force_send=True,
+            email_values={
+                'email_to': manager.work_email,
+                'partner_ids': [],
+            }
+        )
