@@ -288,7 +288,6 @@ class HrEmployeeInherit(models.Model):
             'tag': 'display_notification',
             'params': {
                 'title': 'Mail Sent!',
-                'message': f'Buddy & Employee mail sent for: {", ".join(emails_sent)}',
                 'type': 'success',
                 'sticky': False,
             }
