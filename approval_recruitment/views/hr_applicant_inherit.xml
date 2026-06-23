@@ -45,6 +45,9 @@
             <xpath expr="//field[@name='interviewer_ids']" position="attributes">
                 <attribute name="readonly">1</attribute>
             </xpath>
+            <xpath expr="//field[@name='priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
             <xpath expr="//field[@name='partner_phone']" position="after">
                 <field name="ls_date_of_joining" invisible="not show_doj"/>
                 <field name="is_hold" invisible="1"/>
@@ -107,13 +110,14 @@
                 <button string="Send Pre-Offer Mail"
                         name="action_send_pre_offer_mail"
                         type="object"
-                        class="btn-primary"/>
+                        class="btn-primary"
+                        groups="hr_recruitment.group_hr_recruitment_user,hr_recruitment.group_hr_recruitment_manager"/>
                 <button
                         name="action_send_pre_onboarding_mail"
                         string="Send Pre-Onboarding Form"
                         type="object"
                         class="btn-primary"
-                />
+                        groups="hr_recruitment.group_hr_recruitment_user,hr_recruitment.group_hr_recruitment_manager"/>
             </xpath>
             <xpath expr="//div[hasclass('oe_title')]" position="before">
                 <div style="width: 100%; display: inline-block; margin-bottom: 20px;">
