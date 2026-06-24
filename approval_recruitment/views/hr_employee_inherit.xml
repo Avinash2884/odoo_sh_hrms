@@ -18,6 +18,14 @@
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//h5[field[@name='work_phone']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide Mobile full block -->
+            <xpath expr="//h5[field[@name='mobile_phone']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
             <xpath expr="//group[@name='note']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
