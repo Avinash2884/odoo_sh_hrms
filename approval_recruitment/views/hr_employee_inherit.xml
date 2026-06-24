@@ -294,6 +294,10 @@
                     <field name="ls_role_id"/>
                 </div>
             </xpath>
+            <xpath expr="//div[field[@name='work_phone']]" position="attributes">
+                <attribute name="t-if">False</attribute>
+            </xpath>
+
         </field>
     </record>    <record id="hr_bank_account_inherit_partner" model="ir.ui.view">
         <field name="name">hr.bank.account.inherit.partner</field>
