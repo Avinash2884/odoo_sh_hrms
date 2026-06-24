@@ -24,12 +24,39 @@
                     <span>/ month</span>
                 </div>
 
+            <label for="basic_arrear"/>
+    <div class="o_row">
+        <field name="basic_arrear" class="o_hr_narrow_field"/>
+        <span>/ month</span>
+    </div>
+
+<label for="hra_arrear"/>
+    <div class="o_row">
+        <field name="hra_arrear" class="o_hr_narrow_field"/>
+        <span>/ month</span>
+    </div>
+
+<label for="special_allowance_arrear"/>
+    <div class="o_row">
+        <field name="special_allowance_arrear" class="o_hr_narrow_field"/>
+        <span>/ month</span>
+    </div>
+
+<label for="fixed_stipend"/>
+    <div class="o_row">
+        <field name="fixed_stipend" class="o_hr_narrow_field"/>
+        <span>/ month</span>
+    </div>
             <label for="stipend"/>
                 <div class="o_row">
                     <field name="stipend" class="o_hr_narrow_field"/>
                     <span>/ month</span>
                 </div>
-
+            <label for="stipend_arrear"/>
+               <div class="o_row">
+                   <field name="stipend_arrear" class="o_hr_narrow_field"/>
+                   <span>/ month</span>
+               </div>
 
 
             <label for="employee_incentive"/>

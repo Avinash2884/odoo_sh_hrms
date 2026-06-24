@@ -505,7 +505,12 @@ class Employee(models.Model):
 
     variable_pay = fields.Monetary(string="Variable Pay")
     variable_bonus = fields.Monetary(string="Bonus")
+    basic_arrear = fields.Monetary(string="Basic Arrear")
+    hra_arrear = fields.Monetary(string="HRA Arrear")
+    special_allowance_arrear = fields.Monetary(string="Special Allowance Arrear")
+    fixed_stipend = fields.Monetary(string="Fixed Stipend")
     stipend = fields.Monetary(string="Stipend")
+    stipend_arrear = fields.Monetary(string="Stipend Arrear")
     employee_incentive = fields.Monetary(string="Incentive")
     referral_incentive = fields.Monetary(string="Referral Incentive")
     notice_period = fields.Monetary(string="Notice Period Pay")

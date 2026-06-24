@@ -95,11 +95,6 @@
                     </p>
 
                     <p>
-                        If you have any questions, feel free to contact
-                        <a href="mailto:rupesh@lifesigns.us">rupesh@lifesigns.us</a>.
-                    </p>
-
-                    <p>
                         Warm regards,
 
 
@@ -156,11 +151,6 @@
                             https://lifesigns-hr-odoohrms.odoo.com/job/pre_offer/
                             <t t-out="object.access_token"/>
                         </a>
-                    </p>
-
-                    <p>
-                        If you have any questions, feel free to contact
-                        <a href="mailto:rupesh@lifesigns.us">rupesh@lifesigns.us</a>.
                     </p>
 
                     <p>
