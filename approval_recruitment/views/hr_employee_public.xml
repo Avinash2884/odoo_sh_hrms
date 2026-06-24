@@ -54,6 +54,32 @@
             </xpath>
         </field>
     </record>
+    <record id="hr_kanban_view_employees_inherit_public" model="ir.ui.view">
+        <field name="name">hr.employee.kanban.inherit</field>
+        <field name="model">hr.employee.public</field>
+        <field name="inherit_id" ref="hr.hr_employee_public_view_kanban"/>
+        <field name="arch" type="xml">
+
+            <!-- ✅ Add ls_role_id to kanban fields -->
+            <xpath expr="//kanban" position="inside">
+                <field name="ls_role_id"/>
+            </xpath>
+
+            <!-- ✅ Replace job_title with ls_role_id (with icon) -->
+            <xpath expr="//field[@name='job_title']" position="replace">
+                <div t-if="record.ls_role_id.raw_value" class="text-truncate">
+                    <i class="fa fa-fw me-2 fa-suitcase text-primary" title="Role"/>
+                    <field name="ls_role_id"/>
+                </div>
+            </xpath>
+
+            <!-- ❌ Hide work_phone -->
+            <xpath expr="//div[field[@name='work_phone']]" position="attributes">
+                <attribute name="class" add="d-none"/>
+            </xpath>
+
+        </field>
+    </record>
 </odoo>
 
 
