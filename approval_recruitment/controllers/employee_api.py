@@ -154,15 +154,33 @@ class EmployeeAPI(http.Controller):
                     headers=[('Content-Type', 'application/json')]
                 )
 
+            # 🏢 Get Company ID from header
+            company_id = request.httprequest.headers.get('X-COMPANY-ID')
+            if not company_id:
+                return request.make_response(
+                    json.dumps({
+                        "status": "error",
+                        "message": "Company ID required"
+                    }),
+                    status=400,
+                    headers=[('Content-Type', 'application/json')]
+                )
+
+            company_id = int(company_id)
+
             # 📌 Fetch employees
-            employees = request.env['hr.employee'].sudo().search([])
+            employees = request.env['hr.employee'].sudo().with_context(
+                allowed_company_ids=[company_id]
+            ).search([('company_id', '=', company_id)])
 
             data = []
             for emp in employees:
                 data.append({
                     "id": emp.id,
                     "name": emp.name or '',
-                    "email": emp.work_email or ''
+                    "email": emp.work_email or '',
+                    "company_id": emp.company_id.id,
+                    "company_name": emp.company_id.name,
                 })
 
             return request.make_response(
