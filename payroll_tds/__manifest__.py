@@ -13,7 +13,7 @@
         statutory compliance, and payroll reporting.
     """,
     'data': [
-        'security/ir.model.access.csv',
+        #'security/ir.model.access.csv',
         'views/hr_employee_inherit.xml',
         'views/hr_employee_views_inherit.xml',
       #  'views/hr_leave_inherit.xml', #Error
