@@ -147,6 +147,8 @@ class EmployeeAPI(http.Controller):
                     "id": emp.id,
                     "name": emp.name or '',
                     "email": emp.work_email or '',
+                    "company_id": emp.company_id.id,
+                    "company_name": emp.company_id.name,
                 })
 
             return request.make_response(
