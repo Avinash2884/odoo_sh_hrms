@@ -8,7 +8,7 @@
             <xpath expr="//h5[field[@name='work_phone']]" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-            <xpath expr="//h5[field[@name='work_mobile']]" position="attributes">
+            <xpath expr="//h5[field[@name='mobile_phone']]" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
         </field>
