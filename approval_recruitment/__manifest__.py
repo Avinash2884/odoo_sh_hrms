@@ -44,6 +44,7 @@
         'views/calendar_event_inherit.xml',
         'views/hr_contract_salary_offer_inherit.xml',
         'views/hr_employee_public.xml',
+        'views/res_users.xml',
 
         'report/evaluation_report_template.xml',
         # 'report/evaluation_report.xml',
