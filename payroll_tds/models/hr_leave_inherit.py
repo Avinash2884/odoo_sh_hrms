@@ -6,15 +6,222 @@ from datetime import timedelta
 class HrLeave(models.Model):
     _inherit = "hr.leave"
 
-
     weekend_days = fields.Char(string="Weekend Days", readonly=True)
     public_holiday_days = fields.Char(string="Public Holidays", readonly=True)
+
+    # -----------------------------
+    # HR Admin Check
+    # -----------------------------
+    def _is_hr_admin(self):
+        return self.env.user.has_group(
+            'hr_holidays.group_hr_holidays_manager'
+        )
+
+    def _calendar_days(self, date_from, date_to):
+        """Return total calendar days including weekends."""
+        if not date_from or not date_to:
+            return 0
+        return (date_to - date_from).days + 1
+
+    # ----------------------------------------
+    # 🚫 SANDWICH LEAVE MONTHLY LIMIT
+    # ----------------------------------------
+    # ----------------------------------------
+    # 🚫 PRIVILEGE LEAVE MONTHLY LIMIT
+    # ----------------------------------------
+    @api.constrains(
+        'employee_id',
+        'holiday_status_id',
+        'request_date_from',
+        'request_date_to',
+        'number_of_days'
+    )
+    def _check_sandwich_leave_monthly_limit(self):
+
+        if self._is_hr_admin():
+            return
+
+        for leave in self:
+
+            if not leave.employee_id or not leave.holiday_status_id:
+                continue
+
+            # Run only for Privilege Leave
+            if leave.holiday_status_id.name != 'Privilege Leave':
+                continue
+
+            if not leave.request_date_from or not leave.request_date_to:
+                continue
+
+            month_start = leave.request_date_from.replace(day=1)
+
+            if leave.request_date_from.month == 12:
+                month_end = leave.request_date_from.replace(
+                    year=leave.request_date_from.year + 1,
+                    month=1,
+                    day=1
+                ) - timedelta(days=1)
+            else:
+                month_end = leave.request_date_from.replace(
+                    month=leave.request_date_from.month + 1,
+                    day=1
+                ) - timedelta(days=1)
+
+            monthly_leaves = self.env['hr.leave'].search([
+                ('employee_id', '=', leave.employee_id.id),
+                ('holiday_status_id', '=', leave.holiday_status_id.id),
+                ('state', 'not in', ['refuse', 'cancel']),
+                ('id', '!=', leave.id),
+                ('request_date_from', '>=', month_start),
+                ('request_date_from', '<=', month_end),
+            ])
+
+            existing_days = sum(
+                self._calendar_days(
+                    l.request_date_from,
+                    l.request_date_to
+                )
+                for l in monthly_leaves
+            )
+
+            current_leave_days = self._calendar_days(
+                leave.request_date_from,
+                leave.request_date_to
+            )
+
+            total_days = existing_days + current_leave_days
+
+            if total_days > 7:
+                raise ValidationError(
+                    "You cannot apply more than 7 calendar days of Privilege Leave in a month."
+                )
+
+    @api.constrains(
+        'employee_id',
+        'holiday_status_id',
+        'request_date_from',
+        'number_of_days'
+    )
+    def _check_casual_leave_monthly_limit(self):
+
+        if self._is_hr_admin():
+            return
+
+        for leave in self:
+
+            if not leave.employee_id or not leave.holiday_status_id:
+                continue
+
+            # Casual Leave
+            if leave.holiday_status_id.name != 'Casual Leave':
+                continue
+
+            month_start = leave.request_date_from.replace(day=1)
+
+            if leave.request_date_from.month == 12:
+                month_end = leave.request_date_from.replace(
+                    year=leave.request_date_from.year + 1,
+                    month=1,
+                    day=1
+                ) - timedelta(days=1)
+            else:
+                month_end = leave.request_date_from.replace(
+                    month=leave.request_date_from.month + 1,
+                    day=1
+                ) - timedelta(days=1)
+
+            monthly_leaves = self.env['hr.leave'].search([
+                ('employee_id', '=', leave.employee_id.id),
+                ('holiday_status_id', '=', leave.holiday_status_id.id),
+                ('state', 'not in', ['refuse', 'cancel']),
+                ('id', '!=', leave.id),
+                ('request_date_from', '>=', month_start),
+                ('request_date_from', '<=', month_end),
+            ])
+
+            total_days = sum(monthly_leaves.mapped('number_of_days')) + leave.number_of_days
+
+            if total_days > 2:
+                raise ValidationError(
+                    "You cannot apply more than 2 days of Casual Leave in a month."
+                )
+
+    # ----------------------------------------
+    # 🚫 PRIVILEGE LEAVE ADVANCE NOTICE
+    # ----------------------------------------
+    @api.constrains(
+        'holiday_status_id',
+        'request_date_from'
+    )
+    def _check_privilege_leave_advance_notice(self):
+
+        if self._is_hr_admin():
+            return
+
+        for leave in self:
+
+            if not leave.employee_id or not leave.holiday_status_id:
+                continue
+
+            # Apply only for Privilege Leave
+            if leave.holiday_status_id.name != 'Privilege Leave':
+                continue
+
+            if not leave.request_date_from:
+                continue
+
+            today = fields.Date.today()
+
+            days_difference = (leave.request_date_from - today).days
+
+            if days_difference < 7:
+                raise ValidationError(
+                    "Privilege Leave must be applied at least 7 days before the leave start date."
+                )
+
+    # ----------------------------------------
+    # 🚫 CASUAL LEAVE ADVANCE NOTICE
+    # ----------------------------------------
+    # @api.constrains(
+    #     'holiday_status_id',
+    #     'request_date_from'
+    # )
+    # def _check_casual_leave_advance_notice(self):
+    #
+    #     if self._is_hr_admin():
+    #         return
+    #
+    #     for leave in self:
+    #
+    #         if not leave.employee_id or not leave.holiday_status_id:
+    #             continue
+    #
+    #         if leave.holiday_status_id.name != 'Casual Leave':
+    #             continue
+    #
+    #         if not leave.request_date_from:
+    #             continue
+    #
+    #         today = fields.Date.today()
+    #
+    #         days_difference = (
+    #                 leave.request_date_from - today
+    #         ).days
+    #
+    #         if days_difference < 1:
+    #             raise ValidationError(
+    #                 "Casual Leave must be applied at least 1 day in advance."
+    #             )
 
     # ----------------------------------------
     # 📅 ONCHANGE - NON WORKING DAYS
     # ----------------------------------------
     @api.onchange('request_date_from', 'request_date_to')
     def _onchange_dates_compute_non_working(self):
+
+        if self._is_hr_admin():
+            return
+
         for rec in self:
 
             if not rec.request_date_from or not rec.request_date_to:
@@ -59,6 +266,10 @@ class HrLeave(models.Model):
     # ----------------------------------------
     @api.constrains('employee_id', 'request_date_from', 'holiday_status_id')
     def _check_mixed_leave_types(self):
+
+        if self._is_hr_admin():
+            return
+
         for leave in self:
 
             if not leave.employee_id or not leave.request_date_from:
@@ -111,8 +322,7 @@ class HrLeave(models.Model):
     # ----------------------------------------
     @api.constrains('holiday_status_id', 'number_of_days', 'attachment_ids')
     def _check_support_document_required(self):
-
-        if self.env.context.get('install_mode'):
+        if self._is_hr_admin():
             return
 
         for leave in self:
@@ -218,7 +428,8 @@ class HrLeave(models.Model):
                                 Please proceed with the payroll.
                             </p>
 
-                            <br/>
+
+
                             <p>Thanks</p>
                         """,
                         'email_to': manager.user_id.email,
@@ -255,7 +466,8 @@ class HrLeave(models.Model):
                                         can now be processed.
                                     </p>
 
-                                    <br/>
+
+
                                     <p>Thanks</p>
                                 """,
                                 'email_to': user.email,
@@ -266,5 +478,3 @@ class HrLeave(models.Model):
                             ).send()
 
         return res
-
-

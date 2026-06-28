@@ -2,7 +2,7 @@
 import math
 from odoo import models, fields, api
 from datetime import datetime, time, timedelta
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 import pytz
 
 
@@ -51,6 +51,13 @@ class HrAttendance(models.Model):
     extra_hours = fields.Float(compute="_compute_extra",string="Calculated Extra Hours", store=True)
     total_hours = fields.Float(compute="_compute_total", store=True)
 
+    # ---> PHOTO: One2many to attendance.photo (replaces old single image fields)
+    photo_ids = fields.One2many(
+        'attendance.photo',
+        'attendance_id',
+        string='Attendance Photos',
+    )
+
     # ----------------------------------------------------------
     # Odoo 19 Native Overtime Injection
     # ----------------------------------------------------------
@@ -58,7 +65,7 @@ class HrAttendance(models.Model):
         compute='_compute_native_overtime', store=True
     )
     validated_overtime_hours = fields.Float(
-        compute='_compute_native_overtime',string="Validated Overtime", store=True
+        compute='_compute_native_overtime',string="Validated overtime", store=True
     )
 
     @api.depends('extra_hours', 'approved_extra_hours')
@@ -533,6 +540,75 @@ class HrAttendance(models.Model):
             self._sync_siblings_on_save()
         return res
 
+    @api.model
+    def save_attendance_photo(self, photo_base64, punch_type, geo_zone_id=False):
+        """
+        Called from JS after face verification.
+        Creates a new attendance.photo record linked to this attendance,
+        and maps the geo location field.
+        punch_type: 'checkin' or 'checkout'
+        """
+        employee = self.env.user.employee_id
+        if not employee:
+            return False
+
+        # We removed the if/else entirely!
+        # Whether checking in or out, we just grab the most recent record.
+        attendance = self.search([
+            ('employee_id', '=', employee.id),
+        ], order='id desc', limit=1)
+
+        if not attendance:
+            return False
+
+        # Save the photo record
+        self.env['attendance.photo'].sudo().create({
+            'attendance_id': attendance.id,
+            'photo': photo_base64,
+            'punch_type': punch_type,
+        })
+
+        # Map the geo restriction ID to the corresponding field
+        if geo_zone_id:
+            if punch_type == 'checkin':
+                attendance.sudo().write({'geo_restriction_id': geo_zone_id})
+            elif punch_type == 'checkout':
+                attendance.sudo().write({'check_out_geo_restriction_id': geo_zone_id})
+
+        return True
+
+    @api.model
+    def check_employee_geo_allowed(self, latitude, longitude):
+        """
+        Called from JS before opening camera.
+        Checks if employee is within any of their allowed office geo zones.
+        Returns {'allowed': True/False, 'message': '...', 'zone_id': ID}
+        """
+        from geopy.distance import geodesic
+
+        employee = self.env.user.employee_id
+        if not employee:
+            return {'allowed': False, 'message': 'No employee linked to your account.'}
+
+        geo_locations = employee.geo_restriction_ids
+        if not geo_locations:
+            return {'allowed': False, 'message': 'No office locations configured for you. Contact HR.'}
+
+        for geo in geo_locations:
+            distance = geodesic(
+                (geo.company_latitude, geo.company_longitude),
+                (latitude, longitude)
+            ).meters
+            if distance <= geo.allowed_distance:
+                # ---> THE ONLY CHANGE IS HERE: Changed 'geo_id' to 'zone_id'
+                return {'allowed': True, 'zone_id': geo.id}
+
+        return {
+            'allowed': False,
+            'message': 'You are outside the allowed office radius. Check-in not permitted.'
+        }
+
+
     def _sync_siblings_on_save(self):
         """Forces all punches from the same day to recalculate together"""
         for att in self:
@@ -709,3 +785,89 @@ class HrAttendance(models.Model):
             else:
                 status = " Pend"
             att.display_name = f"Std: {std}h | Ext: {ext}h ({status})"
+
+    # ==========================================================
+    # EDP BOUNCER: WEEKEND & PUBLIC HOLIDAY RESTRICTION
+    # ==========================================================
+    # FIX 1: Now it triggers on Check-In AND Check-Out
+    @api.constrains('check_in', 'check_out')
+    def _check_edp_restriction(self):
+        for att in self:
+            if not att.check_in:
+                continue
+
+            # 1. Figure out exactly what day it is
+            tz = pytz.timezone(att.employee_id.tz or self.env.user.tz or 'UTC')
+            check_in_local = pytz.utc.localize(att.check_in).astimezone(tz)
+
+            weekday = check_in_local.weekday()  # Monday = 0, Saturday = 5, Sunday = 6
+            day_of_month = check_in_local.day
+            week_of_month = (day_of_month - 1) // 7 + 1
+
+            # 2. Bulletproof Checkbox Reader
+            get_param = self.env['ir.config_parameter'].sudo().get_param
+
+            def is_active(param_name):
+                # Safely convert whatever Odoo saved ('True', '1', 't') into a solid True/False
+                return str(get_param(param_name, 'False')).strip().lower() in ['true', '1', 't', 'yes', 'y']
+
+            restrict_sunday = is_active('attendance.edp_restrict_sunday')
+
+            restricted_sats = []
+            if is_active('attendance.edp_restrict_sat_1'): restricted_sats.append(1)
+            if is_active('attendance.edp_restrict_sat_2'): restricted_sats.append(2)
+            if is_active('attendance.edp_restrict_sat_3'): restricted_sats.append(3)
+            if is_active('attendance.edp_restrict_sat_4'): restricted_sats.append(4)
+            if is_active('attendance.edp_restrict_sat_5'): restricted_sats.append(5)
+
+            # 3. Check if today hits the restricted rules
+            is_sunday = (weekday == 6 and restrict_sunday)
+            is_restricted_saturday = (weekday == 5 and week_of_month in restricted_sats)
+
+            # 4. Setup Time boundaries for today
+            local_day_start = check_in_local.replace(hour=0, minute=0, second=0, microsecond=0)
+            local_day_end = local_day_start + timedelta(days=1)
+
+            utc_day_start = local_day_start.astimezone(pytz.utc).replace(tzinfo=None)
+            utc_day_end = local_day_end.astimezone(pytz.utc).replace(tzinfo=None)
+
+            # -------------------------------------------------------------
+            # NEW: 5. Check for Public Holidays (Global Leaves)
+            # -------------------------------------------------------------
+            calendar_id = att.employee_id.resource_calendar_id.id or self.env.company.resource_calendar_id.id
+
+            public_holiday = self.env['resource.calendar.leaves'].sudo().search([
+                ('calendar_id', '=', calendar_id),
+                ('resource_id', '=', False),  # False means it's a Global Company Holiday, not personal PTO
+                ('date_from', '<', utc_day_end),
+                ('date_to', '>', utc_day_start)
+            ], limit=1)
+
+            is_public_holiday = bool(public_holiday)
+
+            # 6. Check if today hits ANY restricted rule (Weekend OR Holiday)
+            if is_sunday or is_restricted_saturday or is_public_holiday:
+
+                # 7. It is a restricted day! Check the Planning App for an approved EDP shift.
+                has_edp_slot = self.env['planning.slot'].sudo().search_count([
+                    ('employee_id', '=', att.employee_id.id),
+                    ('start_datetime', '<', utc_day_end),
+                    ('end_datetime', '>', utc_day_start),
+                    ('state', 'in', ['draft', 'published']),
+                ])
+
+                # 8. If they don't have a slot, kick them out!
+                if not has_edp_slot:
+                    # Dynamically change the error message based on WHY they were blocked
+                    if is_public_holiday:
+                        reason_text = f"a Public Holiday ({public_holiday.name})"
+                    elif is_sunday:
+                        reason_text = "Sunday"
+                    else:
+                        reason_text = f"the {week_of_month}st/nd/rd/th Saturday"
+
+                    raise ValidationError(
+                        f"EDP Restricted! \n\n"
+                        f"Sorry {att.employee_id.name}, today is {reason_text}, which is an off-day according to company policy. "
+                        f"You cannot check in unless you have an approved Extra Duty Plan (EDP) allocated in the schedule."
+                    )

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_edp_request_form" model="ir.ui.view">
+        <field name="name">hr.edp.request.form</field>
+        <field name="model">hr.edp.request</field>
+        <field name="arch" type="xml">
+            <form string="EDP Request">
+                <header>
+                    <button name="action_submit" string="Submit" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+
+                    <!-- 👇 Invisible fields so Odoo knows who is looking at the screen 👇 -->
+                    <field name="can_approve_manager" invisible="1"/>
+                    <field name="can_approve_hr" invisible="1"/>
+
+                    <!-- 👇 Buttons hide themselves if the user doesn't have permission! 👇 -->
+                    <button name="action_manager_approve" string="Manager Approve" type="object" class="btn-success"
+                            invisible="state != 'submitted' or not can_approve_manager"/>
+
+                    <button name="action_hr_approve" string="HR Approve &amp; Allocate" type="object"
+                            class="btn-success"
+                            invisible="state != 'manager_approved' or not can_approve_hr"/>
+
+                    <button name="action_refuse" string="Refuse" type="object" class="btn-danger"
+                            invisible="state not in ('submitted', 'manager_approved') or (state == 'submitted' and not can_approve_manager) or (state == 'manager_approved' and not can_approve_hr)"/>
+
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,manager_approved,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="calendar_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="manager_id" readonly="1" force_save="1"/>
+                            <field name="hr_head_id" readonly="1" force_save="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_edp_request_tree" model="ir.ui.view">
+        <field name="name">hr.edp.request.tree</field>
+        <field name="model">hr.edp.request</field>
+        <field name="arch" type="xml">
+            <list string="EDP Requests" decoration-success="state=='approved'">
+                <field name="employee_id"/>
+                <field name="date"/>
+                <field name="manager_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_hr_edp_request" model="ir.actions.act_window">
+        <field name="name">EDP Requests</field>
+        <field name="res_model">hr.edp.request</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_hr_edp_request"
+              name="EDP Requests"
+              parent="approvals.approvals_menu_root"
+              action="action_hr_edp_request"
+              sequence="50"/>
+</odoo>

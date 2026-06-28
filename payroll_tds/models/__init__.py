@@ -3,3 +3,4 @@ from . import hr_version_inherit
 from . import hr_leave_inherit
 from . import hr_payslip
 from . import hr_approval_requests
+from . import hr_attendance_inherit
