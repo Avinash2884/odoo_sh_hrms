@@ -2,6 +2,7 @@
     'name': 'Custom Attendance & Planning',
     'version': '1.0',
     'category': 'Human Resources',
+    'author': "Unisas ITBusiness Solutions Private Limited",
     'summary': 'Advanced late policies, exact worked hours, and shift templates',
     'depends': [
         'base',
