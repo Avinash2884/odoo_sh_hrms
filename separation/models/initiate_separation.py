@@ -466,11 +466,21 @@ class InitiateSeparation(models.Model):
         )
 
         if template:
+            cc_emails = ','.join(filter(None, [
+                self.hr_id.work_email,
+                self.hr_head_id.work_email
+            ]))
+
             email_values = {
                 'email_to': self.reporting_manager_id.work_email,
+                'email_cc': cc_emails,
             }
 
-            template.sudo().send_mail(self.id, force_send=True, email_values=email_values)
+            template.sudo().send_mail(
+                self.id,
+                force_send=True,
+                email_values=email_values
+            )
 
         print("Mail sent successfully")
 
