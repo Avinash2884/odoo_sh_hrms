@@ -592,8 +592,8 @@
                             <group>
                                 <field name="exit_interview_line_ids" string="">
                                     <list create="False" editable="bottom" delete="False">
-                                        <field name="question_id" options="{'no_create': True, 'no_open': True}"/>
-                                        <field name="option_id" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="question_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                                        <field name="option_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
                                     </list>
                                 </field>
                             </group>
