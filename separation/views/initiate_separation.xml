@@ -89,7 +89,7 @@
                             <field name="action_by_manager" readonly="1" invisible="1"/>
                         </group>
                         <group string='HR Details' invisible="internal_state in (False,'submitted','manager_approved','manager_rejected')">
-                            <field name="hr_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="hr_head_id" options="{'no_open': True, 'no_create': True}"/>
                             <field name="action_performed_hr" readonly="1"/>
                             <field name="action_by_hr" readonly="1" invisible="1"/>
                         </group>
