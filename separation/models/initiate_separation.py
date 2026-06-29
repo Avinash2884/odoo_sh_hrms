@@ -20,7 +20,7 @@ class InitiateSeparation(models.Model):
         tracking=True,
     )
     ls_employee_id = fields.Char(string="Employee ID", related='employee_id.ls_employee_id',tracking=True)
-    ls_designation_id = fields.Many2one('designation', 'Designation',related='employee_id.ls_designation_id', tracking=True)
+    ls_designation_id = fields.Many2one('designation', 'Designation',related='employee_id.job_id', tracking=True)
     department_id = fields.Many2one('hr.department', 'Department',related='employee_id.department_id',tracking=True)
     reporting_manager_id = fields.Many2one('hr.employee', 'Reporting Manager',related='employee_id.parent_id',tracking=True)
     hr_id = fields.Many2one('hr.employee', 'HR',related='employee_id.hr_id',tracking=True)
