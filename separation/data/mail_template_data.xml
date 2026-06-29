@@ -6,6 +6,7 @@
             <field name="model_id" ref="separation.model_initiate_separation"/>
             <field name="email_from">{{ object.employee_id.work_email }}</field>
             <field name="email_to">{{ object.reporting_manager_id.work_email }}</field>
+            <field name="email_cc">{{ object.hr_id.work_email }},{{ object.hr_head_id.work_email }}</field>
             <field name="subject">Resignation Initiated - {{ object.employee_id.name }}</field>
             <field name="body_html" type="html">
                 <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
