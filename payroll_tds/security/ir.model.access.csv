@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_employee_salary_revision_user,employee.salary.revision.user,model_employee_salary_revision,base.group_user,1,1,1,1
+access_payroll_tds_sheet,payroll.tds.sheet,model_payroll_tds_sheet,base.group_user,1,1,1,1
