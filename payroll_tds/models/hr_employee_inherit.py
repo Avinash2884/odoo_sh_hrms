@@ -5,6 +5,30 @@ from datetime import date
 class Employee(models.Model):
     _inherit = 'hr.employee'
 
+    revision_ids = fields.One2many(
+        'employee.salary.revision',
+        'employee_id',
+        string='Revised Wage Details'
+    )
+
+    pl_allocation_year = fields.Integer(
+        string="PL Allocation Year",
+        default=0
+    )
+
+    last_cl_allocation_month = fields.Char(
+        string="Last CL Allocation Month"
+    )
+
+    last_sl_allocation_month = fields.Char(
+        string="Last SL Allocation Month"
+    )
+
+    bereavement_allocation_year = fields.Integer(
+        string="Bereavement Allocation Year",
+        default=0
+    )
+
     tax_regime = fields.Selection([
         ('old', 'Old Regime'),
         ('new', 'New Regime'),
