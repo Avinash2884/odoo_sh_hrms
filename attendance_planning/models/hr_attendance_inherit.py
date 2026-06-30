@@ -787,9 +787,8 @@ class HrAttendance(models.Model):
             att.display_name = f"Std: {std}h | Ext: {ext}h ({status})"
 
     # ==========================================================
-    # EDP BOUNCER: WEEKEND & PUBLIC HOLIDAY RESTRICTION
+    # EDP BOUNCER: WEEKEND RESTRICTION
     # ==========================================================
-    # FIX 1: Now it triggers on Check-In AND Check-Out
     @api.constrains('check_in', 'check_out')
     def _check_edp_restriction(self):
         for att in self:
@@ -808,7 +807,6 @@ class HrAttendance(models.Model):
             get_param = self.env['ir.config_parameter'].sudo().get_param
 
             def is_active(param_name):
-                # Safely convert whatever Odoo saved ('True', '1', 't') into a solid True/False
                 return str(get_param(param_name, 'False')).strip().lower() in ['true', '1', 't', 'yes', 'y']
 
             restrict_sunday = is_active('attendance.edp_restrict_sunday')
@@ -831,24 +829,10 @@ class HrAttendance(models.Model):
             utc_day_start = local_day_start.astimezone(pytz.utc).replace(tzinfo=None)
             utc_day_end = local_day_end.astimezone(pytz.utc).replace(tzinfo=None)
 
-            # -------------------------------------------------------------
-            # NEW: 5. Check for Public Holidays (Global Leaves)
-            # -------------------------------------------------------------
-            calendar_id = att.employee_id.resource_calendar_id.id or self.env.company.resource_calendar_id.id
+            # 5. Check if today hits any restricted rule (Weekend only)
+            if is_sunday or is_restricted_saturday:
 
-            public_holiday = self.env['resource.calendar.leaves'].sudo().search([
-                ('calendar_id', '=', calendar_id),
-                ('resource_id', '=', False),  # False means it's a Global Company Holiday, not personal PTO
-                ('date_from', '<', utc_day_end),
-                ('date_to', '>', utc_day_start)
-            ], limit=1)
-
-            is_public_holiday = bool(public_holiday)
-
-            # 6. Check if today hits ANY restricted rule (Weekend OR Holiday)
-            if is_sunday or is_restricted_saturday or is_public_holiday:
-
-                # 7. It is a restricted day! Check the Planning App for an approved EDP shift.
+                # 6. Check the Planning App for an approved EDP shift
                 has_edp_slot = self.env['planning.slot'].sudo().search_count([
                     ('employee_id', '=', att.employee_id.id),
                     ('start_datetime', '<', utc_day_end),
@@ -856,12 +840,9 @@ class HrAttendance(models.Model):
                     ('state', 'in', ['draft', 'published']),
                 ])
 
-                # 8. If they don't have a slot, kick them out!
+                # 7. If they don't have a slot, kick them out!
                 if not has_edp_slot:
-                    # Dynamically change the error message based on WHY they were blocked
-                    if is_public_holiday:
-                        reason_text = f"a Public Holiday ({public_holiday.name})"
-                    elif is_sunday:
+                    if is_sunday:
                         reason_text = "Sunday"
                     else:
                         reason_text = f"the {week_of_month}st/nd/rd/th Saturday"
