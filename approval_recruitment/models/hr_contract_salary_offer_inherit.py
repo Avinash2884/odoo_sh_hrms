@@ -14,25 +14,25 @@ class HrContractSalaryOffer(models.Model):
     hospital_city = fields.Char(string="Hospital City")
 
     #cmt offer internship
-    cmt_designation = fields.Many2one('hr.job',string="Designation")
-    band_id = fields.Many2one('band',string="Band")
-    level_id = fields.Many2one('level',string="Level")
+    cmt_designation = fields.Many2one('hr.job',string="CMT Designation")
+    band_id = fields.Many2one('band',string="CMT Band")
+    level_id = fields.Many2one('level',string="CMT Level")
 
 
     # hse offer internship
-    hse_designation = fields.Many2one('hr.job',string="Designation")
+    hse_designation = fields.Many2one('hr.job',string="HSE Designation")
     hse_intern_hospital_name = fields.Char(string="HSE Intern (Hospital Name)")
     hse_intern_hospital_city = fields.Char(string="HSE Intern (Hospital City)")
-    hse_band_id = fields.Many2one('band', string="Band")
-    hse_level_id = fields.Many2one('level', string="Level")
+    hse_band_id = fields.Many2one('band', string="HSE Band")
+    hse_level_id = fields.Many2one('level', string="HSE Level")
 
     # offer of appointment
-    designation = fields.Many2one('hr.job',string="Designation")
+    designation = fields.Many2one('hr.job',string="Offer Designation")
     variable_pay_ctc = fields.Float(string="Variable Pay CTC")
     offer_hospital_name = fields.Char(string="Offer of Appointment (Hospital Name)")
     offer_hospital_city = fields.Char(string="Offer of Appointment (Hospital City)")
-    offer_band_id = fields.Many2one('band', string="Band")
-    offer_level_id = fields.Many2one('level', string="Level")
+    offer_band_id = fields.Many2one('band', string="Offer Band")
+    offer_level_id = fields.Many2one('level', string="Offer Level")
 
     # internship letter
     start_date = fields.Date(string="Start Date")
