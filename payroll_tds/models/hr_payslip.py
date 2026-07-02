@@ -138,19 +138,19 @@ class HrPayslip(models.Model):
         compute="_compute_bank_details",
     )
 
-    @api.depends(
-        "employee_id.bank_account_ids",
-        "employee_id.bank_account_ids.bank_name",
-        "employee_id.bank_account_ids.ls_ifsc_code",
-        "employee_id.bank_account_ids.acc_number",
-    )
-    def _compute_bank_details(self):
-        for rec in self:
-            bank = rec.employee_id.bank_account_ids[:1]
-
-            rec.bank_name = bank.bank_name if bank else ""
-            rec.ifsc_code = bank.ls_ifsc_code if bank else ""
-            rec.account_number = bank.acc_number if bank else ""
+    # @api.depends(
+    #     "employee_id.bank_account_ids",
+    #     "employee_id.bank_account_ids.bank_name",
+    #     "employee_id.bank_account_ids.ls_ifsc_code",
+    #     "employee_id.bank_account_ids.acc_number",
+    # )
+    # def _compute_bank_details(self):
+    #     for rec in self:
+    #         bank = rec.employee_id.bank_account_ids[:1]
+    #
+    #         rec.bank_name = bank.bank_name if bank else ""
+    #         rec.ifsc_code = bank.ls_ifsc_code if bank else ""
+    #         rec.account_number = bank.acc_number if bank else ""
 
 
     basic = fields.Monetary(
