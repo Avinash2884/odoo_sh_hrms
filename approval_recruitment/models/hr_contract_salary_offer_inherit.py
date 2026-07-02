@@ -38,46 +38,76 @@ class HrContractSalaryOffer(models.Model):
     start_date = fields.Date(string="Start Date")
     end_date = fields.Date(string="End Date")
 
-    manual_ctc = fields.Float(string="Employer Budget (CTC)")
+    basic_pay = fields.Float(
+        string="Basic Pay",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+    hra = fields.Float(
+        string="HRA",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+    special_allowance = fields.Float(
+        string="Special Allowance",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+    total_gross_pay = fields.Float(
+        string="Total Gross Pay",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+    employer_pf = fields.Float(
+        string="Employer PF",
+        compute="_compute_salary_breakup",
+        store=True
+    )
 
-    # -------------------------------
-    # Salary Breakdown
-    # -------------------------------
-    basic = fields.Float(compute="_compute_salary", store=True)
-    hra = fields.Float(compute="_compute_salary", store=True)
-    special_allowance = fields.Float(compute="_compute_salary", store=True)
-    employer_pf = fields.Float(compute="_compute_salary", store=True)
-    monthly_ctc = fields.Float(compute="_compute_salary", store=True)
-
-    # -------------------------------
-    # ✅ COMPUTE METHOD (FIXED)
-    # -------------------------------
-    @api.depends('manual_ctc')
-    def _compute_salary(self):
+    @api.depends('final_yearly_costs')
+    def _compute_salary_breakup(self):
         for rec in self:
-
-            ctc = rec.manual_ctc or 0.0
+            ctc = rec.final_yearly_costs or 0.0
 
             if not ctc:
-                rec.basic = 0.0
+                rec.basic_pay = 0.0
                 rec.hra = 0.0
                 rec.special_allowance = 0.0
+                rec.total_gross_pay = 0.0
                 rec.employer_pf = 0.0
-                rec.monthly_ctc = 0.0
                 continue
 
-            basic = ctc * 0.5
-            hra = basic * 0.4
+            # Annual Basic
+            annual_basic = ctc * 0.40
 
-            if basic <= 15000:
-                pf = basic * 0.12
+            # Annual HRA
+            annual_hra = annual_basic * 0.40
+
+            # Monthly Basic
+            monthly_basic = annual_basic / 12
+
+            # Monthly HRA
+            monthly_hra = annual_hra / 12
+
+            # Monthly Employer PF
+            if monthly_basic <= 15000:
+                monthly_pf = monthly_basic * 0.12
             else:
-                pf = 1800
+                monthly_pf = 1800.0
 
-            special = ctc - (basic + hra + pf)
+            # Annual Gross
+            annual_gross = ctc - (monthly_pf * 12)
 
-            rec.basic = basic
-            rec.hra = hra
-            rec.employer_pf = pf
-            rec.special_allowance = special
-            rec.monthly_ctc = ctc / 12
+            # Monthly Gross
+            monthly_gross = annual_gross / 12
+
+            # Monthly Special Allowance
+            monthly_special = monthly_gross - monthly_basic - monthly_hra
+
+            rec.basic_pay = monthly_basic
+            rec.hra = monthly_hra
+            rec.special_allowance = monthly_special
+            rec.total_gross_pay = monthly_gross
+            rec.employer_pf = monthly_pf
+
+

@@ -59,16 +59,13 @@
                     </page>
 
                     <page string="Annexure Details">
-
                         <group>
-                            <field name="manual_ctc"/>
-                            <field name="basic" readonly="1"/>
+                            <field name="basic_pay" readonly="1"/>
                             <field name="hra" readonly="1"/>
                             <field name="special_allowance" readonly="1"/>
-                            <field name="employer_pf" readonly="1"/>
-                            <field name="monthly_ctc" readonly="1"/>
+                            <field name="total_gross_pay" readonly="1"/>
+                            <field name="employer_pf" readonly="0"/>
                         </group>
-
                     </page>
                 </notebook>
             </xpath>
