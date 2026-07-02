@@ -7,7 +7,7 @@
         <field name="report_name">approval_recruitment.template_hse_appointment_letter</field>
         <field name="report_file">approval_recruitment.template_hse_appointment_letter</field>
         <field name="print_report_name">'HSE Appointment Letter'</field>
-        <field name="binding_model_id" ref="hr_contract_salary.model_hr_contract_salary_offer"/>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
         <field name="binding_type">report</field>
     </record>
     <template id="template_hse_appointment_letter">
@@ -307,8 +307,8 @@
                             <strong>For <t t-esc="object.company_id.name"/></strong>
                         </p>
 
-                        <p style="margin-top: 10px;">Koushalya R</p>
-                        <p style="margin-top: 0px;">Head – Human Resources </p>
+                        <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
+                        <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
 
 
                         <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">

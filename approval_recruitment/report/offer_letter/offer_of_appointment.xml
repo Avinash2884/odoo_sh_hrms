@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="action_report_offer_of_appointment" model="ir.actions.report">
-        <field name="name">Offer of Appointment</field>
+        <field name="name">Full Time Employee Offer Letter Template</field>
         <field name="model">hr.contract.salary.offer</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">approval_recruitment.template_offer_of_appointment</field>
@@ -19,7 +19,7 @@
 
                         <!-- Title -->
                         <h2 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
-                            Offer Of Appointment
+                            Offer Letter
                         </h2>
 
                         <!-- Date -->
@@ -58,19 +58,19 @@
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            1. <t t-esc="object.applicant_id.job_id.name"/>
+                            1. <strong>Role:</strong> <t t-esc="object.applicant_id.job_id.name"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            2. <t t-esc="object.designation"/>
+                            2. <strong>Designation:</strong> <t t-esc="object.designation.name"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            3.	We would appreciate you joining us on or before <t t-esc="object.applicant_id.ls_date_of_joining"/>
+                            3.	We would appreciate you joining us on or before <strong>Joining Date: </strong><t t-esc="object.applicant_id.ls_date_of_joining"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            4.	Compensation: Your Annual Compensation will be <strong>Rs.<t t-esc="object.final_yearly_costs"/></strong> Per Annum, including a Variable Pay <strong>Rs.<t t-esc="object.variable_pay_ctc"/></strong>. Annexure 1 outlines the detailed component-wise stack up.
+                            4.	Compensation: Your Annual Compensation will be INR Total<strong> Rs.<t t-esc="object.final_yearly_costs"/></strong> Per Annum, including a Variable Pay <strong>Rs.<t t-esc="object.variable_pay_ctc"/></strong>. Annexure 1 outlines the detailed component-wise stack up.
                         </p>
 
                         <p>
@@ -132,8 +132,8 @@
                         <p style="margin-top: 40px;">
                             <strong>For <t t-esc="object.company_id.name"/></strong>
                         </p>
-                        <p style="margin-top: 10px;">Koushalya R</p>
-                        <p style="margin-top: 0px;">Head – Human Resources </p>
+                        <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
+                        <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
                         <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
                             <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">
@@ -141,11 +141,11 @@
                             </p>
 
                             <!-- Employee Details -->
-                            <p>Name: </p>
-                            <p>Designation: </p>
-                            <p>Band: </p>
-                            <p>Level: </p>
-                            <p>Date of joining:</p>
+                            <p>Name: <t t-esc="object.applicant_id.partner_name"/></p>
+                            <p>Designation: <t t-esc="object.designation.name"/></p>
+                            <p>Band: <t t-esc="object.offer_band_id.name"/></p>
+                            <p>Level: <t t-esc="object.offer_level_id.name"/></p>
+                            <p>Date of joining: <t t-esc="object.applicant_id.ls_date_of_joining"/></p>
 
                             <br/>
 
@@ -160,39 +160,69 @@
                                         <th class="text-center">Annual CTC</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Basic Pay + DA</td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td>HRA</td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Special Allowance</td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Total Gross Pay</strong></td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Employer PF</td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>CTC</strong></td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                </tbody>
-                            </table>                            <br/>
+                            <tbody>
+                                <tr>
+                                    <td>Basic Pay + DA</td>
+                                    <td class="text-center">
+                                        <t t-esc="object.basic / 12"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.basic"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>HRA</td>
+                                    <td class="text-center">
+                                        <t t-esc="object.hra / 12"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.hra"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>Special Allowance</td>
+                                    <td class="text-center">
+                                        <t t-esc="object.special_allowance / 12"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.special_allowance"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td><strong>Total Gross Pay</strong></td>
+                                    <td class="text-center">
+                                        <t t-esc="object.monthly_ctc"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.final_yearly_costs"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>Employer PF (12%)</td>
+                                    <td class="text-center">
+                                        <t t-esc="object.employer_pf / 12"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.employer_pf"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td><strong>CTC</strong></td>
+                                    <td class="text-center">
+                                        <t t-esc="object.final_yearly_costs / 12"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.final_yearly_costs"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            </table>
+                            <br/>
 
                             <!-- Notes -->
                             <ul style="margin-top: 15px;">
