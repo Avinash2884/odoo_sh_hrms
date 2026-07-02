@@ -152,24 +152,44 @@ class HrPayslip(models.Model):
     #         rec.ifsc_code = bank.ls_ifsc_code if bank else ""
     #         rec.account_number = bank.acc_number if bank else ""
 
-
     basic = fields.Monetary(
-        related='employee_id.l10n_in_basic_salary_amount',
-        string='Basic',
-        readonly=True
+        string="Basic",
+        compute="_compute_basic_salary",
+        currency_field="currency_id",
+        store=True,
     )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_basic_salary(self):
+        for slip in self:
+            basic_line = slip.line_ids.filtered(lambda l: l.code == 'BASIC')[:1]
+            slip.basic = basic_line.total if basic_line else 0.0
 
     hra = fields.Monetary(
-        related='employee_id.l10n_in_hra',
-        string='HRA',
-        readonly=True
+        string="HRA",
+        compute="_compute_hra",
+        currency_field="currency_id",
+        store=True,
     )
 
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_hra(self):
+        for slip in self:
+            hra_line = slip.line_ids.filtered(lambda l: l.code == 'HRA')[:1]
+            slip.hra = hra_line.total if hra_line else 0.0
+
     special_allowance = fields.Monetary(
-        related='employee_id.l10n_in_fixed_allowance',
-        string='Special Allowance',
-        readonly=True
+        string="Special Allowance",
+        compute="_compute_special_allowance",
+        currency_field="currency_id",
+        store=True,
     )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_special_allowance(self):
+        for slip in self:
+            special_line = slip.line_ids.filtered(lambda l: l.code == 'SPI')[:1]
+            slip.special_allowance = special_line.total if special_line else 0.0
 
     stipend = fields.Monetary(
         related='employee_id.stipend',
