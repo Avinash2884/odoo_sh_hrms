@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="action_report_internship_letter" model="ir.actions.report">
-        <field name="name">Internship Letter</field>
+        <field name="name">Internship Offer Template</field>
         <field name="model">hr.contract.salary.offer</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">approval_recruitment.template_internship_letter</field>
         <field name="report_file">approval_recruitment.template_internship_letter</field>
-        <field name="print_report_name">'Internship Letter'</field>
+        <field name="print_report_name">'Internship Offer Template'</field>
         <field name="binding_model_id" ref="hr_contract_salary.model_hr_contract_salary_offer"/>
         <field name="binding_type">report</field>
     </record>
@@ -148,8 +148,8 @@
                             <strong>For <t t-esc="object.company_id.name"/></strong>
                         </p>
 
-                        <p style="margin-top: 10px;">Koushalya R</p>
-                        <p style="margin-top: 0px;">Head – Human Resources </p>
+                        <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
+                        <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
 
                         <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
@@ -392,7 +392,7 @@
                                         <td>Signature:</td>
                                     </tr>
                                     <tr>
-                                        <td>Print Name: HR HEAD NAME</td>
+                                        <td>Print Name: <t t-esc="object.applicant_id.job_id.hr_head_name.name"/></td>
                                         <td>Print Name:</td>
                                     </tr>
                                     <tr>

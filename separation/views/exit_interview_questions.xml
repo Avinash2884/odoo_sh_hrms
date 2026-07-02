@@ -31,6 +31,7 @@
                             <field name="option_ids">
                                 <list editable="bottom">
                                     <field name="name"/>
+                                    <field name="is_other"/>
                                     <field name="sequence" widget="handle"/>
                                 </list>
                             </field>

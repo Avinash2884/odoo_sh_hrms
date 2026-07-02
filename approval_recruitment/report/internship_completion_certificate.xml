@@ -61,8 +61,8 @@
                         </p>
                         <br></br>
 
-                        <p style="margin: 2px 0; line-height: 1.5;">Koushalya R</p>
-                        <p style="margin: 2px 0; line-height: 1.5;">Head – Human Resources </p>
+                        <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
+                        <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
 
                     </div>
 

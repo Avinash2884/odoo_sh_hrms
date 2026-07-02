@@ -14,11 +14,50 @@ class InitiateSeparation(models.Model):
     employee_id = fields.Many2one(
         'hr.employee',
         string='Employee',
-        default=lambda self: self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1),
+        default=lambda self: self._default_employee(),
         check_company=True,
         index=True,
         tracking=True,
     )
+
+    def _default_employee(self):
+        user = self.env.user
+        if user.has_group('separation.group_separation_hr'):
+            return False
+        employee = self.env['hr.employee'].search([
+            ('user_id', '=', user.id)
+        ], limit=1)
+        return employee
+
+    show_first_field = fields.Boolean(compute="_compute_visibility")
+    show_second_field = fields.Boolean(compute="_compute_visibility")
+
+    @api.depends()
+    def _compute_visibility(self):
+        user = self.env.user
+
+        for rec in self:
+
+            # First field users
+            rec.show_first_field = (
+                    user.has_group('separation.group_separation_employee') or
+                    user.has_group('separation.group_separation_reporting_manager') or
+                    user.has_group('separation.group_separation_it_assets_clearance_head') or
+                    user.has_group('separation.group_separation_admin_clearance_head') or
+                    user.has_group('separation.group_separation_payroll_clearance_head')
+            )
+
+            # Second field users
+            rec.show_second_field = (
+                    user.has_group('separation.group_separation_hr') or
+                    user.has_group('separation.group_separation_hr_head')
+            )
+
+            # Administrator → see all
+            if user.has_group('separation.group_separation_administrator'):
+                rec.show_first_field = True
+                rec.show_second_field = True
+
     ls_employee_id = fields.Char(string="Employee ID", related='employee_id.ls_employee_id',tracking=True)
     ls_designation_id = fields.Many2one('hr.job', 'Designation',related='employee_id.job_id', tracking=True)
     department_id = fields.Many2one('hr.department', 'Department',related='employee_id.department_id',tracking=True)
