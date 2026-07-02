@@ -128,15 +128,15 @@ class HrPayslip(models.Model):
         compute="_compute_bank_details",
     )
     #
-    # ifsc_code = fields.Char(
-    #     string="IFSC Code",
-    #     compute="_compute_bank_details",
-    # )
-    #
-    # account_number = fields.Char(
-    #     string="Account Number",
-    #     compute="_compute_bank_details",
-    # )
+    ifsc_code = fields.Char(
+        string="IFSC Code",
+        compute="_compute_bank_details",
+    )
+
+    account_number = fields.Char(
+        string="Account Number",
+        compute="_compute_bank_details",
+    )
 
     # @api.depends(
     #     "employee_id.bank_account_ids",
