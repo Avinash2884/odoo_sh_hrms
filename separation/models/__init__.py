@@ -8,4 +8,3 @@ from . import payroll_clearance
 from . import exit_interview_questions
 from . import exit_interview_options
 from . import exit_interview_line
-from . import initiate_separtion_hr

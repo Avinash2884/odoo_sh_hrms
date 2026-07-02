@@ -18,7 +18,6 @@
         "views/payroll_component.xml",
         "views/exit_interview_questions.xml",
         "views/initiate_separation.xml",
-        "views/initiate_separation_hr.xml",
 
         "views/menus.xml",
     ],

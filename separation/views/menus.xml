@@ -12,10 +12,6 @@
           parent="menu_separation_root"
           action="action_separation_approval1"
         groups="separation.group_separation_reporting_manager"/>
-    <menuitem id="menu_initiate_separation_hr"
-          name="Initiate Separation By HR"
-          parent="menu_separation_root"
-          action="action_initiate_separation_hr"/>
 <!--    configuration-->
     <menuitem id="menu_separation_configuration"
           name="Separation"
