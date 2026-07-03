@@ -382,24 +382,72 @@
                             <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
                                 <thead>
                                     <tr>
-                                        <th class="text-start">FOR COMPANY NAME</th>
-                                        <th class="text-center">FOR INTERN</th>
+                                        <th class="text-start">Particulars</th>
+                                        <th class="text-center">Monthly</th>
+                                        <th class="text-center">Annual CTC</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Signature:</td>
-                                        <td>Signature:</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Print Name: <t t-esc="object.applicant_id.job_id.hr_head_name.name"/></td>
-                                        <td>Print Name:</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Date:</td>
-                                        <td>Date:</td>
-                                    </tr>
-                                </tbody>
+                            <tbody>
+                                <tr>
+                                    <td>Basic Pay + DA</td>
+                                    <td class="text-center">
+                                        <t t-esc="object.basic_pay"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.basic_pay_annual"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>HRA</td>
+                                    <td class="text-center">
+                                        <t t-esc="object.hra"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.hra_annual"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>Special Allowance</td>
+                                    <td class="text-center">
+                                        <t t-esc="object.special_allowance"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.special_allowance_annual"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td><strong>Total Gross Pay</strong></td>
+                                    <td class="text-center">
+                                        <t t-esc="object.total_gross_pay"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.total_gross_pay_annual"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>Employer PF (12%)</td>
+                                    <td class="text-center">
+                                        <t t-esc="object.employer_pf"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.employer_pf_annual"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td><strong>CTC</strong></td>
+                                    <td class="text-center">
+                                        <t t-esc="object.total_gross_pay"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <t t-esc="object.total_gross_pay_annual"/>
+                                    </td>
+                                </tr>
+                            </tbody>
                             </table>
                         </div>
 

@@ -5,6 +5,34 @@
         <field name="inherit_id" ref="hr_contract_salary.hr_contract_salary_offer_view_form"/>
         <field name="arch" type="xml">
 
+            <xpath expr="//header" position="inside">
+
+                <button name="action_print_cmt_offer_letter"
+                        string="Print CMT Offer Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="offer_letter_type != 'cmt_offer_of_internship_and_subsequent_appointment'"/>
+
+                <button name="action_print_hse_offer_letter"
+                        string="Print HSE Offer Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="offer_letter_type != 'hse_offer_of_internship_and_subsequent_appointment'"/>
+
+                <button name="action_print_offer"
+                        string="Print Offer Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="offer_letter_type != 'offer_of_appointment'"/>
+
+                <button name="action_print_internship"
+                        string="Print Internship Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="offer_letter_type != 'internship_letter'"/>
+
+            </xpath>
+
             <xpath expr="//field[@name='contract_type_id']" position="after">
                 <field name="offer_letter_type"/>
             </xpath>
@@ -60,11 +88,20 @@
 
                     <page string="Annexure Details">
                         <group>
-                            <field name="basic_pay" readonly="1"/>
-                            <field name="hra" readonly="1"/>
-                            <field name="special_allowance" readonly="1"/>
-                            <field name="total_gross_pay" readonly="1"/>
-                            <field name="employer_pf" readonly="0"/>
+                            <group>
+                                <field name="basic_pay" readonly="1"/>
+                                <field name="hra" readonly="1"/>
+                                <field name="special_allowance" readonly="1"/>
+                                <field name="total_gross_pay" readonly="1"/>
+                                <field name="employer_pf" readonly="0"/>
+                            </group>
+                            <group>
+                                <field name="basic_pay_annual" readonly="1"/>
+                                <field name="hra_annual" readonly="1"/>
+                                <field name="special_allowance_annual" readonly="1"/>
+                                <field name="total_gross_pay_annual" readonly="1"/>
+                                <field name="employer_pf_annual" readonly="0"/>
+                            </group>
                         </group>
                     </page>
                 </notebook>

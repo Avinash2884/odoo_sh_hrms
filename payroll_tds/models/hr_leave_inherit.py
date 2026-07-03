@@ -313,8 +313,11 @@ class HrLeave(models.Model):
             if (gap_days <= 1 or only_non_working):
                 if previous_leave.holiday_status_id.id != leave.holiday_status_id.id:
                     raise ValidationError(
-                        "❌ You cannot apply different leave types continuously. "
-                        "Please use the same leave type."
+                        "You cannot club %(current)s with %(previous)s while applying for leave."
+                        % {
+                            'current': leave.holiday_status_id.display_name,
+                            'previous': previous_leave.holiday_status_id.display_name,
+                        }
                     )
 
     # ----------------------------------------

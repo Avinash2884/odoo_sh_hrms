@@ -164,60 +164,60 @@
                                 <tr>
                                     <td>Basic Pay + DA</td>
                                     <td class="text-center">
-                                        <t t-esc="object.basic / 12"/>
+                                        <t t-esc="object.basic_pay"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="object.basic"/>
+                                        <t t-esc="object.basic_pay_annual"/>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td>HRA</td>
                                     <td class="text-center">
-                                        <t t-esc="object.hra / 12"/>
+                                        <t t-esc="object.hra"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="object.hra"/>
+                                        <t t-esc="object.hra_annual"/>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td>Special Allowance</td>
                                     <td class="text-center">
-                                        <t t-esc="object.special_allowance / 12"/>
+                                        <t t-esc="object.special_allowance"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="object.special_allowance"/>
+                                        <t t-esc="object.special_allowance_annual"/>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td><strong>Total Gross Pay</strong></td>
                                     <td class="text-center">
-                                        <t t-esc="object.monthly_ctc"/>
+                                        <t t-esc="object.total_gross_pay"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="object.final_yearly_costs"/>
+                                        <t t-esc="object.total_gross_pay_annual"/>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td>Employer PF (12%)</td>
                                     <td class="text-center">
-                                        <t t-esc="object.employer_pf / 12"/>
+                                        <t t-esc="object.employer_pf"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="object.employer_pf"/>
+                                        <t t-esc="object.employer_pf_annual"/>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td><strong>CTC</strong></td>
                                     <td class="text-center">
-                                        <t t-esc="object.final_yearly_costs / 12"/>
+                                        <t t-esc="object.total_gross_pay"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="object.final_yearly_costs"/>
+                                        <t t-esc="object.total_gross_pay_annual"/>
                                     </td>
                                 </tr>
                             </tbody>
