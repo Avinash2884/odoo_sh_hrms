@@ -21,17 +21,17 @@ class HrEdpRequest(models.Model):
     date = fields.Date(string='EDP Date', required=True)
     calendar_id = fields.Many2one('resource.calendar', string='Shift Template', required=True)
 
+    # ---> CHANGED: Removed 'manager_approved' (Waiting for HR) intermediate state
+    # Single approval flow: Draft -> Submitted -> Approved & Allocated
     state = fields.Selection([
         ('draft', 'Draft'),
         ('submitted', 'Waiting for Manager'),
-        ('manager_approved', 'Waiting for HR'),
         ('approved', 'Approved & Allocated'),
         ('refused', 'Refused')
     ], string='Status', default='draft', tracking=True)
 
     # 👇 VISIBILITY CHECKERS added here 👇
     can_approve_manager = fields.Boolean(compute='_compute_can_approve')
-    can_approve_hr = fields.Boolean(compute='_compute_can_approve')
 
     def _compute_can_approve(self):
         for req in self:
@@ -40,9 +40,6 @@ class HrEdpRequest(models.Model):
 
             # True ONLY if logged-in user is the assigned Manager (or an Admin)
             req.can_approve_manager = is_admin or (current_employee and current_employee == req.manager_id)
-
-            # True ONLY if logged-in user is the assigned HR Head (or an Admin)
-            req.can_approve_hr = is_admin or (current_employee and current_employee == req.hr_head_id)
 
     @api.depends('employee_id', 'date')
     def _compute_name(self):
@@ -64,26 +61,13 @@ class HrEdpRequest(models.Model):
                     partner_ids=[req.manager_id.user_id.partner_id.id]
                 )
 
+    # ---> CHANGED: Manager approval now directly creates the planning slot
+    # (this used to be in action_hr_approve — HR step removed entirely)
     def action_manager_approve(self):
         for req in self:
             # SECURITY: Only the assigned Manager can approve
             if self.env.user.employee_id != req.manager_id and not self.env.user.has_group('base.group_erp_manager'):
                 raise UserError("Access Denied: Only the assigned Reporting Manager can approve this step!")
-
-            req.write({'state': 'manager_approved'})
-
-            # Notify the exact mapped HR Head
-            if req.hr_head_id and req.hr_head_id.user_id:
-                req.message_post(
-                    body=f"Hello {req.hr_head_id.name}, the Manager has approved. The EDP request for {req.employee_id.name} is waiting for your final approval.",
-                    partner_ids=[req.hr_head_id.user_id.partner_id.id]
-                )
-
-    def action_hr_approve(self):
-        for req in self:
-            # SECURITY: Only the assigned HR Head can approve
-            if self.env.user.employee_id != req.hr_head_id and not self.env.user.has_group('base.group_erp_manager'):
-                raise UserError("Access Denied: Only the assigned HR Head can approve this final step!")
 
             # Timezone Fix for Planning App
             tz_name = req.employee_id.tz or self.env.user.tz or 'UTC'
@@ -110,15 +94,14 @@ class HrEdpRequest(models.Model):
             # Notify Employee of Success
             if req.employee_id.user_id:
                 req.message_post(
-                    body=f"Congratulations! Your EDP request for {req.date} has been fully approved and allocated in your schedule.",
+                    body=f"Congratulations! Your EDP request for {req.date} has been approved and allocated in your schedule.",
                     partner_ids=[req.employee_id.user_id.partner_id.id]
                 )
 
     def action_refuse(self):
         for req in self:
-            # SECURITY: Only Manager or HR Head can refuse
-            allowed_users = [req.manager_id.user_id.id,
-                             req.hr_head_id.user_id.id] if req.manager_id.user_id and req.hr_head_id.user_id else []
+            # SECURITY: Only Manager can refuse
+            allowed_users = [req.manager_id.user_id.id] if req.manager_id.user_id else []
             if self.env.user.id not in allowed_users and not self.env.user.has_group('base.group_erp_manager'):
                 raise UserError("Access Denied: You do not have permission to refuse this request.")
 

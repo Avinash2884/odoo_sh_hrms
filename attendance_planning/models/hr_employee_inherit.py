@@ -7,6 +7,11 @@ from odoo import models, fields, api
 class HrEmployee(models.Model):
     _inherit = 'hr.employee'
 
+    shift_type = fields.Selection([
+        ('regular', 'Regular Shift (Fixed Weekends)'),
+        ('rotational', 'Rotational Shift (Dynamic Week-Offs)')
+    ], string="Shift Type", default='regular', tracking=True)
+
     face_descriptor = fields.Text(string="Face Recognition Data", copy=False, groups="hr.group_hr_user")
     has_registered_face = fields.Boolean(compute='_compute_has_registered_face')
     is_current_user = fields.Boolean(compute='_compute_is_current_user')
@@ -87,6 +92,11 @@ class HrEmployeePublic(models.Model):
 
     has_registered_face = fields.Boolean(compute='_compute_has_registered_face')
     is_current_user = fields.Boolean(compute='_compute_is_current_user')
+
+    shift_type = fields.Selection([
+        ('regular', 'Regular Shift (Fixed Weekends)'),
+        ('rotational', 'Rotational Shift (Dynamic Week-Offs)')
+    ], string="Shift Type", default='regular', tracking=True)
 
     def _compute_has_registered_face(self):
         for emp in self:
