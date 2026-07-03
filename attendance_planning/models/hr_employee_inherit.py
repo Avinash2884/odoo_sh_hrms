@@ -96,7 +96,7 @@ class HrEmployeePublic(models.Model):
     shift_type = fields.Selection([
         ('regular', 'Regular Shift (Fixed Weekends)'),
         ('rotational', 'Rotational Shift (Dynamic Week-Offs)')
-    ], string="Shift Type", default='regular', tracking=True)
+    ], string="Shift Type", default='regular')
 
     def _compute_has_registered_face(self):
         for emp in self:
