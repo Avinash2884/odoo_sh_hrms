@@ -18,6 +18,11 @@ function getEAR(eye) {
     return (v1 + v2) / (2.0 * h);
 }
 
+// Module-level cache so the face-api script + AI models are only ever
+// loaded ONCE per page session, not on every single click.
+let _faceApiScriptPromise = null;
+let _faceApiModelsPromise = null;
+
 export class FaceVerificationDialog extends Component {
     setup() {
         this.videoRef = useRef("videoElement");
@@ -46,26 +51,43 @@ export class FaceVerificationDialog extends Component {
     }
 
     async injectFaceApiScript() {
-        return new Promise((resolve, reject) => {
-            if (window.faceapi) return resolve();
-            const script = document.createElement('script');
-            script.src = '/attendance_planning/static/src/lib/face-api.js';
-            script.onload = () => resolve();
-            script.onerror = () => {
-                console.error("❌ CRITICAL: Could not find face-api.js at", script.src);
-                console.error("Please verify the file exists in your static/src/lib folder and restart the Odoo server.");
-                reject(new Error("Failed to load face-api.js"));
-            };
-            document.head.appendChild(script);
-        });
+        if (window.faceapi) return;
+        if (!_faceApiScriptPromise) {
+            _faceApiScriptPromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = '/attendance_planning/static/src/lib/face-api.js';
+                script.onload = () => resolve();
+                script.onerror = () => {
+                    console.error("❌ CRITICAL: Could not find face-api.js at", script.src);
+                    console.error("Please verify the file exists in your static/src/lib folder and restart the Odoo server.");
+                    _faceApiScriptPromise = null;
+                    reject(new Error("Failed to load face-api.js"));
+                };
+                document.head.appendChild(script);
+            });
+        }
+        return _faceApiScriptPromise;
     }
 
+    // Models are only ever downloaded/initialized ONCE per page session now —
+    // every dialog open after the first reuses the same cached promise, so the
+    // camera opens instantly instead of reloading the AI models every click.
     async loadModels() {
-        this.state.statusMessage = "Loading AI Models...";
-        const modelPath = '/attendance_planning/static/src/models';
-        await faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);
-        await faceapi.nets.faceRecognitionNet.loadFromUri(modelPath);
+        if (!_faceApiModelsPromise) {
+            this.state.statusMessage = "Loading AI Models...";
+            const modelPath = '/attendance_planning/static/src/models';
+            _faceApiModelsPromise = Promise.all([
+                faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath),
+                faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
+                faceapi.nets.faceRecognitionNet.loadFromUri(modelPath),
+            ]).catch((e) => {
+                _faceApiModelsPromise = null;
+                throw e;
+            });
+        } else {
+            this.state.statusMessage = "Loading AI Models...";
+        }
+        await _faceApiModelsPromise;
         this.state.statusMessage = "Ready. Please look at the camera.";
     }
 
@@ -216,10 +238,26 @@ if (ActualAttendanceMenu) {
             this.dialogService = useService("dialog");
             this.orm = useService("orm");
             this.notificationService = useService("notification");
+            // Guard flag: this is the actual fix for the "hasn't checked out"
+            // validation error. The old code had no protection against a
+            // double-click (or a bubbled double-fire event) calling signInOut()
+            // twice in quick succession — each call independently tried to
+            // create an attendance record, and the second one collided with
+            // the first, producing that error. This flag makes signInOut()
+            // ignore any call while one is already in flight.
+            this._punchInProgress = false;
         },
 
         // ---> FIX 2: Check geo BEFORE opening camera
         async signInOut() {
+            // Hard stop re-entrancy: this is what actually fixes the
+            // "hasn't checked out since ..." validation error. Ignore any
+            // click while a punch from a previous click is still running.
+            if (this._punchInProgress) {
+                return;
+            }
+            this._punchInProgress = true;
+
             let currentState = 'checked_out';
 
             if (this.employee && this.employee.attendance_state) {
@@ -249,6 +287,7 @@ if (ActualAttendanceMenu) {
                     "Location access is required for attendance. Please allow location and try again.",
                     { type: "danger", sticky: true }
                 );
+                this._punchInProgress = false;
                 return;
             }
 
@@ -268,6 +307,7 @@ if (ActualAttendanceMenu) {
                         (result && result.message) ? result.message : "You are outside the allowed office location.",
                         { type: "danger", sticky: true }
                     );
+                    this._punchInProgress = false;
                     return;
                 }
 
@@ -286,236 +326,40 @@ if (ActualAttendanceMenu) {
                     "Could not verify your location. Please try again.",
                     { type: "danger", sticky: true }
                 );
+                this._punchInProgress = false;
                 return;
             }
 
-            // Step 3: Geo passed — open face verification
+            // Step 3: Geo passed — open face verification.
+            // Safety net: force-release the lock after 60s no matter what,
+            // so the button can never get stuck until a page refresh even if
+            // the user closes the dialog without completing it. We deliberately
+            // do NOT pass a custom "close" prop into the dialog here — Odoo's
+            // dialog service already auto-injects its own "close" function into
+            // every dialog it opens, and defining our own "close" key collides
+            // with that (this exact collision was the cause of an earlier
+            // "stuck until refresh" bug), so we avoid it entirely.
+            const safetyUnlock = setTimeout(() => {
+                this._punchInProgress = false;
+            }, 60000);
+
             this.dialogService.add(FaceVerificationDialog, {
                 attendanceState: currentState,
                 geoZoneId: currentGeoZoneId, // PASS THE ID TO THE VERIFICATION DIALOG
                 onSuccess: async () => {
-                    await super.signInOut();
-                }
+                    try {
+                        // Pure native call — this is what makes the button
+                        // color and check-in/out location fields update
+                        // automatically, exactly like your old working code.
+                        await super.signInOut();
+                    } finally {
+                        clearTimeout(safetyUnlock);
+                        this._punchInProgress = false;
+                    }
+                },
             });
         }
     });
 }
 
 
-
-
-
-///** @odoo-module **/
-//
-//import * as attendanceMenuModule from "@hr_attendance/components/attendance_menu/attendance_menu";
-//import { patch } from "@web/core/utils/patch";
-//import { Dialog } from "@web/core/dialog/dialog";
-//import { useService } from "@web/core/utils/hooks";
-//import { Component, useRef, onMounted, onWillUnmount, useState } from "@odoo/owl";
-//
-//// ---> ADDITION 1: Math functions to measure the eye blink
-//function euclideanDistance(point1, point2) {
-//    return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
-//}
-//
-//function getEAR(eye) {
-//    const v1 = euclideanDistance(eye[1], eye[5]);
-//    const v2 = euclideanDistance(eye[2], eye[4]);
-//    const h = euclideanDistance(eye[0], eye[3]);
-//    return (v1 + v2) / (2.0 * h);
-//}
-//// <--- END ADDITION 1
-//
-//export class FaceVerificationDialog extends Component {
-//    setup() {
-//        this.videoRef = useRef("videoElement");
-//        this.orm = useService("orm");
-//
-//        this.state = useState({
-//            statusMessage: "Downloading AI Engine...",
-//            isProcessing: false,
-//            needsBlink: true // ---> ADDITION 2: Require blink in the backend popup too
-//        });
-//
-//        this.stream = null;
-//        this.scanInterval = null;
-//        this.hasPunched = false; // <-- THE MASTER LOCK
-//        this.isEyesClosed = false; // ---> ADDITION 3: Track if eyes are currently closed
-//
-//        onMounted(async () => {
-//            await this.injectFaceApiScript();
-//            await this.loadModels();
-//            await this.startCamera();
-//        });
-//
-//        onWillUnmount(() => {
-//            this.stopCamera();
-//        });
-//    }
-//
-//    async injectFaceApiScript() {
-//        return new Promise((resolve, reject) => {
-//            if (window.faceapi) return resolve();
-//            const script = document.createElement('script');
-//            script.src = '/attendance_planning/static/src/lib/face-api.js';
-//            script.onload = () => resolve();
-//            script.onerror = () => reject(new Error("Failed to load face-api.js"));
-//            document.head.appendChild(script);
-//        });
-//    }
-//
-//    async loadModels() {
-//        this.state.statusMessage = "Loading AI Models...";
-//        const modelPath = '/attendance_planning/static/src/models';
-//        await faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath);
-//        await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath); // <-- Added Landmark Model
-//        await faceapi.nets.faceRecognitionNet.loadFromUri(modelPath);
-//        this.state.statusMessage = "Ready. Please look at the camera.";
-//    }
-//
-//    async startCamera() {
-//        try {
-//            this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-//            if (this.videoRef.el) {
-//                this.videoRef.el.srcObject = this.stream;
-//                this.videoRef.el.addEventListener('play', () => this.startScanning());
-//            }
-//        } catch (err) {
-//            this.state.statusMessage = "Camera access denied.";
-//        }
-//    }
-//
-//    startScanning() {
-//        if (this.scanInterval) return;
-//
-//        // ---> ADDITION 4: Changed to 200ms to catch fast blinks
-//        this.scanInterval = setInterval(async () => {
-//            if (this.state.isProcessing) return;
-//
-//            const videoEl = this.videoRef.el;
-//
-//            // ---> ADDITION 5: Added .withFaceLandmarks()
-//            const detection = await faceapi.detectSingleFace(videoEl).withFaceLandmarks().withFaceDescriptor();
-//
-//            if (detection) {
-//                // ---> ADDITION 6: The core Blink Detection Logic
-//                if (this.state.needsBlink) {
-//                    const leftEye = detection.landmarks.getLeftEye();
-//                    const rightEye = detection.landmarks.getRightEye();
-//
-//                    const leftEAR = getEAR(leftEye);
-//                    const rightEAR = getEAR(rightEye);
-//                    const avgEAR = (leftEAR + rightEAR) / 2.0;
-//
-//                    const BLINK_THRESHOLD = 0.25;
-//
-//                    if (avgEAR < BLINK_THRESHOLD) {
-//                        this.isEyesClosed = true;
-//                        this.state.statusMessage = "Blink detected! Verifying...";
-//                    } else if (this.isEyesClosed && avgEAR >= BLINK_THRESHOLD) {
-//                        this.isEyesClosed = false;
-//                        this.state.needsBlink = false; // Blink complete!
-//                        this.state.statusMessage = "Liveness verified. Matching face...";
-//                    } else {
-//                        this.state.statusMessage = "Please BLINK to verify liveness!";
-//                    }
-//                    return; // Stop here and wait for the next frame until they blink
-//                }
-//                // <--- END ADDITION 6
-//
-//                // Lock processing to prevent spamming the database while verifying
-//                this.state.isProcessing = true;
-//                this.state.statusMessage = "Face detected! Verifying...";
-//
-//                const isMatch = await this.verifyWithDatabase(detection.descriptor);
-//
-//                if (isMatch) {
-//                    this.state.statusMessage = "✅ Identity Verified!";
-//                    this.stopCamera();
-//
-//                    if (!this.hasPunched) {
-//                        this.hasPunched = true;
-//
-//                        // ---> CAPTURE PHOTO at the exact blink+verify moment
-//                        const photoBase64 = this.capturePhotoBase64();
-//
-//                        setTimeout(async () => {
-//                            // 1. Do the actual punch first
-//                            await this.props.onSuccess();
-//
-//                            // 2. Then save the photo against that record
-//                            if (photoBase64) {
-//                                const punchType = this.props.attendanceState === 'checked_in'
-//                                    ? 'checkout'
-//                                    : 'checkin';
-//                                await this.orm.call(
-//                                    'hr.attendance',
-//                                    'save_attendance_photo',
-//                                    [photoBase64, punchType]
-//                                );
-//                            }
-//
-//                            this.props.close();
-//                        }, 1000);
-//                    }
-//                    return;
-//                } else {
-//                    this.state.statusMessage = "❌ Face does not match profile.";
-//                    this.state.needsBlink = true; // ---> ADDITION 7: Reset blink if someone else's face is shown
-//                    this.state.isProcessing = false; // Unlock to scan again
-//                }
-//            }
-//        }, 200); // <-- This used to be 1000
-//    }
-//
-//    async verifyWithDatabase(liveDescriptor) {
-//        try {
-//            const myDescriptor = await this.orm.call("hr.employee", "get_my_face_descriptor", []);
-//            if (!myDescriptor) {
-//                this.state.statusMessage = "No face registered for your account!";
-//                return false;
-//            }
-//
-//            const arr = new Float32Array(JSON.parse(myDescriptor));
-//            const labeledDescriptors = [new faceapi.LabeledFaceDescriptors("CurrentUser", [arr])];
-//            const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.45);
-//            const bestMatch = faceMatcher.findBestMatch(liveDescriptor);
-//
-//            return bestMatch.label === "CurrentUser";
-//        } catch (error) {
-//            return false;
-//        }
-//    }
-//
-//    stopCamera() {
-//        if (this.scanInterval) clearInterval(this.scanInterval);
-//        if (this.stream) this.stream.getTracks().forEach(track => track.stop());
-//    }
-//}
-//FaceVerificationDialog.template = "attendance_planning.FaceVerificationPopup";
-//FaceVerificationDialog.components = { Dialog };
-//
-//const ActualAttendanceMenu = attendanceMenuModule.systrayAttendance?.Component || attendanceMenuModule.systrayAttendance;
-//
-//if (ActualAttendanceMenu) {
-//    patch(ActualAttendanceMenu.prototype, {
-//        setup() {
-//            super.setup(...arguments);
-//            this.dialogService = useService("dialog");
-//        },
-//        async signInOut() {
-//            this.dialogService.add(FaceVerificationDialog, {
-//                onSuccess: async () => {
-//                    await super.signInOut();
-//                }
-//            });
-//        }
-//    });
-//}
-//
-//
-//
-//
-//
-//
-//

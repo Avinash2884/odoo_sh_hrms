@@ -507,6 +507,11 @@ class HrAttendance(models.Model):
     # ==========================================================
     @api.depends("check_in", "check_out", "employee_id.resource_calendar_id")
     def _compute_extra(self):
+        # Extra/overtime hours are only accepted within a 4-hour window after
+        # the shift ends. Checking out any later than that still counts as
+        # 4 hours max — it's treated as the cap, not unlimited overtime.
+        MAX_EXTRA_HOURS_WINDOW = 4.0
+
         for att in self:
             att.extra_hours = 0.0
             if not att.check_in or not att.check_out:
@@ -518,7 +523,8 @@ class HrAttendance(models.Model):
 
             if att.check_out > shift_end:
                 raw_overtime = (att.check_out - shift_end).total_seconds() / 3600.0
-                att.extra_hours = float(math.floor(raw_overtime))
+                capped_overtime = min(raw_overtime, MAX_EXTRA_HOURS_WINDOW)
+                att.extra_hours = float(math.floor(capped_overtime))
 
     @api.depends("worked_hours_custom", "approved_extra_hours")
     def _compute_total(self):
