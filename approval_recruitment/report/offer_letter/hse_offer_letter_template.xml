@@ -157,7 +157,7 @@
                             <p>Designation: <t t-esc="object.hse_designation.name"/></p>
                             <p>Band: <t t-esc="object.hse_band_id.name"/></p>
                             <p>Level: <t t-esc="object.hse_level_id.name"/></p>
-                            <p>Date of joining: <t t-esc="object.applicant_id.ls_date_of_joining"/></p>
+                            <p>Date of joining: <t t-esc="object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y')"/></p>
 
                             <br/>
 
