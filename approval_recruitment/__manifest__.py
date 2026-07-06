@@ -54,9 +54,10 @@
         'report/offer_letter/internship_letter.xml',
         'report/offer_letter/offer_of_appointment.xml',
 
-        'report/cmt_full_time_appointment_letter.xml',
-        'report/full_time_employee_appointment_letter.xml',
-        'report/hse_appointment_letter.xml',
+        'report/appointment_letter/cmt_full_time_appointment_letter.xml',
+        'report/appointment_letter/full_time_employee_appointment_letter.xml',
+        'report/appointment_letter/hse_appointment_letter.xml',
+
         'report/probation_extension_letter.xml',
         'report/employment_confirmation_letter.xml',
         'report/experience_certificate.xml',
