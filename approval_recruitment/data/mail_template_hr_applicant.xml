@@ -68,11 +68,7 @@
                     </p>
 
                     <p>
-                        Congratulations on being selected to join
-                        <strong>
-                            <t t-out="object.company_id.name"/>
-                        </strong>
-                        !
+                        We're so glad that you'll be starting your career journey with us at <strong>Lifesigns</strong>.
                     </p>
 
                     <p>
@@ -127,11 +123,7 @@
                     </p>
 
                     <p>
-                        Congratulations on being selected to join
-                        <strong>
-                            <t t-out="object.company_id.name"/>
-                        </strong>
-                        !
+                        We're so glad that you'll be starting your career journey with us at <strong>Lifesigns</strong>.
                     </p>
 
                     <p>

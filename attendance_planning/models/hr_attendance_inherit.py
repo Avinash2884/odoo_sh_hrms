@@ -507,6 +507,11 @@ class HrAttendance(models.Model):
     # ==========================================================
     @api.depends("check_in", "check_out", "employee_id.resource_calendar_id")
     def _compute_extra(self):
+        # Extra/overtime hours are only accepted within a 4-hour window after
+        # the shift ends. Checking out any later than that still counts as
+        # 4 hours max — it's treated as the cap, not unlimited overtime.
+        MAX_EXTRA_HOURS_WINDOW = 4.0
+
         for att in self:
             att.extra_hours = 0.0
             if not att.check_in or not att.check_out:
@@ -518,7 +523,8 @@ class HrAttendance(models.Model):
 
             if att.check_out > shift_end:
                 raw_overtime = (att.check_out - shift_end).total_seconds() / 3600.0
-                att.extra_hours = float(math.floor(raw_overtime))
+                capped_overtime = min(raw_overtime, MAX_EXTRA_HOURS_WINDOW)
+                att.extra_hours = float(math.floor(capped_overtime))
 
     @api.depends("worked_hours_custom", "approved_extra_hours")
     def _compute_total(self):
@@ -787,28 +793,66 @@ class HrAttendance(models.Model):
             att.display_name = f"Std: {std}h | Ext: {ext}h ({status})"
 
     # ==========================================================
-    # EDP BOUNCER: WEEKEND & PUBLIC HOLIDAY RESTRICTION
+    # EDP BOUNCER: TWO-TRACK RESTRICTION (Regular vs Rotational)
     # ==========================================================
-    # FIX 1: Now it triggers on Check-In AND Check-Out
     @api.constrains('check_in', 'check_out')
     def _check_edp_restriction(self):
         for att in self:
             if not att.check_in:
                 continue
 
+            emp = att.employee_id
+
             # 1. Figure out exactly what day it is
-            tz = pytz.timezone(att.employee_id.tz or self.env.user.tz or 'UTC')
+            tz = pytz.timezone(emp.tz or self.env.user.tz or 'UTC')
             check_in_local = pytz.utc.localize(att.check_in).astimezone(tz)
 
             weekday = check_in_local.weekday()  # Monday = 0, Saturday = 5, Sunday = 6
             day_of_month = check_in_local.day
             week_of_month = (day_of_month - 1) // 7 + 1
 
-            # 2. Bulletproof Checkbox Reader
+            # 2. Setup Time boundaries for today (needed by both tracks)
+            local_day_start = check_in_local.replace(hour=0, minute=0, second=0, microsecond=0)
+            local_day_end = local_day_start + timedelta(days=1)
+
+            utc_day_start = local_day_start.astimezone(pytz.utc).replace(tzinfo=None)
+            utc_day_end = local_day_end.astimezone(pytz.utc).replace(tzinfo=None)
+
+            # ==================================================
+            # TRACK B: ROTATIONAL SHIFT EMPLOYEES
+            # Weekend checkboxes are completely ignored. Every
+            # day is judged purely by whether a published shift
+            # exists in the Planning app. No shift = week-off.
+            # An EDP is just a published planning.slot too, so
+            # the same lookup covers both "normal" workdays and
+            # EDP-approved off-day work.
+            # ==================================================
+            if emp.shift_type == 'rotational':
+                has_slot = self.env['planning.slot'].sudo().search_count([
+                    ('employee_id', '=', emp.id),
+                    ('start_datetime', '<', utc_day_end),
+                    ('end_datetime', '>', utc_day_start),
+                    ('state', '=', 'published'),
+                ])
+
+                if not has_slot:
+                    raise ValidationError(
+                        f"Week-Off Detected! \n\n"
+                        f"Sorry {emp.name}, you don't have a shift scheduled for today in the Planning app, "
+                        f"which means today is your week-off. "
+                        f"You cannot check in unless you have an approved Extra Duty Plan (EDP) allocated in the schedule."
+                    )
+                continue  # Rotational handled, skip Track A entirely
+
+            # ==================================================
+            # TRACK A: REGULAR SHIFT EMPLOYEES (unchanged logic)
+            # Follows the global Sunday / Nth-Saturday checkboxes.
+            # ==================================================
+
+            # 3. Bulletproof Checkbox Reader
             get_param = self.env['ir.config_parameter'].sudo().get_param
 
             def is_active(param_name):
-                # Safely convert whatever Odoo saved ('True', '1', 't') into a solid True/False
                 return str(get_param(param_name, 'False')).strip().lower() in ['true', '1', 't', 'yes', 'y']
 
             restrict_sunday = is_active('attendance.edp_restrict_sunday')
@@ -820,54 +864,30 @@ class HrAttendance(models.Model):
             if is_active('attendance.edp_restrict_sat_4'): restricted_sats.append(4)
             if is_active('attendance.edp_restrict_sat_5'): restricted_sats.append(5)
 
-            # 3. Check if today hits the restricted rules
+            # 4. Check if today hits the restricted rules
             is_sunday = (weekday == 6 and restrict_sunday)
             is_restricted_saturday = (weekday == 5 and week_of_month in restricted_sats)
 
-            # 4. Setup Time boundaries for today
-            local_day_start = check_in_local.replace(hour=0, minute=0, second=0, microsecond=0)
-            local_day_end = local_day_start + timedelta(days=1)
+            # 5. Check if today hits any restricted rule (Weekend only)
+            if is_sunday or is_restricted_saturday:
 
-            utc_day_start = local_day_start.astimezone(pytz.utc).replace(tzinfo=None)
-            utc_day_end = local_day_end.astimezone(pytz.utc).replace(tzinfo=None)
-
-            # -------------------------------------------------------------
-            # NEW: 5. Check for Public Holidays (Global Leaves)
-            # -------------------------------------------------------------
-            calendar_id = att.employee_id.resource_calendar_id.id or self.env.company.resource_calendar_id.id
-
-            public_holiday = self.env['resource.calendar.leaves'].sudo().search([
-                ('calendar_id', '=', calendar_id),
-                ('resource_id', '=', False),  # False means it's a Global Company Holiday, not personal PTO
-                ('date_from', '<', utc_day_end),
-                ('date_to', '>', utc_day_start)
-            ], limit=1)
-
-            is_public_holiday = bool(public_holiday)
-
-            # 6. Check if today hits ANY restricted rule (Weekend OR Holiday)
-            if is_sunday or is_restricted_saturday or is_public_holiday:
-
-                # 7. It is a restricted day! Check the Planning App for an approved EDP shift.
+                # 6. Check the Planning App for an approved EDP shift
                 has_edp_slot = self.env['planning.slot'].sudo().search_count([
-                    ('employee_id', '=', att.employee_id.id),
+                    ('employee_id', '=', emp.id),
                     ('start_datetime', '<', utc_day_end),
                     ('end_datetime', '>', utc_day_start),
-                    ('state', 'in', ['draft', 'published']),
+                    ('state', '=', 'published'),
                 ])
 
-                # 8. If they don't have a slot, kick them out!
+                # 7. If they don't have a slot, kick them out!
                 if not has_edp_slot:
-                    # Dynamically change the error message based on WHY they were blocked
-                    if is_public_holiday:
-                        reason_text = f"a Public Holiday ({public_holiday.name})"
-                    elif is_sunday:
+                    if is_sunday:
                         reason_text = "Sunday"
                     else:
                         reason_text = f"the {week_of_month}st/nd/rd/th Saturday"
 
                     raise ValidationError(
                         f"EDP Restricted! \n\n"
-                        f"Sorry {att.employee_id.name}, today is {reason_text}, which is an off-day according to company policy. "
+                        f"Sorry {emp.name}, today is {reason_text}, which is an off-day according to company policy. "
                         f"You cannot check in unless you have an approved Extra Duty Plan (EDP) allocated in the schedule."
                     )

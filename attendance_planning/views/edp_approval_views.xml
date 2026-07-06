@@ -9,23 +9,21 @@
                     <button name="action_submit" string="Submit" type="object" class="oe_highlight"
                             invisible="state != 'draft'"/>
 
-                    <!-- 👇 Invisible fields so Odoo knows who is looking at the screen 👇 -->
+                    <!--  Invisible field so Odoo knows who is looking at the screen  -->
                     <field name="can_approve_manager" invisible="1"/>
-                    <field name="can_approve_hr" invisible="1"/>
 
-                    <!-- 👇 Buttons hide themselves if the user doesn't have permission! 👇 -->
-                    <button name="action_manager_approve" string="Manager Approve" type="object" class="btn-success"
+                    <!-- --> CHANGED: Manager Approve now does the full approval + allocates planning -->
+                    <button name="action_manager_approve" string="Approve" type="object" class="btn-success"
                             invisible="state != 'submitted' or not can_approve_manager"/>
 
-                    <button name="action_hr_approve" string="HR Approve &amp; Allocate" type="object"
-                            class="btn-success"
-                            invisible="state != 'manager_approved' or not can_approve_hr"/>
+                    <!-- --> REMOVED: HR Approve button — single approval flow now -->
 
                     <button name="action_refuse" string="Refuse" type="object" class="btn-danger"
-                            invisible="state not in ('submitted', 'manager_approved') or (state == 'submitted' and not can_approve_manager) or (state == 'manager_approved' and not can_approve_hr)"/>
+                            invisible="state != 'submitted' or not can_approve_manager"/>
 
+                    <!-- --> CHANGED: statusbar no longer shows manager_approved (Waiting for HR) -->
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,submitted,manager_approved,approved"/>
+                           statusbar_visible="draft,submitted,approved"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -41,7 +39,7 @@
                         </group>
                         <group>
                             <field name="manager_id" readonly="1" force_save="1"/>
-                            <field name="hr_head_id" readonly="1" force_save="1"/>
+<!--                            <field name="hr_head_id" readonly="1" force_save="1"/>-->
                         </group>
                     </group>
                 </sheet>
