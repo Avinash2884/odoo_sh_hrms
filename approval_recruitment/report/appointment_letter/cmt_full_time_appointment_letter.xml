@@ -2,7 +2,7 @@
 <odoo>
     <record id="action_report_cmt_full_time_appointment_letter" model="ir.actions.report">
         <field name="name">CMT Full Time Appointment Letter</field>
-        <field name="model">hr.contract.salary.offer</field>
+        <field name="model">hr.employee</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">approval_recruitment.template_cmt_full_time_appointment_letter</field>
         <field name="report_file">approval_recruitment.template_cmt_full_time_appointment_letter</field>
@@ -31,30 +31,18 @@
                         <p style="margin-bottom: 5px;">To,</p>
 
                         <p style="margin-bottom: 20px;">
-                            <strong><t t-esc="object.applicant_id.partner_name"/></strong><br/>
-
-                            <t t-if="object.applicant_id.mailing_address">
-                                <span t-esc="object.applicant_id.mailing_address"/><br/>
-                            </t>
-
-                            <t t-if="object.applicant_id.permanent_address">
-                                <span t-esc="object.applicant_id.permanent_address"/><br/>
-                            </t>
-
-                            <t t-if="object.applicant_id.pincode">
-                                PIN: <span t-esc="object.applicant_id.pincode"/>
-                            </t>
+                            <strong><t t-esc="object.name"/></strong>
                         </p>
 
                         <!-- Greeting -->
                         <p style="margin-bottom: 20px;">
-                            Dear <strong><t t-esc="object.applicant_id.partner_name"/></strong>,
+                            Dear <strong><t t-esc="object.name"/></strong>,
                         </p>
 
                         <!-- Intro -->
                         <p style="text-align: justify; margin-bottom: 20px;">
                             We are pleased to offer you a full-time employment of
-                            <strong><t t-esc="object.applicant_id.job_id.name"/></strong>
+                            <strong><t t-esc="object.job_id.name"/></strong>
                             at <strong><t t-esc="object.company_id.name"/></strong>,
                             in its
                             <t t-esc="object.company_id.street"/>
@@ -70,7 +58,7 @@
                         <!-- Joining -->
                         <p style="margin-bottom: 10px;">
                             Your employment will begin on
-                            <strong><t t-esc="object.applicant_id.ls_date_of_joining"/></strong>
+                            <strong><t t-esc="object.joining_date_recruit"/></strong>
                             and your annual salary will be <strong>Rs.<t t-esc="object.final_yearly_costs"/></strong> per annum
                             paid in accordance with the company's payroll policies
                         </p>
