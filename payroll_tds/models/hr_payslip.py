@@ -10,6 +10,101 @@ class HrPayslip(models.Model):
         string='Employee Name',
     )
 
+    previous_tds = fields.Float(
+        string="Previous FY TDS",
+        compute="_compute_income_tax"
+    )
+
+    remaining_months = fields.Integer(
+        string="Remaining Months",
+        compute="_compute_income_tax"
+    )
+
+    current_month_tds = fields.Float(
+        string="Current Month TDS",
+        compute="_compute_income_tax"
+    )
+
+    @api.depends('employee_id', 'date_to')
+    def _compute_income_tax(self):
+
+        for slip in self:
+
+            slip.previous_tds = 0.0
+            slip.remaining_months = 0
+            slip.current_month_tds = 0.0
+
+            if not slip.employee_id or not slip.date_to:
+                continue
+
+            # -----------------------
+            # Financial Year
+            # -----------------------
+
+            if slip.date_to.month >= 4:
+                fy_start = date(slip.date_to.year, 4, 1)
+                fy_end = date(slip.date_to.year + 1, 3, 31)
+            else:
+                fy_start = date(slip.date_to.year - 1, 4, 1)
+                fy_end = date(slip.date_to.year, 3, 31)
+
+            # -----------------------
+            # Previous Payslips
+            # -----------------------
+
+            previous_slips = self.env['hr.payslip'].search([
+                ('employee_id', '=', slip.employee_id.id),
+                ('state', '=', 'done'),
+                ('date_to', '>=', fy_start),
+                ('date_to', '<', slip.date_to),
+            ])
+
+            paid_tds = 0.0
+
+            for pslip in previous_slips:
+
+                tax_line = pslip.line_ids.filtered(
+                    lambda l: l.code == 'IT'
+                )
+
+                if tax_line:
+                    paid_tds += abs(tax_line.total)
+
+            slip.previous_tds = paid_tds
+
+            # -----------------------
+            # Remaining Months
+            # -----------------------
+
+            if slip.date_to.month >= 4:
+                remaining = 16 - slip.date_to.month
+            else:
+                remaining = 4 - slip.date_to.month
+
+            slip.remaining_months = remaining
+
+            # -----------------------
+            # Annual Tax
+            # -----------------------
+
+            emp = slip.employee_id
+
+            if emp.tax_regime == "old":
+                annual_tax = emp.tds_amount
+            else:
+                annual_tax = emp.tds_amount_new
+
+            balance_tax = annual_tax - paid_tds
+
+            if balance_tax < 0:
+                balance_tax = 0
+
+            if remaining:
+                slip.current_month_tds = round(
+                    balance_tax / remaining,
+                    2
+                )
+
     pay_register_no = fields.Char(string="Pay Register No")
     pay_register_date = fields.Date(string="Pay Register Date")
 

@@ -170,7 +170,6 @@ class HrLeave(models.Model):
     # ----------------------------------------
     def write(self, vals):
 
-        print("WRITE CALLED")
         print("VALS:", vals)
 
         res = super().write(vals)
