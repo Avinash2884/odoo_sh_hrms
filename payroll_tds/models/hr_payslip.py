@@ -425,12 +425,13 @@ class HrPayslip(models.Model):
                 slip.state = 'timeoff_balance'
                 continue
 
-            pending_leave = self.env['hr.leave'].search([
-                ('employee_id', '=', slip.employee_id.id),
-                ('state', 'in', ['confirm']),
-                ('request_date_from', '<=', slip.date_to),
-                ('request_date_to', '>=', slip.date_from),
-            ], limit=1)
+            # pending_leave = self.env['hr.leave'].search([
+            #     ('employee_id', '=', slip.employee_id.id),
+            #     ('state', 'in', ['confirm']),
+            #     ('request_date_from', '<=', slip.date_to),
+            #     ('request_date_to', '>=', slip.date_from),
+            # ], limit=1)
+            pending_leave = False
 
             if pending_leave:
 
