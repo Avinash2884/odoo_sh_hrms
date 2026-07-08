@@ -445,13 +445,12 @@ class HrPayslip(models.Model):
                 slip.state = 'timeoff_balance'
                 continue
 
-            # pending_leave = self.env['hr.leave'].search([
-            #     ('employee_id', '=', slip.employee_id.id),
-            #     ('state', 'in', ['confirm']),
-            #     ('request_date_from', '<=', slip.date_to),
-            #     ('request_date_to', '>=', slip.date_from),
-            # ], limit=1)
-            pending_leave = False
+            pending_leave = self.env['hr.leave'].search([
+                ('employee_id', '=', slip.employee_id.id),
+                ('state', 'in', ['confirm']),
+                ('request_date_from', '<=', slip.date_to),
+                ('request_date_to', '>=', slip.date_from),
+            ], limit=1)
 
             if pending_leave:
 
@@ -538,11 +537,6 @@ class HrPayslip(models.Model):
         res = super().action_payslip_paid()
 
         for slip in self:
-
-            # Update Previous FY TDS
-            slip.employee_id.previous_fy_tds += slip.income_tax
-
-            # Existing Loan Logic
             loan_exists = any(line.code == 'LOAN' for line in slip.line_ids)
 
             if loan_exists:
@@ -551,16 +545,3 @@ class HrPayslip(models.Model):
                                                      ) + 1
 
         return res
-
-    def action_payslip_done(self):
-        res = super().action_payslip_done()
-
-        for slip in self:
-            emp = slip.employee_id
-
-            emp.tds_till_last_month += emp.current_month_tds
-
-        return res
-
-
-
