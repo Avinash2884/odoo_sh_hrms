@@ -55,7 +55,7 @@
                         <p style="text-align: justify; margin-bottom: 20px;">
                             We are pleased to offer you an internship with
                             <strong><t t-esc="object.company_id.name or '-'"/></strong>,
-                            in the <strong><t t-esc="object.applicant_id.department_id.name or '-'"/></strong>
+                            in the <strong><t t-esc="object.department_id.name or '-'"/></strong>
                             Department
                             This internship will be based in on the following terms and conditions.
                         </p>
