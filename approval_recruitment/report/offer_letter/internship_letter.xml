@@ -384,7 +384,7 @@
                                 <thead>
                                     <tr>
                                         <th class="text-start"><strong><t t-esc="object.company_id.name or '-'"/></strong></th>
-                                        <th class="text-center">FOR INTERN</th>
+                                        <th class="text-center"><strong>FOR INTERN</strong></th>
                                     </tr>
                                 </thead>
                                 <tbody>

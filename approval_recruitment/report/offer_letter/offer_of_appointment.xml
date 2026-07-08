@@ -31,50 +31,55 @@
                         <p style="margin-bottom: 5px;">To,</p>
 
                         <p style="margin-bottom: 20px;">
-                            <strong><t t-esc="object.applicant_id.partner_name"/></strong><br/>
+                            <strong><t t-esc="object.applicant_id.partner_name or '-'"/></strong><br/>
 
                             <t t-if="object.applicant_id.permanent_address">
-                                <span t-esc="object.applicant_id.permanent_address"/><br/>
+                                <span t-esc="object.applicant_id.permanent_address or '-'"/><br/>
                             </t>
 
                             <t t-if="object.applicant_id.pincode">
-                                PIN: <span t-esc="object.applicant_id.pincode"/>
+                                PIN: <span t-esc="object.applicant_id.pincode or '-'"/>
                             </t>
                         </p>
 
                         <p style="margin-bottom: 20px;">
-                            Dear <strong><t t-esc="object.applicant_id.partner_name"/></strong>,
+                            Dear <strong><t t-esc="object.applicant_id.partner_name or '-'"/></strong>,
                         </p>
 
                         <p style="text-align: justify; margin-bottom: 20px;">
                             We are pleased to offer you a position with
-                            <strong><t t-esc="object.company_id.name"/></strong>,
-                            in its <t t-esc="object.company_id.street"/>
-                            <t t-esc="object.company_id.street2"/>
-                            <t t-esc="object.company_id.city"/>
-                            <t t-esc="object.company_id.state_id.name"/> -
-                            <t t-esc="object.company_id.zip"/>
+                            <strong><t t-esc="object.company_id.name or '-'"/></strong>,
+                            in its <t t-esc="object.company_id.street or '-'"/>
+                            <t t-esc="object.company_id.street2 or '-'"/>
+                            <t t-esc="object.company_id.city or '-'"/>
+                            <t t-esc="object.company_id.state_id.name or '-'"/> -
+                            <t t-esc="object.company_id.zip or '-'"/>
                             on the following terms and conditions:
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            1. <strong>Role:</strong> <t t-esc="object.applicant_id.job_id.name"/>
+                            1. <strong>Role:</strong> <t t-esc="object.applicant_id.job_id.name or '-'"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            2. <strong>Designation:</strong> <t t-esc="object.designation.name"/>
+                            2. <strong>Designation:</strong> <t t-esc="object.designation.name or '-'"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            3.	We would appreciate you joining us on or before <strong>Joining Date: </strong><t t-esc="object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y')"/>
+                            3. We would appreciate you joining us on or before
+                            <strong>Joining Date:</strong>
+                            <t t-if="object.applicant_id.ls_date_of_joining">
+                                <t t-esc="object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y')"/>
+                            </t>
+                            <t t-else="">-</t>
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            4.	Compensation: Your Annual Compensation will be INR Total<strong> Rs.<t t-esc="object.final_yearly_costs"/></strong> Per Annum, including a Variable Pay <strong>Rs.<t t-esc="object.variable_pay_ctc"/></strong>. Annexure 1 outlines the detailed component-wise stack up.
+                            4.	Compensation: Your Annual Compensation will be INR Total<strong> Rs.<t t-esc="object.final_yearly_costs or '-'"/></strong> Per Annum, including a Variable Pay <strong>Rs.<t t-esc="object.variable_pay_ctc or '-'"/></strong>. Annexure 1 outlines the detailed component-wise stack up.
                         </p>
 
                         <p>
-                            5.	You will be deputed to <strong><t t-esc="object.offer_hospital_name"/></strong>, located at <strong><t t-esc="object.offer_hospital_city"/></strong> for this role.
+                            5.	You will be deputed to <strong><t t-esc="object.offer_hospital_name or '-'"/></strong>, located at <strong><t t-esc="object.offer_hospital_city or '-'"/></strong> for this role.
                         </p>
                         <p>
                            The Company may, for business needs, may change your reporting manager, or transfer you to any other office location or function of the Company in India or overseas or to any of its affiliates.
@@ -130,10 +135,10 @@
                         </p>
 
                         <p style="margin-top: 40px;">
-                            <strong>For <t t-esc="object.company_id.name"/></strong>
+                            <strong>For <t t-esc="object.company_id.name or '-'"/></strong>
                         </p>
-                        <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
-                        <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
+                        <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name or '-'"/></p>
+                        <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description or '-'"/></p>
                         <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
                             <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;font-size: 18px;">
@@ -141,11 +146,14 @@
                             </p>
 
                             <!-- Employee Details -->
-                            <p>Name: <t t-esc="object.applicant_id.partner_name"/></p>
-                            <p>Designation: <t t-esc="object.designation.name"/></p>
-                            <p>Band: <t t-esc="object.offer_band_id.name"/></p>
-                            <p>Level: <t t-esc="object.offer_level_id.name"/></p>
-                            <p>Date of joining: <t t-esc="object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y')"/></p>
+                            <p>Name: <t t-esc="object.applicant_id.partner_name or '-'"/></p>
+                            <p>Designation: <t t-esc="object.designation.name or '-'"/></p>
+                            <p>Band: <t t-esc="object.offer_band_id.name or '-'"/></p>
+                            <p>Level: <t t-esc="object.offer_level_id.name or '-'"/></p>
+                            <p>
+                                Date of joining:
+                                <t t-esc="object.applicant_id.ls_date_of_joining and object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y') or '-'"/>
+                            </p>
 
                             <br/>
 
@@ -164,60 +172,60 @@
                                     <tr>
                                         <td>Basic Pay + DA</td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.basic_pay"/>
+                                            <t t-esc="'%.2f' % object.basic_pay or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.basic_pay_annual"/>
+                                            <t t-esc="'%.2f' % object.basic_pay_annual or '-'"/>
                                         </td>
                                     </tr>
 
                                     <tr>
                                         <td>HRA</td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.hra"/>
+                                            <t t-esc="'%.2f' % object.hra or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.hra_annual"/>
+                                            <t t-esc="'%.2f' % object.hra_annual or '-'"/>
                                         </td>
                                     </tr>
 
                                     <tr>
                                         <td>Special Allowance</td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.special_allowance"/>
+                                            <t t-esc="'%.2f' % object.special_allowance or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.special_allowance_annual"/>
+                                            <t t-esc="'%.2f' % object.special_allowance_annual or '-'"/>
                                         </td>
                                     </tr>
 
                                     <tr>
                                         <td><strong>Total Gross Pay</strong></td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay"/>
+                                            <t t-esc="'%.2f' % object.total_gross_pay or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay_annual"/>
+                                            <t t-esc="'%.2f' % object.total_gross_pay_annual or '-'"/>
                                         </td>
                                     </tr>
 
                                     <tr>
                                         <td>Employer PF (12%)</td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.employer_pf"/>
+                                            <t t-esc="'%.2f' % object.employer_pf or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.employer_pf_annual"/>
+                                            <t t-esc="'%.2f' % object.employer_pf_annual or '-'"/>
                                         </td>
                                     </tr>
 
                                     <tr>
                                         <td><strong>CTC</strong></td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay"/>
+                                            <t t-esc="'%.2f' % object.total_gross_pay or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay_annual"/>
+                                            <t t-esc="'%.2f' % object.total_gross_pay_annual or '-'"/>
                                         </td>
                                     </tr>
                                 </tbody>
