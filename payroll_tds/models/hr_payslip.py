@@ -532,5 +532,15 @@ class HrPayslip(models.Model):
 
         return res
 
+    def action_payslip_done(self):
+        res = super().action_payslip_done()
+
+        for slip in self:
+            emp = slip.employee_id
+
+            emp.tds_till_last_month += emp.current_month_tds
+
+        return res
+
 
 

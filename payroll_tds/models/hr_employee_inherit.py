@@ -98,8 +98,8 @@ class Employee(models.Model):
         store=True
     )
 
-    previous_fy_tds = fields.Monetary(
-        string="Previous FY TDS",
+    tds_till_last_month = fields.Monetary(
+        string="TDS Till Last Month",
         currency_field="currency_id",
         default=0.0,
         copy=False
@@ -125,7 +125,7 @@ class Employee(models.Model):
                 emp.remaining_months = 16 - month
             else:
                 emp.remaining_months = 4 - month
-                
+
 
     current_month_tds = fields.Monetary(
         string="Current Month TDS",
@@ -138,7 +138,7 @@ class Employee(models.Model):
         "tax_regime",
         "tds_amount",
         "tds_amount_new",
-        "previous_fy_tds",
+        "tds_till_last_month",
         "remaining_months"
     )
     def _compute_current_month_tds(self):
@@ -151,7 +151,7 @@ class Employee(models.Model):
                 else emp.tds_amount
             )
 
-            balance = annual_tax - (emp.previous_fy_tds or 0.0)
+            balance = annual_tax - (emp.tds_till_last_month or 0.0)
 
             if balance < 0:
                 balance = 0.0
