@@ -171,7 +171,7 @@
                             <p style="margin-bottom: 10px;">The breakup of the Salary is given below:</p><br></br>
 
                             <!-- Salary Table -->
-                            <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
+                            <table class="table table-bordered" style="width: 80%; margin-top: 5px; border-collapse: collapse;">
                                 <thead>
                                     <tr>
                                         <th class="text-start">Particulars</th>
