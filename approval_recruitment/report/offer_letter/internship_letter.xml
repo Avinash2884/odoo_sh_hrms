@@ -377,6 +377,10 @@
                             </p>
 
                             <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
+                                <colgroup>
+                                    <col style="width: 50%;"/>
+                                    <col style="width: 50%;"/>
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th class="text-start"><strong><t t-esc="object.company_id.name or '-'"/></strong></th>
