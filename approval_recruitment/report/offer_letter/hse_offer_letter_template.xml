@@ -118,14 +118,14 @@
                             </p>
                             <p>
                                 You will be governed by the policies of the company as may be applicable from time to time.
-                            </p>
-                            <p>
                                 Your compensation details are personal and must be treated with absolute confidentiality
                             </p>
-                            <p>
+                        </div>
+                         <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
+                            <p style="margin-bottom: 10px;">
                                 Documents: On the date of joining, please provide self-attested and dated copies of below (digital version accepted):
                             </p>
-                            <ul>
+                            <ul style="margin-bottom: 10px;">
                                 <li>Aadhar card</li>
                                 <li>PAN card</li>
                                 <li>Driving license (if available) </li>
@@ -134,13 +134,11 @@
                                 <li>Educational certificates and mark sheets Degree/Diploma, X and XII).</li>
                                 <li>Passport-sized photographs</li>
                             </ul>
-
-                            <p>
+                            <p style="margin-bottom: 10px;">
                                 Looking forward to having you on board and together creating a story!
                             </p>
-
-                            <p>
-                                <strong>For <t t-esc="object.company_id.name"/></strong>
+                            <p style="margin-bottom: 10px;">
+                                <strong>For <t t-esc="object.company_id.name or '-'"/></strong>
                             </p>
                             <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name or '-'"/></p>
                             <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description or '-'"/></p>
@@ -167,12 +165,10 @@
                                 <t t-esc="object.applicant_id.ls_date_of_joining and object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y') or '-'"/>
                             </p>
 
-                            <br/>
-
                             <p>The breakup of the Salary is given below:</p>
 
                             <!-- Salary Table -->
-                            <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
+                            <table class="table table-bordered" style="width: 80%; border-collapse: collapse;">
                                 <thead>
                                     <tr>
                                         <th class="text-start">Particulars</th>
