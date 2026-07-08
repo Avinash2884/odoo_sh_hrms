@@ -378,8 +378,8 @@
 
                             <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
                                 <colgroup>
-                                    <col style="width: 50%;"/>
-                                    <col style="width: 50%;"/>
+                                    <col style="width: 70%;"/>
+                                    <col style="width: 70%;"/>
                                 </colgroup>
                                 <thead>
                                     <tr>
