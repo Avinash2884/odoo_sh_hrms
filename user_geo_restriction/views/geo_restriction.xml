@@ -59,7 +59,8 @@
         name="Geo Restriction"
         action="action_geo_restriction"
         parent="hr.menu_hr_root"
-        sequence="90"/>
+        sequence="90"
+        groups="hr.group_hr_user,hr.group_hr_manager"/>
 
 
 </odoo>

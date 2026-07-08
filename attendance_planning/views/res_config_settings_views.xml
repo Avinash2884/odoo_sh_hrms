@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_inherit_edp" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.edp</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="hr_attendance.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Inject our settings block at the bottom of the Attendance settings -->
+            <xpath expr="//form" position="inside">
+                <app data-string="Attendance EDP Rules" string="Attendance EDP Rules" name="attendance_edp_rules">
+                    <block title="EDP Weekend Restrictions" name="edp_restrictions_setting_container">
+                        <setting help="Select which weekends act as OFF DAYS where an approved EDP is required to Check-In.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="edp_restrict_sunday" class="col-lg-4 fw-bold"/>
+                                    <field name="edp_restrict_sunday"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="edp_restrict_sat_1" class="col-lg-4"/>
+                                    <field name="edp_restrict_sat_1"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="edp_restrict_sat_2" class="col-lg-4"/>
+                                    <field name="edp_restrict_sat_2"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="edp_restrict_sat_3" class="col-lg-4"/>
+                                    <field name="edp_restrict_sat_3"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="edp_restrict_sat_4" class="col-lg-4"/>
+                                    <field name="edp_restrict_sat_4"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="edp_restrict_sat_5" class="col-lg-4"/>
+                                    <field name="edp_restrict_sat_5"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -68,11 +68,7 @@
                     </p>
 
                     <p>
-                        Congratulations on being selected to join
-                        <strong>
-                            <t t-out="object.company_id.name"/>
-                        </strong>
-                        !
+                        We're so glad that you'll be starting your career journey with us at <strong>Lifesigns</strong>.
                     </p>
 
                     <p>
@@ -92,11 +88,6 @@
                             https://lifesigns-hr-odoohrms.odoo.com/job/pre_onboarding/
                             <t t-out="object.access_token"/>
                         </a>
-                    </p>
-
-                    <p>
-                        If you have any questions, feel free to contact
-                        <a href="mailto:rupesh@lifesigns.us">rupesh@lifesigns.us</a>.
                     </p>
 
                     <p>
@@ -132,11 +123,7 @@
                     </p>
 
                     <p>
-                        Congratulations on being selected to join
-                        <strong>
-                            <t t-out="object.company_id.name"/>
-                        </strong>
-                        !
+                        We're so glad that you'll be starting your career journey with us at <strong>Lifesigns</strong>.
                     </p>
 
                     <p>
@@ -156,11 +143,6 @@
                             https://lifesigns-hr-odoohrms.odoo.com/job/pre_offer/
                             <t t-out="object.access_token"/>
                         </a>
-                    </p>
-
-                    <p>
-                        If you have any questions, feel free to contact
-                        <a href="mailto:rupesh@lifesigns.us">rupesh@lifesigns.us</a>.
                     </p>
 
                     <p>

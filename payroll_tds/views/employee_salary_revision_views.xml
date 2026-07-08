@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ====================================================== -->
+    <!-- Salary Revision Tree View -->
+    <!-- ====================================================== -->
+
+    <record id="view_employee_salary_revision_tree"
+            model="ir.ui.view">
+
+        <field name="name">employee.salary.revision.tree</field>
+        <field name="model">employee.salary.revision</field>
+
+        <field name="arch" type="xml">
+
+            <list>
+
+                <field name="effective_date"/>
+                <field name="payout_month"/>
+                <field name="previous_gross_wage"/>
+                <field name="revised_gross_wage"/>
+                <field name="revised_salary_arrear"/>
+
+            </list>
+
+        </field>
+
+    </record>
+
+
+    <!-- ====================================================== -->
+    <!-- Salary Revision Form View -->
+    <!-- ====================================================== -->
+
+    <record id="view_employee_salary_revision_form"
+            model="ir.ui.view">
+
+        <field name="name">employee.salary.revision.form</field>
+
+        <field name="model">employee.salary.revision</field>
+
+        <field name="arch" type="xml">
+
+            <form string="Salary Revision">
+
+    <sheet>
+
+        <div class="oe_title">
+            <h2>Salary Revision Details</h2>
+        </div>
+
+        <group col="2">
+
+            <group string="Revision Information">
+
+                <field name="effective_date"/>
+
+                <field name="payout_month"/>
+
+            </group>
+
+            <group string="Additional Information">
+
+                <field name="arrear_paid_days"/>
+
+                <field name="remarks"/>
+
+            </group>
+
+        </group>
+
+        <notebook>
+
+            <!-- ======================================= -->
+            <!-- Previous Salary -->
+            <!-- ======================================= -->
+
+            <page string="Previous Salary">
+
+                <group col="2">
+
+                    <group>
+
+                        <field name="previous_gross_wage"/>
+
+                        <field name="previous_basic_percentage"/>
+
+                    </group>
+
+                    <group>
+
+                        <field name="previous_basic"
+                               readonly="1"/>
+
+                        <field name="previous_hra"
+                               readonly="1"/>
+
+                        <field name="previous_special_allowance"
+                               readonly="1"/>
+
+                    </group>
+
+                </group>
+
+            </page>
+
+
+            <!-- ======================================= -->
+            <!-- Revised Salary -->
+            <!-- ======================================= -->
+
+            <page string="Revised Salary">
+
+                <group col="2">
+
+                    <group>
+
+                        <field name="revised_gross_wage"/>
+
+                        <field name="fixed_basic_percentage"/>
+
+                    </group>
+
+                    <group>
+
+                        <field name="fixed_basic"
+                               readonly="1"/>
+
+                        <field name="fixed_hra"
+                               readonly="1"/>
+
+                        <field name="fixed_special_allowance"
+                               readonly="1"/>
+
+                    </group>
+
+                </group>
+
+            </page>
+
+
+            <!-- ======================================= -->
+            <!-- Salary Comparison -->
+            <!-- ======================================= -->
+
+            <page string="Salary Comparison">
+
+                <group col="2">
+
+                    <group string="Previous">
+
+                        <field name="previous_gross_wage"
+                               readonly="1"/>
+
+                        <field name="previous_basic"
+                               readonly="1"/>
+
+                        <field name="previous_hra"
+                               readonly="1"/>
+
+                        <field name="previous_special_allowance"
+                               readonly="1"/>
+
+                    </group>
+
+                    <group string="Revised">
+
+                        <field name="revised_gross_wage"
+                               readonly="1"/>
+
+                        <field name="fixed_basic"
+                               readonly="1"/>
+
+                        <field name="fixed_hra"
+                               readonly="1"/>
+
+                        <field name="fixed_special_allowance"
+                               readonly="1"/>
+
+                    </group>
+
+                </group>
+
+            </page>
+
+
+            <!-- ======================================= -->
+            <!-- Salary Arrear -->
+            <!-- ======================================= -->
+
+            <page string="Salary Arrear">
+
+                <group col="2">
+
+                    <group>
+
+                        <field name="salary_difference"
+                               readonly="1"/>
+
+                        <field name="arrear_months"
+                               readonly="1"/>
+
+                        <field name="revised_salary_arrear"
+                               readonly="1"/>
+
+                    </group>
+
+                    <group>
+
+                        <field name="basic_difference_arrear"
+                               readonly="1"/>
+
+                        <field name="hra_difference_arrear"
+                               readonly="1"/>
+
+                        <field name="special_allowance_difference_arrear"
+                               readonly="1"/>
+
+                    </group>
+
+                </group>
+
+            </page>
+
+        </notebook>
+
+    </sheet>
+
+</form>
+
+        </field>
+
+    </record>
+
+
+    <!-- ====================================================== -->
+    <!-- Employee Form -->
+    <!-- ====================================================== -->
+
+    <record id="view_employee_form_salary_revision"
+            model="ir.ui.view">
+
+        <field name="name">hr.employee.form.salary.revision</field>
+
+        <field name="model">hr.employee</field>
+
+        <field name="inherit_id"
+               ref="hr.view_employee_form"/>
+
+        <field name="arch"
+               type="xml">
+
+            <xpath expr="//notebook"
+                   position="inside">
+
+                <page string="Revised Wage Details">
+
+                    <field name="revision_ids"
+                           mode="list,form"
+                           context="{
+                               'tree_view_ref':'payroll_tds.view_employee_salary_revision_tree',
+                               'form_view_ref':'payroll_tds.view_employee_salary_revision_form'
+                           }"/>
+
+                </page>
+
+            </xpath>
+
+        </field>
+
+    </record>
+
+</odoo>

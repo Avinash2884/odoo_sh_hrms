@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="action_report_internship_letter" model="ir.actions.report">
-        <field name="name">Internship Letter</field>
+        <field name="name">Internship Offer Template</field>
         <field name="model">hr.contract.salary.offer</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">approval_recruitment.template_internship_letter</field>
         <field name="report_file">approval_recruitment.template_internship_letter</field>
-        <field name="print_report_name">'Internship Letter'</field>
+        <field name="print_report_name">'Internship Offer Template'</field>
         <field name="binding_model_id" ref="hr_contract_salary.model_hr_contract_salary_offer"/>
         <field name="binding_type">report</field>
     </record>
@@ -148,8 +148,8 @@
                             <strong>For <t t-esc="object.company_id.name"/></strong>
                         </p>
 
-                        <p style="margin-top: 10px;">Koushalya R</p>
-                        <p style="margin-top: 0px;">Head – Human Resources </p>
+                        <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
+                        <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
 
                         <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
@@ -382,22 +382,70 @@
                             <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
                                 <thead>
                                     <tr>
-                                        <th class="text-start">FOR COMPANY NAME</th>
-                                        <th class="text-center">FOR INTERN</th>
+                                        <th class="text-start">Particulars</th>
+                                        <th class="text-center">Monthly</th>
+                                        <th class="text-center">Annual CTC</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>Signature:</td>
-                                        <td>Signature:</td>
+                                        <td>Basic Pay + DA</td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.basic_pay"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.basic_pay_annual"/>
+                                        </td>
                                     </tr>
+
                                     <tr>
-                                        <td>Print Name: HR HEAD NAME</td>
-                                        <td>Print Name:</td>
+                                        <td>HRA</td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.hra"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.hra_annual"/>
+                                        </td>
                                     </tr>
+
                                     <tr>
-                                        <td>Date:</td>
-                                        <td>Date:</td>
+                                        <td>Special Allowance</td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.special_allowance"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.special_allowance_annual"/>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td><strong>Total Gross Pay</strong></td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.total_gross_pay"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.total_gross_pay_annual"/>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>Employer PF (12%)</td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.employer_pf"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.employer_pf_annual"/>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td><strong>CTC</strong></td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.total_gross_pay"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.total_gross_pay_annual"/>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>

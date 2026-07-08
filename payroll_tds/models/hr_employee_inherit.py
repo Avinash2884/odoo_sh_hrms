@@ -5,6 +5,30 @@ from datetime import date
 class Employee(models.Model):
     _inherit = 'hr.employee'
 
+    revision_ids = fields.One2many(
+        'employee.salary.revision',
+        'employee_id',
+        string='Revised Wage Details'
+    )
+
+    pl_allocation_year = fields.Integer(
+        string="PL Allocation Year",
+        default=0
+    )
+
+    last_cl_allocation_month = fields.Char(
+        string="Last CL Allocation Month"
+    )
+
+    last_sl_allocation_month = fields.Char(
+        string="Last SL Allocation Month"
+    )
+
+    bereavement_allocation_year = fields.Integer(
+        string="Bereavement Allocation Year",
+        default=0
+    )
+
     tax_regime = fields.Selection([
         ('old', 'Old Regime'),
         ('new', 'New Regime'),
@@ -187,6 +211,23 @@ class Employee(models.Model):
     ],
         string="Payslip Month",
         default=lambda self: str(fields.Date.today().month)
+    )
+    pl_allocation_year = fields.Integer(
+        string="PL Allocation Year",
+        default=0
+    )
+
+    last_cl_allocation_month = fields.Char(
+        string="Last CL Allocation Month"
+    )
+
+    last_sl_allocation_month = fields.Char(
+        string="Last SL Allocation Month"
+    )
+
+    bereavement_allocation_year = fields.Integer(
+        string="Bereavement Allocation Year",
+        default=0
     )
 
     @api.depends('payslip_month')
@@ -572,7 +613,12 @@ class Employee(models.Model):
 
     variable_pay = fields.Monetary(string="Variable Pay")
     variable_bonus = fields.Monetary(string="Bonus")
+    basic_arrear = fields.Monetary(string="Basic Arrear")
+    hra_arrear = fields.Monetary(string="HRA Arrear")
+    special_allowance_arrear = fields.Monetary(string="Special Allowance Arrear")
+    fixed_stipend = fields.Monetary(string="Fixed Stipend")
     stipend = fields.Monetary(string="Stipend")
+    stipend_arrear = fields.Monetary(string="Stipend Arrear")
     employee_incentive = fields.Monetary(string="Incentive")
     referral_incentive = fields.Monetary(string="Referral Incentive")
     notice_period = fields.Monetary(string="Notice Period Pay")
@@ -663,3 +709,203 @@ class Employee(models.Model):
             )
 
             emp.remaining_balance = max(balance, 0.0)
+
+    # Privilege Leave Allocation
+    def cron_allocate_privilege_leave(self):
+
+        current_year = fields.Date.today().year
+
+        leave_type = self.env['hr.leave.type'].search([
+            ('name', '=', 'Privilege Leave')
+        ], limit=1)
+
+        if not leave_type:
+            return
+
+        employees = self.search([
+            ('date_of_confirmation', '!=', False),
+        ])
+
+        for emp in employees:
+
+            if emp.pl_allocation_year == current_year:
+                continue
+
+            confirmation_date = fields.Date.to_date(
+                emp.date_of_confirmation
+            )
+
+            # First year allocation
+            if confirmation_date.year == current_year:
+
+                leave_days = 12 - confirmation_date.month + 1
+
+                if emp.probation_date_start and emp.probation_date_end:
+                    probation_start = fields.Date.to_date(
+                        emp.probation_date_start
+                    )
+
+                    probation_end = fields.Date.to_date(
+                        emp.probation_date_end
+                    )
+
+                    probation_months = (
+                            (probation_end.year - probation_start.year) * 12
+                            + probation_end.month
+                            - probation_start.month
+                            + 1
+                    )
+
+                    leave_days += probation_months
+
+            # Every year after confirmation
+            else:
+                leave_days = 12
+
+            self.env['hr.leave.allocation'].create({
+                'name': f'Privilege Leave {current_year}',
+                'employee_id': emp.id,
+                'holiday_status_id': leave_type.id,
+                'number_of_days': leave_days,
+            })
+
+            emp.pl_allocation_year = current_year
+
+    # Casual and Sick Leave Allocation
+    def cron_allocate_monthly_cl_sl(self):
+
+        today = fields.Date.today()
+        current_month = today.strftime('%Y-%m')
+
+        casual_leave = self.env['hr.leave.type'].search([
+            ('name', '=', 'Casual Leave')
+        ], limit=1)
+
+        sick_leave = self.env['hr.leave.type'].search([
+            ('name', '=', 'Sick Leave')
+        ], limit=1)
+
+        if not casual_leave or not sick_leave:
+            return
+
+        employees = self.search([])
+
+        for emp in employees:
+
+            allocate_leave = True
+
+            # ==========================
+            # Probation Employees
+            # ==========================
+            if (
+                    emp.probation_date_start
+                    and emp.probation_date_end
+            ):
+
+                probation_start = fields.Date.to_date(
+                    emp.probation_date_start
+                )
+
+                probation_end = fields.Date.to_date(
+                    emp.probation_date_end
+                )
+
+                # Probation period-la month start date
+                if (
+                        probation_start <= today <= probation_end
+                        and today.day == 1
+                ):
+                    allocate_leave = True
+
+            # ==========================
+            # Confirmation Day Credit
+            # ==========================
+            if emp.date_of_confirmation:
+
+                confirmation_date = fields.Date.to_date(
+                    emp.date_of_confirmation
+                )
+
+                # Confirm aana day
+                if today == confirmation_date:
+                    allocate_leave = True
+
+                # Already confirmed employee
+                elif (
+                        confirmation_date < today
+                        and today.day == 1
+                ):
+                    allocate_leave = True
+
+            # ==========================
+            # Allocate CL
+            # ==========================
+            if (
+                    allocate_leave
+                    and emp.last_cl_allocation_month != current_month
+            ):
+                self.env['hr.leave.allocation'].create({
+                    'name': f'CL {current_month}',
+                    'employee_id': emp.id,
+                    'holiday_status_id': casual_leave.id,
+                    'number_of_days': 1,
+                    # 'state': 'validate',
+                })
+
+                emp.last_cl_allocation_month = current_month
+
+            # ==========================
+            # Allocate SL
+            # ==========================
+            if (
+                    allocate_leave
+                    and emp.last_sl_allocation_month != current_month
+            ):
+                self.env['hr.leave.allocation'].create({
+                    'name': f'SL {current_month}',
+                    'employee_id': emp.id,
+                    'holiday_status_id': sick_leave.id,
+                    'number_of_days': 1,
+                    # 'state': 'validate',
+                })
+
+                emp.last_sl_allocation_month = current_month
+
+    # Bereavement Leave
+    def cron_allocate_bereavement_leave(self):
+
+        current_year = fields.Date.today().year
+
+        leave_type = self.env['hr.leave.type'].search([
+            ('name', '=', 'Bereavement Leave')
+        ], limit=1)
+
+        if not leave_type:
+            return
+
+        employees = self.search([
+            ('date_of_confirmation', '!=', False),
+        ])
+
+        for emp in employees:
+
+            # Already allocated this year
+            if emp.bereavement_allocation_year == current_year:
+                continue
+
+            confirmation_date = fields.Date.to_date(
+                emp.date_of_confirmation
+            )
+
+            # Employee should already be confirmed
+            if confirmation_date > fields.Date.today():
+                continue
+
+            self.env['hr.leave.allocation'].create({
+                'name': f'Bereavement Leave {current_year}',
+                'employee_id': emp.id,
+                'holiday_status_id': leave_type.id,
+                'number_of_days': 6,
+            })
+
+            emp.bereavement_allocation_year = current_year

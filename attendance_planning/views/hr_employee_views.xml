@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- 👇 NEW: Shift Type Field in Employee Form (Below Working Hours) 👇 -->
+    <record id="view_employee_form_shift_type" model="ir.ui.view">
+        <field name="name">hr.employee.form.shift.type</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <!-- Targets the Working Hours field in the Payroll/HR tab -->
+            <xpath expr="//field[@name='resource_calendar_id']" position="after">
+                <field name="shift_type" widget="radio" options="{'horizontal': true}"/>
+            </xpath>
+        </field>
+    </record>
 
     <record id="view_employee_form_face_inherit" model="ir.ui.view">
         <field name="name">hr.employee.form.face.inherit</field>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="action_report_cmt_offer_letter_template" model="ir.actions.report">
-        <field name="name">CMT Offer of Internship and Subsequent Appointment</field>
+        <field name="name">CMT Offer Letter Template</field>
         <field name="model">hr.contract.salary.offer</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">approval_recruitment.template_cmt_offer_letter_template</field>
         <field name="report_file">approval_recruitment.template_cmt_offer_letter_template</field>
-        <field name="print_report_name">'CMT Offer of Internship and Subsequent Appointment'</field>
+        <field name="print_report_name">'CMT Offer Letter Template'</field>
         <field name="binding_model_id" ref="hr_contract_salary.model_hr_contract_salary_offer"/>
         <field name="binding_type">report</field>
     </record>
@@ -58,19 +58,19 @@
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            1. <t t-esc="object.applicant_id.job_id.name"/>
+                            1. <strong>Role:</strong> <t t-esc="object.applicant_id.job_id.name"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            2. <t t-esc="object.cmt_designation"/>
+                            2. <strong>Designation:</strong> <t t-esc="object.cmt_designation.name"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            3.	We would appreciate you joining us on or before <t t-esc="object.applicant_id.ls_date_of_joining"/>
+                            3.	We would appreciate you joining us on or before <strong>Joining Date:</strong> <t t-esc="object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y')"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            4.	Compensation: Your Annual Compensation will be <strong>Rs.<t t-esc="object.final_yearly_costs"/></strong> Per Annum. Annexure 1 outlines the detailed component-wise stack up.
+                            4.	Compensation: Your Annual Compensation will be INR: Total<strong> Rs.<t t-esc="object.final_yearly_costs"/></strong> Per Annum. Annexure 1 outlines the detailed component-wise stack up.
                         </p>
 
                         <p>
@@ -145,8 +145,8 @@
                             <p>
                                 <strong>For <t t-esc="object.company_id.name"/></strong>
                             </p>
-                            <p >Koushalya R</p>
-                            <p >Head – Human Resources </p>
+                            <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
+                            <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
                         </div>
                         <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
@@ -161,11 +161,11 @@
                             </p>
 
                             <!-- Employee Details -->
-                            <p>Name: </p>
-                            <p>Designation: </p>
-                            <p>Band: </p>
-                            <p>Level: </p>
-                            <p>Date of joining:</p>
+                            <p>Name: <t t-esc="object.applicant_id.partner_name"/></p>
+                            <p>Designation: <t t-esc="object.cmt_designation.name"/></p>
+                            <p>Band: <t t-esc="object.band_id.name"/></p>
+                            <p>Level: <t t-esc="object.level_id.name"/></p>
+                            <p>Date of joining: <t t-esc="object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y')"/></p>
 
                             <br/>
 
@@ -183,36 +183,66 @@
                                 <tbody>
                                     <tr>
                                         <td>Basic Pay + DA</td>
-                                        <td></td>
-                                        <td></td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.basic_pay"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.basic_pay_annual"/>
+                                        </td>
                                     </tr>
+
                                     <tr>
                                         <td>HRA</td>
-                                        <td></td>
-                                        <td></td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.hra"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.hra_annual"/>
+                                        </td>
                                     </tr>
+
                                     <tr>
                                         <td>Special Allowance</td>
-                                        <td></td>
-                                        <td></td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.special_allowance"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.special_allowance_annual"/>
+                                        </td>
                                     </tr>
+
                                     <tr>
                                         <td><strong>Total Gross Pay</strong></td>
-                                        <td></td>
-                                        <td></td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.total_gross_pay"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.total_gross_pay_annual"/>
+                                        </td>
                                     </tr>
+
                                     <tr>
-                                        <td>Employer PF</td>
-                                        <td></td>
-                                        <td></td>
+                                        <td>Employer PF (12%)</td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.employer_pf"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.employer_pf_annual"/>
+                                        </td>
                                     </tr>
+
                                     <tr>
                                         <td><strong>CTC</strong></td>
-                                        <td></td>
-                                        <td></td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.total_gross_pay"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="'%.2f' % object.total_gross_pay_annual"/>
+                                        </td>
                                     </tr>
                                 </tbody>
-                            </table>                            <br/>
+                            </table>
+                            <br/>
 
                             <!-- Notes -->
                             <ul style="margin-top: 15px;">

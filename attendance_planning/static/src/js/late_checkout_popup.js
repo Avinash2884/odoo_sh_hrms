@@ -1,29 +1,28 @@
-
-
 const TEST_MODE = false;   //  CHANGE TO true FOR TESTING
 
 console.log(" Late checkout JS loaded");
 
-
-document.addEventListener("click", function (ev) {
-
-    // Look for either the specific warning button OR Odoo's standard sign-out icon
-    const btn = ev.target.closest("button.btn.btn-warning, .o_hr_attendance_sign_out_icon");
-    if (!btn) return;
-
-    // Flexible check: handle "Sign out", "Check out", or just the FontAwesome icon
-    const text = btn.innerText.trim().toLowerCase();
-    const hasSignOutIcon = btn.querySelector('.fa-sign-out');
-
-    if (!text.includes("check out") && !text.includes("sign out") && !hasSignOutIcon) {
-        return;
-    }
-
-    console.log(" Check out clicked");
-
-    // Allow backend compute
-    setTimeout(checkLateCheckout, 5000);
-});
+// DISABLED: this used to fire on ANY click matching a checkout-looking button,
+// then blindly wait a fixed 5 seconds before opening the late-checkout popup —
+// completely independent of the Face ID checkout flow in systray_face_patch.js.
+// That race is what caused the two camera/blink popups to clash.
+//
+// checkLateCheckout() is now called explicitly and sequentially from
+// systray_face_patch.js, right after the native checkout has actually
+// finished, so it can never overlap with the Face ID dialog anymore.
+// The function itself (below) is unchanged and still globally callable.
+//
+// document.addEventListener("click", function (ev) {
+//     const btn = ev.target.closest("button.btn.btn-warning, .o_hr_attendance_sign_out_icon");
+//     if (!btn) return;
+//     const text = btn.innerText.trim().toLowerCase();
+//     const hasSignOutIcon = btn.querySelector('.fa-sign-out');
+//     if (!text.includes("check out") && !text.includes("sign out") && !hasSignOutIcon) {
+//         return;
+//     }
+//     console.log(" Check out clicked");
+//     setTimeout(checkLateCheckout, 5000);
+// });
 
 /* ===========================================================
    CHECK LATE CHECKOUT
@@ -98,6 +97,9 @@ async function getLatestAttendance() {
 
 /* ===========================================================
    POPUP UI
+   (No second face/blink check here anymore — identity was already
+   verified once during the check-out itself, in systray_face_patch.js.
+   This popup now just collects the reason text directly.)
 =========================================================== */
 function showLateCheckoutPopup(attendance) {
 
@@ -130,7 +132,7 @@ function showLateCheckoutPopup(attendance) {
                 placeholder="Client call, urgent task, deployment..."
                 rows="4"></textarea>
 
-            <div class="late-popup-actions">
+            <div class="late-popup-actions" style="margin-top: 15px;">
                 <button id="late_skip">Skip</button>
                 <button id="late_submit">Submit</button>
             </div>
@@ -140,13 +142,11 @@ function showLateCheckoutPopup(attendance) {
     overlay.appendChild(popup);
     document.body.appendChild(overlay);
 
-
     // ===== SKIP =====
     document.getElementById("late_skip").onclick = () => {
         console.log(" Late checkout skipped");
         document.body.removeChild(overlay);
     };
-
 
     // ===== SUBMIT =====
     document.getElementById("late_submit").onclick = async () => {
@@ -185,6 +185,3 @@ function showLateCheckoutPopup(attendance) {
         }
     };
 }
-
-
-

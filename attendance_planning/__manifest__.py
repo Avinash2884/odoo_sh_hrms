@@ -12,8 +12,10 @@
         'mail',
         'hr',
         'approval_recruitment',
+        'user_geo_restriction',
     ],
     'data': [
+        'data/cron.xml',
         'security/ir.model.access.csv',
         'wizard/planning_department_wizard_views.xml',
         "views/hr_attendance_view.xml",
@@ -22,6 +24,8 @@
         "views/hr_attendance_custom_view.xml",
         "views/hr_attendance_permission_views.xml",
         'views/hr_employee_views.xml',
+        'views/edp_approval_views.xml',
+        'views/res_config_settings_views.xml',
         # 'views/selfie_kiosk_action.xml',
     ],
     'assets': {
@@ -31,7 +35,7 @@
             "attendance_planning/static/src/css/late_checkout.css",
 
             # 1. The AI Brain (Name matched perfectly to your downloaded file!)
-            # 'attendance_planning/static/src/lib/face-api.js',
+            'attendance_planning/static/src/lib/face-api.js',
 
             # 2. The Face Register Logic
             'attendance_planning/static/src/js/face_register.js',
@@ -47,6 +51,6 @@
         ],
     },
     'installable': True,
-    'application': False,
+    'application': True,
     'license': 'LGPL-3',
 }

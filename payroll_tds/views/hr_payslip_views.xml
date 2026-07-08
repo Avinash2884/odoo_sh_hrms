@@ -122,9 +122,9 @@
                     <field name="state_id" string="State"/>
                     <field name="city" string="City"/>
                     <field name="salary_type_id" string="Salary Type"/>
-                  <field name="bank_name" string="Bank Name"/>
-                    <field name="account_number" string="Account Number"/>
-                    <field name="ifsc_code" string="IFSC"/>
+<!--                  <field name="bank_name" string="Bank Name"/>-->
+<!--                    <field name="account_number" string="Account Number"/>-->
+<!--                    <field name="ifsc_code" string="IFSC"/>-->
                     <field name="basic" string="Basic"/>
                     <field name="hra" string="HRA"/>
                     <field name="special_allowance" string="Special Allowance"/>

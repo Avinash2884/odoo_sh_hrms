@@ -281,9 +281,10 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-12 mb-4">
-                                                <label class="ob-field-label">Document Type</label>
+                                                <label class="ob-field-label">Document Type <span class="ob-req">*</span></label>
                                                 <select class="category-select" name="income_proof_type"
                                                         id="income_type_select"
+                                                        required="required"
                                                         t-att-style="'background-color: #e9ecef; pointer-events: none;' if applicant.income_proof_type else ''">
                                                     <option value="" disabled="disabled"
                                                             t-att-selected="not applicant.income_proof_type">-- Select

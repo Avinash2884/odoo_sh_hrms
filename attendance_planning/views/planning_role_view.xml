@@ -5,11 +5,29 @@
         <field name="model">planning.slot</field>
         <field name="inherit_id" ref="planning.planning_view_tree"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='resource_id']" position="before">
-                <field name="ls_employee_id" optional="show"/>
+
+            <xpath expr="//field[@name='start_datetime']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
             </xpath>
+            <xpath expr="//field[@name='end_datetime']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='start_datetime']" position="after">
+                <field name="shift_date"/>
+            </xpath>
+
+            <xpath expr="//field[@name='resource_id']" position="before">
+                <field name="ls_employee_id" optional="show" string="Employee ID"/>
+            </xpath>
+
             <xpath expr="//field[@name='resource_id']" position="attributes">
                 <attribute name="string">Employee</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='resource_id']" position="after">
+                <field name="department_id" optional="show" string="Department"/>
+                <field name="calendar_id" optional="show" string="Shift Template"/>
             </xpath>
         </field>
     </record>
@@ -41,37 +59,3 @@
         </field>
     </record>
 </odoo>
-
-
-        <!--<?xml version="1.0" encoding="utf-8"?>-->
-        <!--<odoo>-->
-        <!--    &lt;!&ndash; FORM VIEW: Add Shift Template field after Role &ndash;&gt;-->
-        <!--    <record id="view_planning_slot_form_inherit_shift_template" model="ir.ui.view">-->
-        <!--        <field name="name">planning.slot.form.inherit.shift.template</field>-->
-        <!--        <field name="model">planning.slot</field>-->
-        <!--        <field name="inherit_id" ref="planning.planning_view_form"/>-->
-        <!--        <field name="arch" type="xml">-->
-        <!--            <xpath expr="//field[@name='role_id']" position="after">-->
-        <!--                <field name="calendar_id"-->
-        <!--                       placeholder="Select shift template"-->
-        <!--                       options="{'no_create': True}"/>-->
-        <!--                <div class="text-muted mt-8">-->
-        <!--                    <i class="fa fa-info-circle me-1"/> Shift template defines break times and shift boundaries.-->
-        <!--                    Does NOT change employee's default schedule.-->
-        <!--                </div>-->
-        <!--            </xpath>-->
-        <!--        </field>-->
-        <!--    </record>-->
-
-        <!--    &lt;!&ndash; LIST VIEW: Show Shift Template column &ndash;&gt;-->
-        <!--    <record id="view_planning_slot_list_inherit_shift_template" model="ir.ui.view">-->
-        <!--        <field name="name">planning.slot.list.inherit.shift.template</field>-->
-        <!--        <field name="model">planning.slot</field>-->
-        <!--        <field name="inherit_id" ref="planning.planning_view_tree"/>-->
-        <!--        <field name="arch" type="xml">-->
-        <!--            <xpath expr="//field[@name='role_id']" position="after">-->
-        <!--                <field name="calendar_id" optional="show"/>-->
-        <!--            </xpath>-->
-        <!--        </field>-->
-        <!--    </record>-->
-        <!--</odoo>-->

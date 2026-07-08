@@ -5,20 +5,39 @@
         <field name="inherit_id" ref="hr_contract_salary.hr_contract_salary_offer_view_form"/>
         <field name="arch" type="xml">
 
+            <xpath expr="//header" position="inside">
+
+                <button name="action_print_cmt_offer_letter"
+                        string="Print CMT Offer Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="offer_letter_type != 'cmt_offer_of_internship_and_subsequent_appointment'"/>
+
+                <button name="action_print_hse_offer_letter"
+                        string="Print HSE Offer Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="offer_letter_type != 'hse_offer_of_internship_and_subsequent_appointment'"/>
+
+                <button name="action_print_offer"
+                        string="Print Offer Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="offer_letter_type != 'offer_of_appointment'"/>
+
+                <button name="action_print_internship"
+                        string="Print Internship Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="offer_letter_type != 'internship_letter'"/>
+
+            </xpath>
+
             <xpath expr="//field[@name='contract_type_id']" position="after">
                 <field name="offer_letter_type"/>
             </xpath>
             <xpath expr="//sheet" position="inside">
                 <notebook>
-                    <page string="CMT Full Time Appointment Letter"
-                          invisible="offer_letter_type != 'cmt_full_time_appointment_letter'">
-
-                        <group>
-                            <field name="hospital_name"/>
-                            <field name="hospital_city"/>
-                        </group>
-
-                    </page>
 
                     <page string="Internship Letter"
                           invisible="offer_letter_type != 'internship_letter'">
@@ -26,26 +45,6 @@
                         <group>
                             <field name="start_date"/>
                             <field name="end_date"/>
-                        </group>
-
-                    </page>
-
-                    <page string="Full Time Appointment Letter"
-                          invisible="offer_letter_type != 'full_time_appointment_letter'">
-
-                        <group>
-                            <field name="full_time_hospital_name"/>
-                            <field name="full_time_hospital_city"/>
-                        </group>
-
-                    </page>
-
-                    <page string="HSE Appointment Letter"
-                          invisible="offer_letter_type != 'hse_time_appointment_letter'">
-
-                        <group>
-                            <field name="hse_hospital_name"/>
-                            <field name="hse_hospital_city"/>
                         </group>
 
                     </page>
@@ -58,6 +57,8 @@
                             <field name="variable_pay_ctc"/>
                             <field name="offer_hospital_name"/>
                             <field name="offer_hospital_city"/>
+                            <field name="offer_band_id"/>
+                            <field name="offer_level_id"/>
                         </group>
 
                     </page>
@@ -66,6 +67,8 @@
 
                         <group>
                             <field name="cmt_designation"/>
+                            <field name="band_id"/>
+                            <field name="level_id"/>
                         </group>
 
                     </page>
@@ -77,13 +80,30 @@
                             <field name="hse_designation"/>
                             <field name="hse_intern_hospital_name"/>
                             <field name="hse_intern_hospital_city"/>
+                            <field name="hse_band_id"/>
+                            <field name="hse_level_id"/>
                         </group>
 
                     </page>
 
-
-
-
+                    <page string="Annexure Details">
+                        <group>
+                            <group>
+                                <field name="basic_pay" readonly="1"/>
+                                <field name="hra" readonly="1"/>
+                                <field name="special_allowance" readonly="1"/>
+                                <field name="total_gross_pay" readonly="1"/>
+                                <field name="employer_pf" readonly="0"/>
+                            </group>
+                            <group>
+                                <field name="basic_pay_annual" readonly="1"/>
+                                <field name="hra_annual" readonly="1"/>
+                                <field name="special_allowance_annual" readonly="1"/>
+                                <field name="total_gross_pay_annual" readonly="1"/>
+                                <field name="employer_pf_annual" readonly="0"/>
+                            </group>
+                        </group>
+                    </page>
                 </notebook>
             </xpath>
 
