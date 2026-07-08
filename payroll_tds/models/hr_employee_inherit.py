@@ -72,6 +72,11 @@ class Employee(models.Model):
         compute='_compute_tds_amount_new_month',
         store=True
     )
+    tds_till_last_month = fields.Monetary(
+        string="TDS Till Last Month",
+        currency_field='currency_id',
+        default=0.0,
+    )
     surcharge_amount = fields.Monetary(
         string='Surcharge Amount',
         currency_field='currency_id',
@@ -457,46 +462,20 @@ class Employee(models.Model):
     #     for emp in self:
     #         emp.tds_amount_month = round((emp.tds_amount or 0.0) / 12.0, 2)
 
-    @api.depends('tds_amount')
+    @api.depends('tds_amount', 'tds_till_last_month')
     def _compute_tds_amount_month(self):
-
-        Payslip = self.env['hr.payslip']
 
         for emp in self:
 
             annual_tds = emp.tds_amount or 0.0
 
-            today = fields.Date.today()
-
-            # Financial Year
-            if today.month >= 4:
-                fy_start = date(today.year, 4, 1)
-            else:
-                fy_start = date(today.year - 1, 4, 1)
-
-            # Previous Payslips (Current Month exclude)
-            payslips = Payslip.search([
-                ('employee_id', '=', emp.id),
-                ('state', 'in', ['done', 'paid']),
-                ('date_from', '>=', fy_start),
-                ('date_to', '<', date(today.year, today.month, 1)),
-            ])
-
-            previous_tds = 0.0
-
-            for slip in payslips:
-                tds_line = slip.line_ids.filtered(
-                    lambda l: l.code == 'TDS'
-                )
-
-                previous_tds += sum(tds_line.mapped('total'))
-
             remaining_tax = max(
-                annual_tds - previous_tds,
+                annual_tds - (emp.tds_till_last_month or 0.0),
                 0
             )
 
-            # Remaining Months
+            today = fields.Date.today()
+
             if today.month >= 4:
                 remaining_months = 16 - today.month
             else:
