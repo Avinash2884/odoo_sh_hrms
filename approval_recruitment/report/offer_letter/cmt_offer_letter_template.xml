@@ -31,42 +31,47 @@
                         <p style="margin-bottom: 5px;">To,</p>
 
                         <p style="margin-bottom: 20px;">
-                            <strong><t t-esc="object.applicant_id.partner_name"/></strong><br/>
+                            <strong><t t-esc="object.applicant_id.partner_name or '-'"/></strong><br/>
 
                             <t t-if="object.applicant_id.permanent_address">
-                                <span t-esc="object.applicant_id.permanent_address"/><br/>
+                                <span t-esc="object.applicant_id.permanent_address or '-'"/><br/>
                             </t>
 
                             <t t-if="object.applicant_id.pincode">
-                                PIN: <span t-esc="object.applicant_id.pincode"/>
+                                PIN: <span t-esc="object.applicant_id.pincode or '-'"/>
                             </t>
                         </p>
 
                         <p style="margin-bottom: 20px;">
-                            Dear <strong><t t-esc="object.applicant_id.partner_name"/></strong>,
+                            Dear <strong><t t-esc="object.applicant_id.partner_name or '-'"/></strong>,
                         </p>
 
                         <p style="text-align: justify; margin-bottom: 20px;">
                             We are pleased to offer you a position with
-                            <strong><t t-esc="object.company_id.name"/></strong>,
-                            in its <t t-esc="object.company_id.street"/>
-                            <t t-esc="object.company_id.street2"/>
-                            <t t-esc="object.company_id.city"/>
-                            <t t-esc="object.company_id.state_id.name"/> -
-                            <t t-esc="object.company_id.zip"/>
+                            <strong><t t-esc="object.company_id.name or '-'"/></strong>,
+                            in its <t t-esc="object.company_id.street or '-'"/>
+                            <t t-esc="object.company_id.street2 or '-'"/>
+                            <t t-esc="object.company_id.city or '-'"/>
+                            <t t-esc="object.company_id.state_id.name or '-'"/> -
+                            <t t-esc="object.company_id.zip or '-'"/>
                             on the following terms and conditions:
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            1. <strong>Role:</strong> <t t-esc="object.applicant_id.job_id.name"/>
+                            1. <strong>Role:</strong> <t t-esc="object.applicant_id.job_id.name or '-'"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            2. <strong>Designation:</strong> <t t-esc="object.cmt_designation.name"/>
+                            2. <strong>Designation:</strong> <t t-esc="object.cmt_designation.name or '-'"/>
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            3.	We would appreciate you joining us on or before <strong>Joining Date:</strong> <t t-esc="object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y')"/>
+                            3. We would appreciate you joining us on or before
+                            <strong>Joining Date:</strong>
+                            <t t-if="object.applicant_id.ls_date_of_joining">
+                                <t t-esc="object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y')"/>
+                            </t>
+                            <t t-else="">-</t>
                         </p>
 
                         <p style="margin-bottom: 10px;">
@@ -88,46 +93,54 @@
                             <p>
                                 The offer stands automatically revoked, not joining as per the indicated timelines. Discussions or attempts to arrive at a revised joining date could be made, but in case no agreement on a date is arrived at, the date indicated in the offer (or last agreed in writing thereafter) would be considered as the date by which the you should join, failing which the offer would automatically stand revoked. While you are at liberty to reject the offer by indicating in writing, the offer can also be revoked at the discretion of the management, before your date of joining.
                             </p>
+                            <br></br>
                             <p>
                                 Acceptance: Your formal acceptance of the terms &amp; conditions of this offer should be confirmed in writing (reply to email/countersigning this Offer Letter) within 3 calendar days.
                             </p>
+                            <br></br>
                             <p>
                                 <strong>
                                     Terms and Conditions of Association:
                                 </strong>
                             </p>
+                            <br></br>
                             <p>
                                 The Company may, for business needs, may change your reporting manager, or transfer you to any other office location or function of the Company in India or overseas or to any of its affiliates.
                             </p>
-
+                            <br></br>
                             <p>
                                 Verification: This offer may be subject to a positive reference check and background screening. In the event that background verification has not been completed to the satisfaction of the Company in its sole discretion or you have been found to have willfully suppressed or forged any piece of information during the course of the interview or employment, the Company reserves the right to cancel this offer letter and terminate any subsequent agreement with immediate effect with written notice to that effect.
                             </p>
+                            <br></br>
                             <p>
                                 Notice period: During this period of internship, the Company may conduct evaluation(s) on functional and behavioral aspects of your role as deemed fit, to ascertain the suitability of the employment.
-
                             </p>
+                            <br></br>
                             <p>
                                 During this period, the engagement may be ended through a written notification, by giving 15 days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
                             </p>
+                            <br></br>
                             <p>
                                 As a confirmed full-time employee, the employment can be terminated by giving 15 days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
                             </p>
+                            <br></br>
                             <p>
                                A detailed Appointment Letter agreement outlining the terms and conditions of your association with the Company will be issued as part of your joining formalities.
                             </p>
+                            <br></br>
                             <p>
                                 During the course of employment with the company, you shall not enter the service or employment, consultancy, full or part time, for any other person or organization, nor shall you carry on or be interested in any business.
                             </p>
+                            <br></br>
                             <p>
                                 You will be governed by the policies of the company as may be applicable from time to time.
-                            </p>
-                            <p>
                                 Your compensation details are personal and must be treated with absolute confidentiality
                             </p>
+                            <br></br>
                             <p>
                                 Documents: On the date of joining, please provide self-attested and dated copies of below (digital version accepted):
                             </p>
+                            <br></br>
                             <ul>
                                 <li>Aadhar card</li>
                                 <li>PAN card</li>
@@ -137,16 +150,16 @@
                                 <li>Educational certificates and mark sheets Degree/Diploma, X and XII).</li>
                                 <li>Passport-sized photographs</li>
                             </ul>
-
+                            <br></br>
                             <p>
                                 Looking forward to having you on board and together creating a story!
                             </p>
-
+                            <br></br>
                             <p>
-                                <strong>For <t t-esc="object.company_id.name"/></strong>
+                                <strong>For <t t-esc="object.company_id.name or '-'"/></strong>
                             </p>
-                            <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
-                            <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
+                            <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name or '-'"/></p>
+                            <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description or '-'"/></p>
                         </div>
                         <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
@@ -156,20 +169,25 @@
                             <p>
                                 During this internship period you be provided with a stipend of INR 18,000 per month.
                             </p>
+                            <br></br>
                             <p>
                                 Post CCT/CRT certification completion &amp; full-time employment, you will be eligible for the below:
                             </p>
+                            <br></br>
 
                             <!-- Employee Details -->
-                            <p>Name: <t t-esc="object.applicant_id.partner_name"/></p>
-                            <p>Designation: <t t-esc="object.cmt_designation.name"/></p>
-                            <p>Band: <t t-esc="object.band_id.name"/></p>
-                            <p>Level: <t t-esc="object.level_id.name"/></p>
-                            <p>Date of joining: <t t-esc="object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y')"/></p>
+                            <p>Name: <t t-esc="object.applicant_id.partner_name or '-'"/></p>
+                            <p>Designation: <t t-esc="object.cmt_designation.name or '-'"/></p>
+                            <p>Band: <t t-esc="object.band_id.name or '-'"/></p>
+                            <p>Level: <t t-esc="object.level_id.name or '-'"/></p>
+                            <p>
+                                Date of joining:
+                                <t t-esc="object.applicant_id.ls_date_of_joining and object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y') or '-'"/>
+                            </p>
 
                             <br/>
 
-                            <p>The breakup of the Salary is given below:</p>
+                            <p>The breakup of the Salary is given below:</p><br></br>
 
                             <!-- Salary Table -->
                             <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
@@ -184,60 +202,60 @@
                                     <tr>
                                         <td>Basic Pay + DA</td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.basic_pay"/>
+                                            <t t-esc="'%.2f' % object.basic_pay or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.basic_pay_annual"/>
+                                            <t t-esc="'%.2f' % object.basic_pay_annual or '-'"/>
                                         </td>
                                     </tr>
 
                                     <tr>
                                         <td>HRA</td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.hra"/>
+                                            <t t-esc="'%.2f' % object.hra or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.hra_annual"/>
+                                            <t t-esc="'%.2f' % object.hra_annual or '-'"/>
                                         </td>
                                     </tr>
 
                                     <tr>
                                         <td>Special Allowance</td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.special_allowance"/>
+                                            <t t-esc="'%.2f' % object.special_allowance or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.special_allowance_annual"/>
+                                            <t t-esc="'%.2f' % object.special_allowance_annual or '-'"/>
                                         </td>
                                     </tr>
 
                                     <tr>
                                         <td><strong>Total Gross Pay</strong></td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay"/>
+                                            <t t-esc="'%.2f' % object.total_gross_pay or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay_annual"/>
+                                            <t t-esc="'%.2f' % object.total_gross_pay_annual or '-'"/>
                                         </td>
                                     </tr>
 
                                     <tr>
                                         <td>Employer PF (12%)</td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.employer_pf"/>
+                                            <t t-esc="'%.2f' % object.employer_pf or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.employer_pf_annual"/>
+                                            <t t-esc="'%.2f' % object.employer_pf_annual or '-'"/>
                                         </td>
                                     </tr>
 
                                     <tr>
                                         <td><strong>CTC</strong></td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay"/>
+                                            <t t-esc="'%.2f' % object.total_gross_pay or '-'"/>
                                         </td>
                                         <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay_annual"/>
+                                            <t t-esc="'%.2f' % object.total_gross_pay_annual or '-'"/>
                                         </td>
                                     </tr>
                                 </tbody>
