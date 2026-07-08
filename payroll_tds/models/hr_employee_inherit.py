@@ -842,3 +842,139 @@ class Employee(models.Model):
             })
 
             emp.bereavement_allocation_year = current_year
+
+    def cron_allocate_probation_sick_leave(self):
+
+        today = fields.Date.today()
+
+        # Sick Leave Type
+        leave_type = self.env['hr.leave.type'].search([
+            ('name', '=', 'Sick Leave - Probation')
+        ], limit=1)
+
+        if not leave_type:
+            return
+
+        # Employees currently under probation
+        employees = self.search([
+            ('probation_date_start', '!=', False),
+            ('probation_date_end', '!=', False),
+            ('probation_date_start', '<=', today),
+            ('probation_date_end', '>=', today),
+        ])
+
+        for emp in employees:
+
+            start_date = fields.Date.to_date(emp.probation_date_start)
+
+            # Allocate only on the probation start day of every month
+            if today.day != start_date.day:
+                continue
+
+            # Prevent duplicate allocation in the same month
+            existing = self.env['hr.leave.allocation'].search([
+                ('employee_id', '=', emp.id),
+                ('holiday_status_id', '=', leave_type.id),
+            ], limit=1)
+
+            if existing:
+                continue
+
+            allocation = self.env['hr.leave.allocation'].create({
+                'name': f'Sick Leave - Probation ({today.strftime("%B %Y")})',
+                'employee_id': emp.id,
+                'holiday_status_id': leave_type.id,
+                'number_of_days': 1,
+            })
+
+            # Odoo 19
+            # allocation.action_validate()
+
+    def cron_allocate_probation_casual_leave(self):
+
+        today = fields.Date.today()
+
+        leave_type = self.env['hr.leave.type'].search([
+            ('name', '=', 'Casual Leave - Probation')
+        ], limit=1)
+
+        if not leave_type:
+            return
+
+        employees = self.search([
+            ('probation_date_start', '!=', False),
+            ('probation_date_end', '!=', False),
+            ('probation_date_start', '<=', today),
+            ('probation_date_end', '>=', today),
+        ])
+
+        for emp in employees:
+
+            probation_start = fields.Date.to_date(
+                emp.probation_date_start
+            )
+
+            probation_end = fields.Date.to_date(
+                emp.probation_date_end
+            )
+
+            # Calculate probation months
+            probation_months = (
+                    (probation_end.year - probation_start.year) * 12
+                    + probation_end.month
+                    - probation_start.month
+            )
+
+            allocations = self.env['hr.leave.allocation'].search([
+                ('employee_id', '=', emp.id),
+                ('holiday_status_id', '=', leave_type.id),
+            ])
+
+            total_allocated = sum(
+                allocations.mapped('number_of_days')
+            )
+
+            # =========================================
+            # Probation <= 3 Months
+            # Allocate 2 CL together
+            # =========================================
+            if probation_months <= 3:
+
+                if total_allocated >= 2:
+                    continue
+
+                self.env['hr.leave.allocation'].create({
+                    'name': 'Casual Leave - Probation (3 Months)',
+                    'employee_id': emp.id,
+                    'holiday_status_id': leave_type.id,
+                    'number_of_days': 2,
+                })
+
+
+            # =========================================
+            # Probation > 3 Months
+            # Allocate Monthly 1 CL
+            # =========================================
+            else:
+
+                # Allocate on same day every month
+                if today.day != probation_start.day:
+                    continue
+
+                current_month = today.strftime('%Y-%m')
+
+                existing = self.env['hr.leave.allocation'].search([
+                    ('employee_id', '=', emp.id),
+                    ('holiday_status_id', '=', leave_type.id),
+                    ('name', '=', f'Casual Leave - Probation ({current_month})')
+                ], limit=1)
+
+                if existing:
+                    continue
+
+                self.env['hr.leave.allocation'].create({
+                    'name': f'Casual Leave - Probation ({current_month})',
+                    'employee_id': emp.id,
+                    'holiday_status_id': leave_type.id,
+                    'number_of_days': 1,
+                })
