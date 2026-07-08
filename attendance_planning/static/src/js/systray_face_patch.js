@@ -31,7 +31,7 @@ export class FaceVerificationDialog extends Component {
         this.state = useState({
             statusMessage: "Downloading AI Engine...",
             isProcessing: false,
-            needsBlink: true
+//            needsBlink: true
         });
 
         this.stream = null;
@@ -113,25 +113,25 @@ export class FaceVerificationDialog extends Component {
             const detection = await faceapi.detectSingleFace(videoEl).withFaceLandmarks().withFaceDescriptor();
 
             if (detection) {
-                // ---> BLINK DETECTION
-                if (this.state.needsBlink) {
-                    const leftEye = detection.landmarks.getLeftEye();
-                    const rightEye = detection.landmarks.getRightEye();
-                    const avgEAR = (getEAR(leftEye) + getEAR(rightEye)) / 2.0;
-                    const BLINK_THRESHOLD = 0.25;
-
-                    if (avgEAR < BLINK_THRESHOLD) {
-                        this.isEyesClosed = true;
-                        this.state.statusMessage = "Blink detected! Verifying...";
-                    } else if (this.isEyesClosed && avgEAR >= BLINK_THRESHOLD) {
-                        this.isEyesClosed = false;
-                        this.state.needsBlink = false;
-                        this.state.statusMessage = "Liveness verified. Matching face...";
-                    } else {
-                        this.state.statusMessage = "Please BLINK to verify liveness!";
-                    }
-                    return;
-                }
+//                // ---> BLINK DETECTION
+//                if (this.state.needsBlink) {
+//                    const leftEye = detection.landmarks.getLeftEye();
+//                    const rightEye = detection.landmarks.getRightEye();
+//                    const avgEAR = (getEAR(leftEye) + getEAR(rightEye)) / 2.0;
+//                    const BLINK_THRESHOLD = 0.25;
+//
+//                    if (avgEAR < BLINK_THRESHOLD) {
+//                        this.isEyesClosed = true;
+//                        this.state.statusMessage = "Blink detected! Verifying...";
+//                    } else if (this.isEyesClosed && avgEAR >= BLINK_THRESHOLD) {
+//                        this.isEyesClosed = false;
+//                        this.state.needsBlink = false;
+//                        this.state.statusMessage = "Liveness verified. Matching face...";
+//                    } else {
+//                        this.state.statusMessage = "Please BLINK to verify liveness!";
+//                    }
+//                    return;
+//                }
 
                 this.state.isProcessing = true;
                 this.state.statusMessage = "Face detected! Verifying...";
@@ -182,7 +182,7 @@ export class FaceVerificationDialog extends Component {
                     return;
                 } else {
                     this.state.statusMessage = "❌ Face does not match profile.";
-                    this.state.needsBlink = true;
+//                    this.state.needsBlink = true;
                     this.state.isProcessing = false;
                 }
             }
