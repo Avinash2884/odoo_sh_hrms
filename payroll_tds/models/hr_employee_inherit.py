@@ -452,10 +452,63 @@ class Employee(models.Model):
 
             emp.tds_amount = round(tds, 2)
 
+    # @api.depends('tds_amount')
+    # def _compute_tds_amount_month(self):
+    #     for emp in self:
+    #         emp.tds_amount_month = round((emp.tds_amount or 0.0) / 12.0, 2)
+
     @api.depends('tds_amount')
     def _compute_tds_amount_month(self):
+
+        Payslip = self.env['hr.payslip']
+
         for emp in self:
-            emp.tds_amount_month = round((emp.tds_amount or 0.0) / 12.0, 2)
+
+            annual_tds = emp.tds_amount or 0.0
+
+            today = fields.Date.today()
+
+            # Financial Year
+            if today.month >= 4:
+                fy_start = date(today.year, 4, 1)
+            else:
+                fy_start = date(today.year - 1, 4, 1)
+
+            # Previous Payslips (Current Month exclude)
+            payslips = Payslip.search([
+                ('employee_id', '=', emp.id),
+                ('state', 'in', ['done', 'paid']),
+                ('date_from', '>=', fy_start),
+                ('date_to', '<', date(today.year, today.month, 1)),
+            ])
+
+            previous_tds = 0.0
+
+            for slip in payslips:
+                tds_line = slip.line_ids.filtered(
+                    lambda l: l.code == 'TDS'
+                )
+
+                previous_tds += sum(tds_line.mapped('total'))
+
+            remaining_tax = max(
+                annual_tds - previous_tds,
+                0
+            )
+
+            # Remaining Months
+            if today.month >= 4:
+                remaining_months = 16 - today.month
+            else:
+                remaining_months = 4 - today.month
+
+            if remaining_months:
+                emp.tds_amount_month = round(
+                    remaining_tax / remaining_months,
+                    2
+                )
+            else:
+                emp.tds_amount_month = remaining_tax
 
     @api.depends('net_taxable_income', 'tax_regime')
     def _compute_tds_amount_new(self):
