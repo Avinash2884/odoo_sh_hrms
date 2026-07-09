@@ -2,7 +2,7 @@
 <odoo>
     <record id="action_report_full_time_appointment_letter" model="ir.actions.report">
         <field name="name">Full Time Appointment Letter</field>
-        <field name="model">hr.contract.salary.offer</field>
+        <field name="model">hr.employee</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">approval_recruitment.template_full_time_appointment_letter</field>
         <field name="report_file">approval_recruitment.template_full_time_appointment_letter</field>
@@ -310,8 +310,12 @@
                             <strong>For <t t-esc="object.company_id.name"/></strong>
                         </p>
 
-                        <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
-                        <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
+                        <p style="margin: 0; padding: 0;">
+                            <t t-esc="object.job_id.hr_head_name.name or '-'"/>
+                        </p>
+                        <p style="margin: 0; padding: 0;">
+                            <t t-esc="object.job_id.hr_description or '-'"/>
+                        </p>
 
 
                         <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">

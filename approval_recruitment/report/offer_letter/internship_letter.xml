@@ -144,8 +144,12 @@
                             <strong>For <t t-esc="object.company_id.name"/></strong>
                         </p>
 
-                        <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name or '-' "/></p>
-                        <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description or '-'"/></p>
+                        <p style="margin: 0; padding: 0;">
+                            <t t-esc="object.job_id.hr_head_name.name or '-'"/>
+                        </p>
+                        <p style="margin: 0; padding: 0;">
+                            <t t-esc="object.job_id.hr_description or '-'"/>
+                        </p>
 
                         <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
