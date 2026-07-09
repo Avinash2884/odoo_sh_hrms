@@ -30,19 +30,26 @@
                         <!-- Address -->
                         <p style="margin-bottom: 5px;">To,</p>
 
-                        <p style="margin-bottom: 20px;">
-                            <strong><t t-esc="object.name or '-'"/></strong><br/>
-
-                            <t t-if="object.applicant_id.mailing_address">
-                                <span t-esc="object.applicant_id.mailing_address or '-'"/><br/>
+                        <p style="margin-bottom: 5px;">
+                            <strong><t t-esc="object.name or '-'"/></strong>
+                        </p>
+                        <p style="margin-top: 0px;">
+                            <t t-if="object.permanent_street">
+                                <span t-esc="object.permanent_street"/><br/>
                             </t>
 
-                            <t t-if="object.applicant_id.permanent_address">
-                                <span t-esc="object.applicant_id.permanent_address or '-'"/><br/>
+                            <t t-if="object.permanent_street2">
+                                <span t-esc="object.permanent_street2"/><br/>
+                            </t>
+                            <t t-if="object.permanent_city">
+                                <span t-esc="object.permanent_city"/><br/>
+                            </t>
+                            <t t-if="object.permanent_state_id">
+                                <span t-esc="object.permanent_state_id.name"/><br/>
                             </t>
 
-                            <t t-if="object.applicant_id.pincode">
-                                PIN: <span t-esc="object.applicant_id.pincode or '-'"/>
+                            <t t-if="object.permanent_zip">
+                                PIN: <span t-esc="object.permanent_zip"/>
                             </t>
                         </p>
 
