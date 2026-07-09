@@ -399,7 +399,7 @@ class HrEmployeeInherit(models.Model):
         store=True
     )
     special_allowance = fields.Float(
-        string="Special Allowance",
+        string="Special Allowances",
         compute="_compute_salary_breakup",
         store=True
     )
