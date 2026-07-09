@@ -310,7 +310,7 @@
                             <strong>For <t t-esc="object.company_id.name or '-'"/></strong>
                         </p>
                         <p style="margin-top: 10px;"><t t-esc="object.job_id.hr_head_name.name or '-'"/></p>
-                        <p style="margin-top: 0px;"><t t-esc="object.job_id.hr_description or '-'"/></p>
+                        <p><t t-esc="object.job_id.hr_description or '-'"/></p>
                     </div>
                     <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
