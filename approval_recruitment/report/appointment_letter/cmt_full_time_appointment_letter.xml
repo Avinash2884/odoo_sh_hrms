@@ -325,7 +325,7 @@
                             <p>Level: <t t-esc="object.level_id.name or '-'"/></p>
                             <p>
                                 Date of joining:
-                                <t t-esc="object.applicant_id.ls_date_of_joining and object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y') or '-'"/>
+                                <t t-esc="object.joining_date_recruit.strftime('%d-%m-%Y') or '-'"/>
                             </p>
 
                             <br/>
