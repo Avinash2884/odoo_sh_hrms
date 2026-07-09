@@ -162,6 +162,10 @@ class HrEmployeeInherit(models.Model):
         ('account_transfer', 'Account Transfer'),
         ('cash', 'Cash'),
     ],string="Payment Mode")
+    applicant_id = fields.Many2one(
+        'hr.applicant',
+        string="Applicant"
+    )
     # account_id = fields.Many2one(
     #     'account.sync',
     #     string="Account"
