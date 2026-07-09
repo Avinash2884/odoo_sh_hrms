@@ -32,6 +32,8 @@
 
                         <p style="margin-bottom: 20px;">
                             <strong><t t-esc="object.name or '-'"/></strong>
+                        </p>
+                        <p>
                             <t t-if="object.permanent_street">
                                 <span t-esc="object.permanent_street"/><br/>
                             </t>
