@@ -71,7 +71,7 @@
                         <p style="margin-bottom: 10px;">
                             Your employment will begin on
                             <strong><t t-esc="object.joining_date_recruit.strftime('%d-%m-%Y') or '-'"/></strong>
-                            and your annual salary will be <strong>Rs.<t t-esc="object.wage or '-'"/></strong> per annum
+                            and your annual salary will be <strong>Rs.<t t-esc="object.final_yearly_costs or '-'"/></strong> per annum
                             paid in accordance with the company's payroll policies
                         </p>
 
