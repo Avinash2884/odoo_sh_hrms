@@ -32,16 +32,22 @@
 
                         <p style="margin-bottom: 20px;">
                             <strong><t t-esc="object.name or '-'"/></strong>
-                            <t t-if="object.applicant_id.mailing_address">
-                                <span t-esc="object.applicant_id.mailing_address"/><br/>
+                            <t t-if="object.permanent_street">
+                                <span t-esc="object.permanent_street"/><br/>
                             </t>
 
-                            <t t-if="object.applicant_id.permanent_address">
-                                <span t-esc="object.applicant_id.permanent_address"/><br/>
+                            <t t-if="object.permanent_street2">
+                                <span t-esc="object.permanent_street2"/><br/>
+                            </t>
+                            <t t-if="object.permanent_city">
+                                <span t-esc="object.permanent_city"/><br/>
+                            </t>
+                            <t t-if="object.permanent_state_id">
+                                <span t-esc="object.permanent_state_id.name"/><br/>
                             </t>
 
-                            <t t-if="object.applicant_id.pincode">
-                                PIN: <span t-esc="object.applicant_id.pincode"/>
+                            <t t-if="object.permanent_zip">
+                                PIN: <span t-esc="object.permanent_zip"/>
                             </t>
                         </p>
 
