@@ -300,7 +300,7 @@
                 <page name="wage_appointment_letter" string="Letter Details">
                     <group>
                         <group string="Wage Details">
-                            <field name="wage_appointment_letter" placeholder="Enter Your Wage" />
+                            <field name="wage_appointment_letter" placeholder="Enter Your Wage" readonly="1"/>
                         </group>
                         <group string="Hospital Details">
                             <field name="cmt_hospital_name" invisible="appointment_letter_type != 'cmt_appointment_letter'"/>
