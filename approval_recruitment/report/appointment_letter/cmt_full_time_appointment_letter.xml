@@ -30,10 +30,10 @@
                         <!-- Address -->
                         <p style="margin-bottom: 5px;">To,</p>
 
-                        <p style="margin-bottom: 20px;">
+                        <p style="margin-bottom: 5px;">
                             <strong><t t-esc="object.name or '-'"/></strong>
                         </p>
-                        <p>
+                        <p style="margin-top: 0px;">
                             <t t-if="object.permanent_street">
                                 <span t-esc="object.permanent_street"/><br/>
                             </t>
