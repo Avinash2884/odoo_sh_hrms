@@ -54,7 +54,7 @@
                         <!-- Intro -->
                         <p style="text-align: justify; margin-bottom: 20px;">
                             We are pleased to offer you a full-time employment of
-                            <strong><t t-esc="object.applicant_id.job_id.name or '-'"/></strong>
+                            <strong><t t-esc="object.job_id.name or '-'"/></strong>
                             at <strong><t t-esc="object.company_id.name or '-'"/></strong>,
                             in its
                             <t t-esc="object.company_id.street or '-'"/>
