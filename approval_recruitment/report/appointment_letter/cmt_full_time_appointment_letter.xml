@@ -58,13 +58,13 @@
                         <!-- Joining -->
                         <p style="margin-bottom: 10px;">
                             Your employment will begin on
-                            <strong><t t-esc="object.joining_date_recruit or '-'"/></strong>
+                            <strong><t t-esc="object.joining_date_recruit.strftime('%d-%m-%Y') or '-'"/></strong>
                             and your annual salary will be <strong>Rs.<t t-esc="object.wage or '-'"/></strong> per annum
                             paid in accordance with the company's payroll policies
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            You will be deputed to <strong><t t-esc="object.cmt_hospital_name"/></strong>, located at <strong><t t-esc="object.cmt_hospital_city"/></strong>
+                            You will be deputed to <strong><t t-esc="object.cmt_hospital_name or '-'"/></strong>, located at <strong><t t-esc="object.cmt_hospital_city or '-'"/></strong>
                             for this role.
                         </p>
 
