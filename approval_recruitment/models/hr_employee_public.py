@@ -168,6 +168,11 @@ class HrEmployeeInherit(models.Model):
         related='employee_id.full_time_hospital_city',
         readonly=True
     )
+    applicant_id = fields.Many2one(
+        'hr.applicant',
+        related='employee_id.applicant_id',
+        readonly=True
+    )
 
     basic_pay = fields.Float(
         string="Basic Pay",
