@@ -138,15 +138,15 @@ class HrEmployeeInherit(models.Model):
         ('cmt_appointment_letter', 'CMT Appointment Letter'),
         ('hse_appointment_letter', 'HSE Appointment Letter'),
         ('full_time_appointment_letter', 'Full Time Appointment Letter'),
-    ], string="Appointment Letter", tracking=True)
-    cmt_hospital_name = fields.Char(string="CMT Hospital Name", tracking=True)
-    cmt_hospital_city = fields.Char(string="CMT Hospital City", tracking=True)
+    ], string="Appointment Letter")
+    cmt_hospital_name = fields.Char(string="CMT Hospital Name")
+    cmt_hospital_city = fields.Char(string="CMT Hospital City")
 
-    hse_hospital_name = fields.Char(string="HSE Hospital Name", tracking=True)
-    hse_hospital_city = fields.Char(string="HSE Hospital City", tracking=True)
+    hse_hospital_name = fields.Char(string="HSE Hospital Name")
+    hse_hospital_city = fields.Char(string="HSE Hospital City")
 
-    full_time_hospital_name = fields.Char(string="Full Time Hospital Name", tracking=True)
-    full_time_hospital_city = fields.Char(string="Full Time Hospital City", tracking=True)
+    full_time_hospital_name = fields.Char(string="Full Time Hospital Name")
+    full_time_hospital_city = fields.Char(string="Full Time Hospital City")
 
     basic_pay = fields.Float(
         string="Basic Pay",
