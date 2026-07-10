@@ -69,7 +69,7 @@ class Employee(models.Model):
     tds_amount_new_month = fields.Monetary(
         string='TDS Amount New Regime (Month)',
         currency_field='currency_id',
-        compute='_compute_tds_amount_new_month',
+        compute="_compute_tds_amount_month",
         store=True
     )
     tds_till_last_month = fields.Monetary(
