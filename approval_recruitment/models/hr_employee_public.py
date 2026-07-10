@@ -134,19 +134,40 @@ class HrEmployeeInherit(models.Model):
         related='employee_id.wage_appointment_letter',
         readonly=True
     )
-    appointment_letter_type = fields.Selection([
-        ('cmt_appointment_letter', 'CMT Appointment Letter'),
-        ('hse_appointment_letter', 'HSE Appointment Letter'),
-        ('full_time_appointment_letter', 'Full Time Appointment Letter'),
-    ], string="Appointment Letter")
-    cmt_hospital_name = fields.Char(string="CMT Hospital Name")
-    cmt_hospital_city = fields.Char(string="CMT Hospital City")
+    appointment_letter_type = fields.Selection(
+        related='employee_id.appointment_letter_type',
+        readonly=True
+    )
 
-    hse_hospital_name = fields.Char(string="HSE Hospital Name")
-    hse_hospital_city = fields.Char(string="HSE Hospital City")
+    cmt_hospital_name = fields.Char(
+        related='employee_id.cmt_hospital_name',
+        readonly=True
+    )
 
-    full_time_hospital_name = fields.Char(string="Full Time Hospital Name")
-    full_time_hospital_city = fields.Char(string="Full Time Hospital City")
+    cmt_hospital_city = fields.Char(
+        related='employee_id.cmt_hospital_city',
+        readonly=True
+    )
+
+    hse_hospital_name = fields.Char(
+        related='employee_id.hse_hospital_name',
+        readonly=True
+    )
+
+    hse_hospital_city = fields.Char(
+        related='employee_id.hse_hospital_city',
+        readonly=True
+    )
+
+    full_time_hospital_name = fields.Char(
+        related='employee_id.full_time_hospital_name',
+        readonly=True
+    )
+
+    full_time_hospital_city = fields.Char(
+        related='employee_id.full_time_hospital_city',
+        readonly=True
+    )
 
     basic_pay = fields.Float(
         string="Basic Pay",
