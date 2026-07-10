@@ -405,6 +405,42 @@ class HrPayslip(models.Model):
 
         if self.env.context.get('install_demo'):
             return super().action_payslip_done()
+        #
+        # for slip in valid_slips:
+        #
+        #     fy_start = slip.date_from
+        #
+        #     if fy_start.month >= 4:
+        #         fy_start = fy_start.replace(month=4, day=1)
+        #     else:
+        #         fy_start = fy_start.replace(
+        #             year=fy_start.year - 1,
+        #             month=4,
+        #             day=1
+        #         )
+        #
+        #     previous_slips = self.env['hr.payslip'].search([
+        #         ('employee_id', '=', slip.employee_id.id),
+        #         ('state', '=', 'done'),
+        #         ('date_from', '>=', fy_start),
+        #         ('date_to', '<', slip.date_from),
+        #     ])
+        #
+        #     total_tds = 0.0
+        #
+        #     for pslip in previous_slips:
+        #         tds_line = pslip.line_ids.filtered(
+        #             lambda l: l.code in ('TDS', 'TDS_NEW')
+        #         )
+        #         total_tds += abs(sum(tds_line.mapped('total')))
+        #
+        #     # Store previous months TDS
+        #     slip.employee_id.write({
+        #         'tds_till_last_month': total_tds
+        #     })
+        #
+        #     # Recompute monthly TDS immediately
+        #     slip.employee_id._compute_tds_amount_month()
 
         valid_slips = self.env['hr.payslip']
         blocked_count = 0
@@ -502,9 +538,53 @@ class HrPayslip(models.Model):
                 valid_slips |= slip
 
         # Validate only valid payslips
+        # if valid_slips:
+        #     super(HrPayslip, valid_slips).action_payslip_done()
+        #     res = super(HrPayslip, valid_slips).action_payslip_done()
+        # else:
+        #     res = True
+
         if valid_slips:
-            super(HrPayslip, valid_slips).action_payslip_done()
             res = super(HrPayslip, valid_slips).action_payslip_done()
+
+            for slip in valid_slips:
+
+                fy_start = slip.date_from
+
+                if fy_start.month >= 4:
+                    fy_start = fy_start.replace(month=4, day=1)
+                else:
+                    fy_start = fy_start.replace(
+                        year=fy_start.year - 1,
+                        month=4,
+                        day=1
+                    )
+
+                previous_slips = self.env['hr.payslip'].search([
+                    ('employee_id', '=', slip.employee_id.id),
+                    ('id', '!=', slip.id),
+                    ('state', 'in', ['done', 'paid']),
+                    ('date_from', '>=', fy_start),
+                    ('date_to', '<', slip.date_from),
+                ])
+
+                total_previous_tds = 0
+
+                for prev in previous_slips:
+                    tds_line = prev.line_ids.filtered(
+                        lambda l: l.code == 'TDS'
+                    )
+
+                    total_previous_tds += abs(
+                        sum(tds_line.mapped('total'))
+                    )
+
+                slip.employee_id.write({
+                    'tds_till_last_month': total_previous_tds
+                })
+
+                slip.employee_id._compute_tds_amount_month()
+
         else:
             res = True
 
@@ -537,11 +617,39 @@ class HrPayslip(models.Model):
         res = super().action_payslip_paid()
 
         for slip in self:
-            loan_exists = any(line.code == 'LOAN' for line in slip.line_ids)
 
-            if loan_exists:
-                slip.employee_id.paid_installments = (
-                                                             slip.employee_id.paid_installments or 0
-                                                     ) + 1
+            employee = slip.employee_id
+
+            # -----------------------------
+            # Reset only for first payslip of new FY (April)
+            # -----------------------------
+            if slip.date_from.month == 4:
+                employee.tds_till_last_month = 0.0
+
+            # -----------------------------
+            # Get current month's TDS
+            # -----------------------------
+            tds_line = slip.line_ids.filtered(
+                lambda l: l.code == 'TDS'
+            )
+
+            current_tds = abs(sum(tds_line.mapped('total')))
+
+            # -----------------------------
+            # Store cumulative TDS
+            # -----------------------------
+            employee.write({
+                'tds_till_last_month': employee.tds_till_last_month + current_tds
+            })
+
+            # -----------------------------
+            # Recompute next month's TDS
+            # -----------------------------
+            employee._compute_tds_amount_month()
+
+        # Loan Logic
+        for slip in self:
+            if any(line.code == 'LOAN' for line in slip.line_ids):
+                slip.employee_id.paid_installments += 1
 
         return res

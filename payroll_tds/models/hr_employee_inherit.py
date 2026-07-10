@@ -462,32 +462,37 @@ class Employee(models.Model):
     #     for emp in self:
     #         emp.tds_amount_month = round((emp.tds_amount or 0.0) / 12.0, 2)
 
-    @api.depends('tds_amount', 'tds_till_last_month')
+    @api.depends(
+        'tds_amount',
+        'tds_till_last_month',
+        'payslip_month'
+    )
     def _compute_tds_amount_month(self):
-
         for emp in self:
 
-            annual_tds = emp.tds_amount or 0.0
+            month = int(emp.payslip_month or 0)
+
+            if not month:
+                emp.tds_amount_month = 0.0
+                continue
+
+            if month >= 4:
+                remaining_months = 16 - month
+            else:
+                remaining_months = 4 - month
+
+            remaining_months = max(remaining_months, 1)
 
             remaining_tax = max(
-                annual_tds - (emp.tds_till_last_month or 0.0),
-                0
+                (emp.tds_amount or 0.0)
+                - (emp.tds_till_last_month or 0.0),
+                0.0
             )
 
-            today = fields.Date.today()
-
-            if today.month >= 4:
-                remaining_months = 16 - today.month
-            else:
-                remaining_months = 4 - today.month
-
-            if remaining_months:
-                emp.tds_amount_month = round(
-                    remaining_tax / remaining_months,
-                    2
-                )
-            else:
-                emp.tds_amount_month = remaining_tax
+            emp.tds_amount_month = round(
+                remaining_tax / remaining_months,
+                2
+            )
 
     @api.depends('net_taxable_income', 'tax_regime')
     def _compute_tds_amount_new(self):
@@ -571,10 +576,43 @@ class Employee(models.Model):
 
             emp.tds_amount_new = round(tds, 2)
 
-    @api.depends('tds_amount_new')
-    def _compute_tds_amount_new_month(self):
+    # @api.depends('tds_amount_new')
+    # def _compute_tds_amount_new_month(self):
+    #     for emp in self:
+    #         emp.tds_amount_new_month = round((emp.tds_amount_new or 0.0) / 12, 2)
+
+    @api.depends(
+        'tds_amount_new',
+        'tds_till_last_month',
+        'payslip_month'
+    )
+    def _compute_tds_amount_month(self):
         for emp in self:
-            emp.tds_amount_new_month = round((emp.tds_amount_new or 0.0) / 12, 2)
+
+            month = int(emp.payslip_month or 0)
+
+            if not month:
+                emp.tds_amount_month = 0.0
+                continue
+
+            if month >= 4:
+                remaining_months = 16 - month
+            else:
+                remaining_months = 4 - month
+
+            remaining_months = max(remaining_months, 1)
+
+            annual_tds = emp.tds_amount_new or 0.0
+
+            remaining_tax = max(
+                annual_tds - (emp.tds_till_last_month or 0.0),
+                0.0
+            )
+
+            emp.tds_amount_month = round(
+                remaining_tax / remaining_months,
+                2
+            )
 
     variable_pay = fields.Monetary(string="Variable Pay")
     variable_bonus = fields.Monetary(string="Bonus")

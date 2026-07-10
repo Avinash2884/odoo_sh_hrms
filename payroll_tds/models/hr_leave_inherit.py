@@ -381,102 +381,97 @@ class HrLeave(models.Model):
     # ----------------------------------------
     # 📧 TIME OFF BALANCE APPROVAL MAIL
     # ----------------------------------------
-    def write(self, vals):
-
-        print("VALS:", vals)
-
-        res = super().write(vals)
-
-        # Leave Approved
-        if vals.get('state') in ['validate', 'validate1']:
-
-            print("APPROVAL DETECTED")
-
-            for leave in self:
-
-                print("EMPLOYEE:", leave.employee_id.name)
-
-                # Reporting Manager
-                manager = leave.employee_id.parent_id
-
-                print("MANAGER:", manager.name if manager else "NO MANAGER")
-
-                # Check Payslip
-                blocked_slip = self.env['hr.payslip'].search([
-                    ('employee_id', '=', leave.employee_id.id),
-                    ('state', '=', 'timeoff_balance')
-                ])
-
-                print("BLOCKED SLIP:", blocked_slip)
-
-                if blocked_slip:
-                    print("TIMEOFF BALANCE FOUND")
-
-                if blocked_slip and manager and manager.user_id.email:
-                    print("MAIL SENDING")
-
-                    mail_values = {
-                        'subject': 'Please Proceed with Payroll',
-                        'body_html': f"""
-                            <p>Dear {manager.name},</p>
-
-                            <p>
-                                Employee
-                                <b>{leave.employee_id.name}</b>'s
-                                leave request has been approved.
-                            </p>
-
-                            <p>
-                                Please proceed with the payroll.
-                            </p>
-
-
-
-                            <p>Thanks</p>
-                        """,
-                        'email_to': manager.user_id.email,
-                    }
-
-                    self.env['mail.mail'].sudo().create(mail_values).send()
-
-                    # Payroll Officer Users
-                    payroll_group = self.env.ref(
-                        'hr_payroll.group_hr_payroll_user'
-                    )
-
-                    payroll_users = self.env['res.users'].search([
-                        ('groups_id', 'in', payroll_group.id)
-                    ])
-
-                    for user in payroll_users:
-
-                        if user.email:
-                            payroll_mail_values = {
-                                'subject': 'Payroll Can Be Processed',
-                                'body_html': f"""
-                                    <p>Dear {user.name},</p>
-
-                                    <p>
-                                        Employee
-                                        <b>{leave.employee_id.name}</b>'s
-                                        leave request has been approved.
-                                    </p>
-
-                                    <p>
-                                        The payslip in
-                                        <b>Time Off Balance</b>
-                                        can now be processed.
-                                    </p>
-
-
-
-                                    <p>Thanks</p>
-                                """,
-                                'email_to': user.email,
-                            }
-
-                            self.env['mail.mail'].sudo().create(
-                                payroll_mail_values
-                            ).send()
-
-        return res
+    # def write(self, vals):
+    #
+    #      print("VALS:", vals)
+    #
+    #     res = super().write(vals)
+    #
+    #     Leave Approved
+    #     if vals.get('state') in ['validate', 'validate1']:
+    #
+    #          print("APPROVAL DETECTED")
+    #
+    #         for leave in self:
+    #
+    #              print("EMPLOYEE:", leave.employee_id.name)
+    #
+    #              Reporting Manager
+    #             manager = leave.employee_id.parent_id
+    #
+    #              print("MANAGER:", manager.name if manager else "NO MANAGER")
+    #
+    #              Check Payslip
+    #             blocked_slip = self.env['hr.payslip'].search([
+    #                 ('employee_id', '=', leave.employee_id.id),
+    #                 ('state', '=', 'timeoff_balance')
+    #             ], limit=1)
+    #
+    #             manager = leave.employee_id.parent_id
+    #
+    #             if blocked_slip and manager and manager.user_id and manager.user_id.email:
+    #
+    #                 mail_values = {
+    #                     'subject': 'Please Proceed with Payroll',
+    #                     'body_html': f"""
+    #                         <p>Dear {manager.name},</p>
+    #
+    #                         <p>
+    #                             Employee <b>{leave.employee_id.name}</b>'s
+    #                             leave request has been approved.
+    #                         </p>
+    #
+    #                         <p>Please proceed with the payroll.</p>
+    #
+    #                         <p>Thanks</p>
+    #                     """,
+    #                     'email_to': manager.user_id.email,
+    #                 }
+    #
+    #                 self.env['mail.mail'].sudo().create(mail_values).send()
+    #
+    #                  Payroll Officer Users
+    #                 payroll_group = self.env.ref(
+    #                     'hr_payroll.group_hr_payroll_user',
+    #                     raise_if_not_found=False
+    #                 )
+    #
+    #                 if payroll_group:
+    #                     payroll_users = self.env['res.users'].search([
+    #                         ('groups_id', 'in', payroll_group.id)
+    #                     ])
+    #                 else:
+    #                     payroll_users = self.env['res.users']
+    #
+    #                 for user in payroll_users:
+    #
+    #                     if user.email:
+    #                         payroll_mail_values = {
+    #                             'subject': 'Payroll Can Be Processed',
+    #                             'body_html': f"""
+    #                                 <p>Dear {user.name},</p>
+    #
+    #                                 <p>
+    #                                     Employee
+    #                                     <b>{leave.employee_id.name}</b>'s
+    #                                     leave request has been approved.
+    #                                 </p>
+    #
+    #                                 <p>
+    #                                     The payslip in
+    #                                     <b>Time Off Balance</b>
+    #                                     can now be processed.
+    #                                 </p>
+    #
+    #
+    #
+    #                                 <p>Thanks</p>
+    #                             """,
+    #                             'email_to': user.email,
+    #                         }
+    #
+    #                         self.env['mail.mail'].sudo().create(
+    #                             payroll_mail_values
+    #                         ).send()
+    #
+    #     return res
