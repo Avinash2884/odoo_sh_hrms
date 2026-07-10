@@ -387,7 +387,7 @@ class Employee(models.Model):
     ff_paid_days1 = fields.Float(string="Paid Days")
 
     @api.depends(
-        'payslip_yearly_cost',
+        'final_yearly_costs',
         'standard_deduction',
         'section_80c',
         'section_80d',
@@ -398,7 +398,7 @@ class Employee(models.Model):
     )
     def _compute_net_taxable_income(self):
         for emp in self:
-            annual_income = emp.payslip_yearly_cost or 0.0
+            annual_income = emp.final_yearly_costs or 0.0
             deduction = emp.standard_deduction or 0.0
 
             if emp.tax_regime == 'old':
