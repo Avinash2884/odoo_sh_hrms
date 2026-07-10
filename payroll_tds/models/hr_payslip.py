@@ -645,7 +645,7 @@ class HrPayslip(models.Model):
             # -----------------------------
             # Recompute next month's TDS
             # -----------------------------
-            employee._compute_tds_amount_month()
+            # employee._compute_tds_amount_month()
 
         # Loan Logic
         for slip in self:

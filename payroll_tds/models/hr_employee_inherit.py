@@ -614,6 +614,23 @@ class Employee(models.Model):
                 2
             )
 
+    def write(self, vals):
+
+        res = super().write(vals)
+
+        if 'wage' in vals:
+
+            for employee in self:
+                print("Salary Changed")
+
+                # Recompute Annual TDS
+                employee._compute_tds_amount()
+
+                # Recompute Monthly TDS
+                employee._compute_tds_amount_month()
+
+        return res
+
     variable_pay = fields.Monetary(string="Variable Pay")
     variable_bonus = fields.Monetary(string="Bonus")
     basic_arrear = fields.Monetary(string="Basic Arrear")
