@@ -18,6 +18,26 @@
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_print_cmt_appointment_letter"
+                        string="Print CMT Appointment Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="appointment_letter_type != 'cmt_appointment_letter'"/>
+
+                <button name="action_print_hse_appointment_letter"
+                        string="Print HSE Appointment Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="appointment_letter_type != 'hse_appointment_letter'"/>
+
+                <button name="action_print_full_time_appointment_letter"
+                        string="Print Full Time Appointment Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="appointment_letter_type != 'full_time_appointment_letter'"/>
+
+            </xpath>
             <xpath expr="//h5[field[@name='work_phone']]" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
@@ -81,6 +101,7 @@
                 </h5>
             </xpath>
             <xpath expr="//field[@name='department_id']" position="before">
+                <field name="appointment_letter_type" />
                 <field name="entity_name_id" />
                 <field name="ls_role_id" />
                 <field name="band_id" />
@@ -276,6 +297,41 @@
                         <field name="probation_reason"/>
                     </group>
                 </page>
+                <page name="wage_appointment_letter" string="Letter Details">
+                    <group>
+                        <group string="Wage Details">
+                            <field name="wage_appointment_letter" placeholder="Enter Your Wage" readonly="1"/>
+                        </group>
+                        <group string="Hospital Details">
+                            <field name="cmt_hospital_name" invisible="appointment_letter_type != 'cmt_appointment_letter'"/>
+                            <field name="cmt_hospital_city" invisible="appointment_letter_type != 'cmt_appointment_letter'"/>
+                            <field name="hse_hospital_name" invisible="appointment_letter_type != 'hse_appointment_letter'"/>
+                            <field name="hse_hospital_city" invisible="appointment_letter_type != 'hse_appointment_letter'"/>
+                            <field name="full_time_hospital_name" invisible="appointment_letter_type != 'full_time_appointment_letter'"/>
+                            <field name="full_time_hospital_city" invisible="appointment_letter_type != 'full_time_appointment_letter'"/>
+                        </group>
+                    </group>
+                </page>
+
+                <page string="Annexure Details">
+                    <group>
+                        <group>
+                            <field name="basic_pay" readonly="1"/>
+                            <field name="hra" readonly="1"/>
+                            <field name="special_allowance" readonly="1"/>
+                            <field name="total_gross_pay" readonly="1"/>
+                            <field name="employer_pf" readonly="0"/>
+                        </group>
+                        <group>
+                            <field name="basic_pay_annual" readonly="1"/>
+                            <field name="hra_annual" readonly="1"/>
+                            <field name="special_allowance_annual" readonly="1"/>
+                            <field name="total_gross_pay_annual" readonly="1"/>
+                            <field name="employer_pf_annual" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+
             </xpath>
 
 

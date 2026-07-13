@@ -18,6 +18,7 @@
         'data/cron.xml',
         'security/ir.model.access.csv',
         'wizard/planning_department_wizard_views.xml',
+        'wizard/planning_matrix_import_views.xml',
         "views/hr_attendance_view.xml",
         "views/hr_attendance_management_action.xml",
         "views/planning_role_view.xml",

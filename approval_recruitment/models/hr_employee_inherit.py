@@ -3,7 +3,7 @@ import re
 from odoo import models, fields, api, _
 from datetime import timedelta, date
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 
 
 class HrEmployeeInherit(models.Model):
@@ -17,6 +17,35 @@ class HrEmployeeInherit(models.Model):
     it_asset_head_id = fields.Many2one('hr.employee', 'IT Asset Head',tracking=True)
     admin_head_id = fields.Many2one('hr.employee', 'Admin Head',tracking=True)
     payroll_head_id = fields.Many2one('hr.employee', 'Payroll Head',tracking=True)
+    wage_appointment_letter = fields.Monetary(
+        string="Wage (Appointment Letter)",
+        compute="_compute_wage_appointment_letter",
+        inverse="_inverse_wage_appointment_letter",
+        currency_field='currency_id',
+        store=True
+    )
+    appointment_letter_type = fields.Selection([
+        ('cmt_appointment_letter', 'CMT Appointment Letter'),
+        ('hse_appointment_letter', 'HSE Appointment Letter'),
+        ('full_time_appointment_letter', 'Full Time Appointment Letter'),
+    ],string="Appointment Letter",tracking=True)
+    cmt_hospital_name = fields.Char(string="CMT Hospital Name",tracking=True)
+    cmt_hospital_city = fields.Char(string="CMT Hospital City",tracking=True)
+
+    hse_hospital_name = fields.Char(string="HSE Hospital Name", tracking=True)
+    hse_hospital_city = fields.Char(string="HSE Hospital City", tracking=True)
+
+    full_time_hospital_name = fields.Char(string="Full Time Hospital Name", tracking=True)
+    full_time_hospital_city = fields.Char(string="Full Time Hospital City", tracking=True)
+
+    @api.depends('wage')
+    def _compute_wage_appointment_letter(self):
+        for rec in self:
+            rec.wage_appointment_letter = rec.wage or 0.0
+
+    def _inverse_wage_appointment_letter(self):
+        for rec in self:
+            rec.wage = rec.wage_appointment_letter
 
     probation_status = fields.Selection([
         ('extended', 'Extension of Probation'),
@@ -133,6 +162,10 @@ class HrEmployeeInherit(models.Model):
         ('account_transfer', 'Account Transfer'),
         ('cash', 'Cash'),
     ],string="Payment Mode")
+    applicant_id = fields.Many2one(
+        'hr.applicant',
+        string="Applicant"
+    )
     # account_id = fields.Many2one(
     #     'account.sync',
     #     string="Account"
@@ -325,3 +358,137 @@ class HrEmployeeInherit(models.Model):
                 'default_email_to': self.work_email,
             }
         }
+
+    def _check_appointment_template(self, report_name):
+        for rec in self:
+
+            mapping = {
+                'approval_recruitment.template_cmt_full_time_appointment_letter': 'cmt_appointment_letter',
+                'approval_recruitment.template_hse_appointment_letter': 'hse_appointment_letter',
+                'approval_recruitment.template_full_time_appointment_letter': 'full_time_appointment_letter',
+            }
+
+            expected_type = mapping.get(report_name)
+
+            if expected_type and rec.appointment_letter_type != expected_type:
+                raise UserError(_(
+                    "❌ You selected '%s' in Appointment Letter Type.\n\n"
+                    "Please print the correct template only."
+                ) % (rec.appointment_letter_type))
+
+    def action_print_cmt_appointment_letter(self):
+        self._check_appointment_template('approval_recruitment.template_cmt_full_time_appointment_letter')
+        return self.env.ref('approval_recruitment.action_report_cmt_full_time_appointment_letter').report_action(self)
+
+    def action_print_hse_appointment_letter(self):
+        self._check_appointment_template('approval_recruitment.template_hse_appointment_letter')
+        return self.env.ref('approval_recruitment.action_report_hse_appointment_letter').report_action(self)
+
+    def action_print_full_time_appointment_letter(self):
+        self._check_appointment_template('approval_recruitment.template_full_time_appointment_letter')
+        return self.env.ref('approval_recruitment.action_report_full_time_appointment_letter').report_action(self)
+
+    basic_pay = fields.Float(
+        string="Basic Pay",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+    hra = fields.Float(
+        string="HRA",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+    special_allowance = fields.Float(
+        string="Special Allowances",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+    total_gross_pay = fields.Float(
+        string="Total Gross Pay",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+    employer_pf = fields.Float(
+        string="Employer PF",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+
+    basic_pay_annual = fields.Float(
+        string="Basic Pay (Annual)",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+
+    hra_annual = fields.Float(
+        string="HRA (Annual)",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+
+    special_allowance_annual = fields.Float(
+        string="Special Allowance (Annual)",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+
+    total_gross_pay_annual = fields.Float(
+        string="Total Gross Pay (Annual)",
+        compute="_compute_salary_breakup",
+        store=True
+    )
+
+    employer_pf_annual = fields.Float(
+        string="Employer PF (Annual)",
+        compute="_compute_employer_pf_annual",
+        store=True
+    )
+
+    @api.depends('wage')
+    def _compute_salary_breakup(self):
+        for rec in self:
+            monthly_gross = rec.wage or 0.0  # ✅ direct monthly
+
+            if not monthly_gross:
+                rec.basic_pay = 0.0
+                rec.hra = 0.0
+                rec.special_allowance = 0.0
+                rec.total_gross_pay = 0.0
+                rec.employer_pf = 0.0
+
+                rec.basic_pay_annual = 0.0
+                rec.hra_annual = 0.0
+                rec.special_allowance_annual = 0.0
+                rec.total_gross_pay_annual = 0.0
+                rec.employer_pf_annual = 0.0
+                continue
+
+            # ✅ Monthly breakup
+            monthly_basic = monthly_gross * 0.50
+            monthly_hra = monthly_gross * 0.30
+            monthly_special = monthly_gross * 0.20
+
+            # ✅ Employer PF
+            if monthly_basic > 15000:
+                monthly_pf = 1800.0
+            else:
+                monthly_pf = monthly_basic * 0.12
+
+            # Monthly values
+            rec.total_gross_pay = monthly_gross
+            rec.basic_pay = monthly_basic
+            rec.hra = monthly_hra
+            rec.special_allowance = monthly_special
+            rec.employer_pf = monthly_pf
+
+            # ✅ Annual values
+            rec.basic_pay_annual = monthly_basic * 12
+            rec.hra_annual = monthly_hra * 12
+            rec.special_allowance_annual = monthly_special * 12
+            rec.total_gross_pay_annual = monthly_gross * 12
+            rec.employer_pf_annual = monthly_pf * 12
+
+    @api.depends('employer_pf')
+    def _compute_employer_pf_annual(self):
+        for rec in self:
+            rec.employer_pf_annual = (rec.employer_pf or 0.0) * 12

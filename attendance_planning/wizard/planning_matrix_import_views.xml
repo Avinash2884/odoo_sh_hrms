@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- The Popup Window -->
+        <record id="view_planning_matrix_import_form" model="ir.ui.view">
+            <field name="name">planning.matrix.import.form</field>
+            <field name="model">planning.matrix.import</field>
+            <field name="arch" type="xml">
+                <form string="Import Roster Matrix">
+                    <group>
+                        <div class="alert alert-info" role="alert">
+                            Upload your Excel matrix. Column A must be <b>Employee ID</b>, and Columns D onwards must be the Dates (MM/DD/YYYY).
+                        </div>
+                        <field name="file_name" invisible="1"/>
+                        <field name="upload_file" filename="file_name"/>
+                    </group>
+                    <footer>
+                        <button name="action_import_matrix" string="Import Roster" type="object" class="btn-primary" data-hotkey="q"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="z"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- The Action to open the popup -->
+        <record id="action_planning_matrix_import" model="ir.actions.act_window">
+            <field name="name">Import Matrix Roster</field>
+            <field name="res_model">planning.matrix.import</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <!-- Add the button to the Planning Top Menu -->
+        <menuitem id="menu_planning_matrix_import"
+                  name="Import Matrix"
+                  parent="planning.planning_menu_schedule"
+                  action="action_planning_matrix_import"
+                  sequence="90"/>
+    </data>
+</odoo>

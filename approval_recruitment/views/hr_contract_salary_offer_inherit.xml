@@ -20,7 +20,7 @@
                         invisible="offer_letter_type != 'hse_offer_of_internship_and_subsequent_appointment'"/>
 
                 <button name="action_print_offer"
-                        string="Print Offer Letter"
+                        string="Print Full time Employee Offer Letter"
                         type="object"
                         class="btn-primary"
                         invisible="offer_letter_type != 'offer_of_appointment'"/>
