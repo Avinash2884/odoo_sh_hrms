@@ -30,32 +30,32 @@
                         <!-- Address -->
                         <p style="margin-bottom: 5px;">To,</p>
 
-                        <p style="margin-bottom: 20px;">
-                            <strong><t t-esc="object.applicant_id.partner_name"/></strong><br/>
+                        <p style="margin-top: 0px;">
+                            <strong><t t-esc="object.applicant_id.partner_name or '-'"/></strong><br/>
 
-                            <t t-if="object.applicant_id.permanent_address">
-                                <span t-esc="object.applicant_id.permanent_address"/><br/>
+                            <t t-if="object.applicant_id.mailing_address">
+                                <span t-esc="object.applicant_id.mailing_address or '-'"/><br/>
                             </t>
 
                             <t t-if="object.applicant_id.pincode">
-                                PIN: <span t-esc="object.applicant_id.pincode"/>
+                                PIN: <span t-esc="object.applicant_id.pincode or '-'"/>
                             </t>
                         </p>
 
                         <!-- Greeting -->
                         <p style="margin-bottom: 20px;">
-                            Dear <strong><t t-esc="object.applicant_id.partner_name"/></strong>,
+                            Dear <strong><t t-esc="object.applicant_id.partner_name or '-'"/></strong>,
                         </p>
 
                         <p>
-                            <strong>OFFER FOR INTERNSHIP WITH <t t-esc="object.company_id.name"/></strong>
+                            <strong>OFFER FOR INTERNSHIP WITH <t t-esc="object.company_id.name or '-'"/></strong>
                         </p>
 
                         <!-- Intro -->
                         <p style="text-align: justify; margin-bottom: 20px;">
                             We are pleased to offer you an internship with
-                            <strong><t t-esc="object.company_id.name"/></strong>,
-                            in the <strong><t t-esc="object.applicant_id.department_id.name"/></strong>
+                            <strong><t t-esc="object.company_id.name or '-'"/></strong>,
+                            in the <strong><t t-esc="object.department_id.name or '-'"/></strong>
                             Department
                             This internship will be based in on the following terms and conditions.
                         </p>
@@ -65,22 +65,18 @@
                             <strong>1. Duration of Internship</strong>
                         </p>
 
-                        <div style="margin-left: 20px; text-align: justify; margin-bottom: 20px;">
 
-                            <p style="margin-bottom: 12px;">
-                               The duration of internship shall be from <strong><t t-esc="object.start_date.strftime('%d-%m-%Y')"/></strong> to <strong><t t-esc="object.end_date.strftime('%d-%m-%Y')"/></strong>
-                            </p>
-                        </div>
+                        <p style="margin-bottom: 12px;text-align: justify;">
+                           The duration of internship shall be from <strong><t t-esc="object.start_date.strftime('%d-%m-%Y') or '-'"/></strong> to <strong><t t-esc="object.end_date.strftime('%d-%m-%Y') or '-'"/></strong>
+                        </p>
 
 
                         <p style="margin-bottom: 10px;"><strong>2. Working days</strong></p>
 
-                        <div style="margin-left: 20px; text-align: justify; margin-bottom: 20px;">
 
-                            <p style="margin-bottom: 12px;">
-                                6 working days in a week. Second and fourth Saturday will be considered as holiday.
-                            </p>
-                        </div>
+                        <p style="margin-bottom: 12px; text-align: justify;">
+                            6 working days in a week. Second and fourth Saturday will be considered as holiday.
+                        </p>
 
 
                         <p style="margin-bottom: 10px;">
@@ -88,7 +84,7 @@
                         </p>
 
                         <p style="margin-bottom: 20px; text-align: justify;">
-                            You shall be paid a monthly stipend of INR <strong><t t-esc="object.final_yearly_costs"/></strong>
+                            You shall be paid a monthly stipend of INR <strong><t t-esc="object.final_yearly_costs or '-'"/></strong>
                         </p>
 
 
@@ -148,8 +144,12 @@
                             <strong>For <t t-esc="object.company_id.name"/></strong>
                         </p>
 
-                        <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
-                        <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
+                        <p style="margin: 0; padding: 0;">
+                            <t t-esc="object.applicant_id.job_id.hr_head_name.name or '-'"/>
+                        </p>
+                        <p style="margin: 0; padding: 0;">
+                            <t t-esc="object.applicant_id.job_id.hr_description or '-'"/>
+                        </p>
 
                         <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
 
@@ -179,18 +179,18 @@
 
                             <!-- Paragraph -->
                             <p style="text-align: justify; line-height: 1.6;">
-                                This Non-Disclosure Agreement ("Agreement") is made and entered into <strong><t t-esc="object.start_date.strftime('%d-%m-%Y')"/></strong> and effective from <strong><t t-esc="object.end_date.strftime('%d-%m-%Y')"/></strong> (“Effective Date”), at Chennai, India
+                                This Non-Disclosure Agreement ("Agreement") is made and entered into <strong><t t-esc="object.start_date.strftime('%d-%m-%Y') or '-'"/></strong> and effective from <strong><t t-esc="object.end_date.strftime('%d-%m-%Y') or '-'"/></strong> (“Effective Date”), at Chennai, India
                             </p>
 
                             <p><strong>BY AND BETWEEN</strong></p>
 
                             <p>
                                 <strong><t t-esc="object.company_id.name"/></strong>,a company incorporated under the Companies Act, 2073 and having office at
-                                <t t-esc="object.company_id.street"/>
-                                <t t-esc="object.company_id.street2"/>
-                                <t t-esc="object.company_id.city"/>
-                                <t t-esc="object.company_id.state_id.name"/> -
-                                <t t-esc="object.company_id.zip"/>
+                                <t t-esc="object.company_id.street or '-'"/>
+                                <t t-esc="object.company_id.street2 or '-'"/>
+                                <t t-esc="object.company_id.city or '-'"/>
+                                <t t-esc="object.company_id.state_id.name or '-'"/> -
+                                <t t-esc="object.company_id.zip or '-'"/>
                                 (hereinafter referred to as the <strong>“Company”</strong>) which expression unless repugnant to the context or meaning thereof shall be deemed to include its successors and permitted assigns of the <strong>First Part,</strong>
                             </p>
 
@@ -200,13 +200,13 @@
                                 <span>
                                     <strong><t t-esc="object.applicant_id.partner_name"/></strong>,
                                     <t t-if="object.applicant_id.mailing_address">
-                                        <t t-esc="object.applicant_id.mailing_address"/>,
+                                        <t t-esc="object.applicant_id.mailing_address or '-'"/>,
                                     </t>
                                     <t t-if="object.applicant_id.permanent_address">
-                                        <t t-esc="object.applicant_id.permanent_address"/>,
+                                        <t t-esc="object.applicant_id.permanent_address or '-'"/>,
                                     </t>
                                     <t t-if="object.applicant_id.pincode">
-                                        PIN: <t t-esc="object.applicant_id.pincode"/>
+                                        PIN: <t t-esc="object.applicant_id.pincode or '-'"/>
                                     </t>
                                 </span>
                                 (hereinafter referred to as <strong>"Intern"</strong>) which expression shall include, unless repugnant to or inconsistent with the subject or context thereof, his/her legal heirs, successors, administrators, and executors of the <strong>Second Part.</strong>
@@ -231,7 +231,8 @@
                             <p>
                                 4.	Whereas Intern understands that intellectual property and the confidential/proprietary information of Company are the most important and valuable assets of Company to enable Company to achieve its overall business objectives. The protection of this valuable information is critical to Company’s business.
                             </p>
-
+                        </div>
+                        <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
                             <p>
                                 <strong>
                                     IN CONSIDERATION OF THE PROMISES AND COVENANTS CONTAINED IN THIS AGREEMENT AND THE DISCLOSURE OF CONFIDENTIAL INFORMATION FROM THE COMPANY TO THE INTERN, THE PARTIES HERETO AGREE AS FOLLOWS:
@@ -264,7 +265,7 @@
                                 Confidential Information shall not include any materials or information which the Intern shows: (i) at the time of disclosure generally known by or available to the public or became so known or available thereafter through no fault of the Intern; or (ii) is legally known to the Intern at the time of disclosure by the Company; or (iii) is furnished by the Company to third parties without restriction; or (iv) is furnished to the Intern by a third party who legally obtained said information and the right to disclose it; or (v) is developed independently by the Intern either before or after the term of the Intern’s engagement as a Intern or independent contractor to the Company where the Intern can document such independent development.
                             </p>
                             <p>
-                                1.2 “Confidential Materials" shall mean all tangible materials containing Confidential Information, including without limitation to drawings, schematics, written or printed documents, computer disks, pen drives, hard disks, memory cards (USB), and compact disks (CD), whether machine or user readable.
+                                1.2 <strong>“Confidential Materials"</strong> shall mean all tangible materials containing Confidential Information, including without limitation to drawings, schematics, written or printed documents, computer disks, pen drives, hard disks, memory cards (USB), and compact disks (CD), whether machine or user readable.
                             </p>
 
                             <p>
@@ -379,73 +380,29 @@
                                 <strong>IN WITNESS WHEREOF,</strong> the Parties hereto have executed this Agreement as on the date first set forth above.
                             </p>
 
-                            <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
+                            <table class="table table-bordered" style="width: 100%; margin-top: 10px; border-collapse: collapse;">
+                                <colgroup>
+                                    <col style="width: 50%;"/>
+                                    <col style="width: 50%;"/>
+                                </colgroup>
                                 <thead>
                                     <tr>
-                                        <th class="text-start">Particulars</th>
-                                        <th class="text-center">Monthly</th>
-                                        <th class="text-center">Annual CTC</th>
+                                        <th class="text-start"><strong><t t-esc="object.company_id.name or '-'"/></strong></th>
+                                        <th class="text-center"><strong>FOR INTERN</strong></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>Basic Pay + DA</td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.basic_pay"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.basic_pay_annual"/>
-                                        </td>
+                                        <td>Signature:</td>
+                                        <td>Signature:</td>
                                     </tr>
-
                                     <tr>
-                                        <td>HRA</td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.hra"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.hra_annual"/>
-                                        </td>
+                                        <td>Print Name: <t t-esc="object.applicant_id.job_id.hr_head_name.name or '-' "/></td>
+                                        <td>Print Name:</td>
                                     </tr>
-
                                     <tr>
-                                        <td>Special Allowance</td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.special_allowance"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.special_allowance_annual"/>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td><strong>Total Gross Pay</strong></td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay_annual"/>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td>Employer PF (12%)</td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.employer_pf"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.employer_pf_annual"/>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td><strong>CTC</strong></td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <t t-esc="'%.2f' % object.total_gross_pay_annual"/>
-                                        </td>
+                                        <td>Date:</td>
+                                        <td>Date:</td>
                                     </tr>
                                 </tbody>
                             </table>

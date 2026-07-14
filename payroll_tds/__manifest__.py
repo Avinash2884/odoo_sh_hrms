@@ -14,6 +14,8 @@
     """,
     'data': [
         'data/bereavement_leave_cron.xml',
+        'data/probation_sick_leave_cron.xml',
+        'data/probation_casual_leave_cron.xml',   # <-- Add this
         'data/comp_off_cron.xml',
         'data/ir_cron.xml',
         'data/monthly_cl_sl_cron.xml',

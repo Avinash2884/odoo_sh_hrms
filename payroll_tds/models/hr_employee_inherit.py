@@ -69,8 +69,13 @@ class Employee(models.Model):
     tds_amount_new_month = fields.Monetary(
         string='TDS Amount New Regime (Month)',
         currency_field='currency_id',
-        compute='_compute_tds_amount_new_month',
+        compute="_compute_tds_amount_month",
         store=True
+    )
+    tds_till_last_month = fields.Monetary(
+        string="TDS Till Last Month",
+        currency_field='currency_id',
+        default=0.0,
     )
     surcharge_amount = fields.Monetary(
         string='Surcharge Amount',
@@ -382,7 +387,7 @@ class Employee(models.Model):
     ff_paid_days1 = fields.Float(string="Paid Days")
 
     @api.depends(
-        'payslip_yearly_cost',
+        'final_yearly_costs',
         'standard_deduction',
         'section_80c',
         'section_80d',
@@ -393,7 +398,7 @@ class Employee(models.Model):
     )
     def _compute_net_taxable_income(self):
         for emp in self:
-            annual_income = emp.payslip_yearly_cost or 0.0
+            annual_income = emp.final_yearly_costs or 0.0
             deduction = emp.standard_deduction or 0.0
 
             if emp.tax_regime == 'old':
@@ -452,10 +457,42 @@ class Employee(models.Model):
 
             emp.tds_amount = round(tds, 2)
 
-    @api.depends('tds_amount')
+    # @api.depends('tds_amount')
+    # def _compute_tds_amount_month(self):
+    #     for emp in self:
+    #         emp.tds_amount_month = round((emp.tds_amount or 0.0) / 12.0, 2)
+
+    @api.depends(
+        'tds_amount',
+        'tds_till_last_month',
+        'payslip_month'
+    )
     def _compute_tds_amount_month(self):
         for emp in self:
-            emp.tds_amount_month = round((emp.tds_amount or 0.0) / 12.0, 2)
+
+            month = int(emp.payslip_month or 0)
+
+            if not month:
+                emp.tds_amount_month = 0.0
+                continue
+
+            if month >= 4:
+                remaining_months = 16 - month
+            else:
+                remaining_months = 4 - month
+
+            remaining_months = max(remaining_months, 1)
+
+            remaining_tax = max(
+                (emp.tds_amount or 0.0)
+                - (emp.tds_till_last_month or 0.0),
+                0.0
+            )
+
+            emp.tds_amount_month = round(
+                remaining_tax / remaining_months,
+                2
+            )
 
     @api.depends('net_taxable_income', 'tax_regime')
     def _compute_tds_amount_new(self):
@@ -539,10 +576,60 @@ class Employee(models.Model):
 
             emp.tds_amount_new = round(tds, 2)
 
-    @api.depends('tds_amount_new')
-    def _compute_tds_amount_new_month(self):
+    # @api.depends('tds_amount_new')
+    # def _compute_tds_amount_new_month(self):
+    #     for emp in self:
+    #         emp.tds_amount_new_month = round((emp.tds_amount_new or 0.0) / 12, 2)
+
+    @api.depends(
+        'tds_amount_new',
+        'tds_till_last_month',
+        'payslip_month'
+    )
+    def _compute_tds_amount_month(self):
         for emp in self:
-            emp.tds_amount_new_month = round((emp.tds_amount_new or 0.0) / 12, 2)
+
+            month = int(emp.payslip_month or 0)
+
+            if not month:
+                emp.tds_amount_month = 0.0
+                continue
+
+            if month >= 4:
+                remaining_months = 16 - month
+            else:
+                remaining_months = 4 - month
+
+            remaining_months = max(remaining_months, 1)
+
+            annual_tds = emp.tds_amount_new or 0.0
+
+            remaining_tax = max(
+                annual_tds - (emp.tds_till_last_month or 0.0),
+                0.0
+            )
+
+            emp.tds_amount_month = round(
+                remaining_tax / remaining_months,
+                2
+            )
+
+    def write(self, vals):
+
+        res = super().write(vals)
+
+        if 'wage' in vals:
+
+            for employee in self:
+                print("Salary Changed")
+
+                # Recompute Annual TDS
+                employee._compute_tds_amount()
+
+                # Recompute Monthly TDS
+                employee._compute_tds_amount_month()
+
+        return res
 
     variable_pay = fields.Monetary(string="Variable Pay")
     variable_bonus = fields.Monetary(string="Bonus")
@@ -842,3 +929,139 @@ class Employee(models.Model):
             })
 
             emp.bereavement_allocation_year = current_year
+
+    def cron_allocate_probation_sick_leave(self):
+
+        today = fields.Date.today()
+
+        # Sick Leave Type
+        leave_type = self.env['hr.leave.type'].search([
+            ('name', '=', 'Sick Leave - Probation')
+        ], limit=1)
+
+        if not leave_type:
+            return
+
+        # Employees currently under probation
+        employees = self.search([
+            ('probation_date_start', '!=', False),
+            ('probation_date_end', '!=', False),
+            ('probation_date_start', '<=', today),
+            ('probation_date_end', '>=', today),
+        ])
+
+        for emp in employees:
+
+            start_date = fields.Date.to_date(emp.probation_date_start)
+
+            # Allocate only on the probation start day of every month
+            if today.day != start_date.day:
+                continue
+
+            # Prevent duplicate allocation in the same month
+            existing = self.env['hr.leave.allocation'].search([
+                ('employee_id', '=', emp.id),
+                ('holiday_status_id', '=', leave_type.id),
+            ], limit=1)
+
+            if existing:
+                continue
+
+            allocation = self.env['hr.leave.allocation'].create({
+                'name': f'Sick Leave - Probation ({today.strftime("%B %Y")})',
+                'employee_id': emp.id,
+                'holiday_status_id': leave_type.id,
+                'number_of_days': 1,
+            })
+
+            # Odoo 19
+            # allocation.action_validate()
+
+    def cron_allocate_probation_casual_leave(self):
+
+        today = fields.Date.today()
+
+        leave_type = self.env['hr.leave.type'].search([
+            ('name', '=', 'Casual Leave - Probation')
+        ], limit=1)
+
+        if not leave_type:
+            return
+
+        employees = self.search([
+            ('probation_date_start', '!=', False),
+            ('probation_date_end', '!=', False),
+            ('probation_date_start', '<=', today),
+            ('probation_date_end', '>=', today),
+        ])
+
+        for emp in employees:
+
+            probation_start = fields.Date.to_date(
+                emp.probation_date_start
+            )
+
+            probation_end = fields.Date.to_date(
+                emp.probation_date_end
+            )
+
+            # Calculate probation months
+            probation_months = (
+                    (probation_end.year - probation_start.year) * 12
+                    + probation_end.month
+                    - probation_start.month
+            )
+
+            allocations = self.env['hr.leave.allocation'].search([
+                ('employee_id', '=', emp.id),
+                ('holiday_status_id', '=', leave_type.id),
+            ])
+
+            total_allocated = sum(
+                allocations.mapped('number_of_days')
+            )
+
+            # =========================================
+            # Probation <= 3 Months
+            # Allocate 2 CL together
+            # =========================================
+            if probation_months <= 3:
+
+                if total_allocated >= 2:
+                    continue
+
+                self.env['hr.leave.allocation'].create({
+                    'name': 'Casual Leave - Probation (3 Months)',
+                    'employee_id': emp.id,
+                    'holiday_status_id': leave_type.id,
+                    'number_of_days': 2,
+                })
+
+
+            # =========================================
+            # Probation > 3 Months
+            # Allocate Monthly 1 CL
+            # =========================================
+            else:
+
+                # Allocate on same day every month
+                if today.day != probation_start.day:
+                    continue
+
+                current_month = today.strftime('%Y-%m')
+
+                existing = self.env['hr.leave.allocation'].search([
+                    ('employee_id', '=', emp.id),
+                    ('holiday_status_id', '=', leave_type.id),
+                    ('name', '=', f'Casual Leave - Probation ({current_month})')
+                ], limit=1)
+
+                if existing:
+                    continue
+
+                self.env['hr.leave.allocation'].create({
+                    'name': f'Casual Leave - Probation ({current_month})',
+                    'employee_id': emp.id,
+                    'holiday_status_id': leave_type.id,
+                    'number_of_days': 1,
+                })

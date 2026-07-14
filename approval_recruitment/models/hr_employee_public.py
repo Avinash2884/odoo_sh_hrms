@@ -122,3 +122,90 @@ class HrEmployeeInherit(models.Model):
 
     pf_percentage = fields.Float(related='employee_id.pf_percentage', readonly=True)
     pf_payment_mode = fields.Selection(related='employee_id.pf_payment_mode', readonly=True)
+
+    currency_id = fields.Many2one(
+        'res.currency',
+        related='employee_id.currency_id',
+        readonly=True
+    )
+
+    wage_appointment_letter = fields.Monetary(
+        string="Wage (Appointment Letter)",
+        related='employee_id.wage_appointment_letter',
+        readonly=True
+    )
+    appointment_letter_type = fields.Selection(
+        related='employee_id.appointment_letter_type',
+        readonly=True
+    )
+
+    cmt_hospital_name = fields.Char(
+        related='employee_id.cmt_hospital_name',
+        readonly=True
+    )
+
+    cmt_hospital_city = fields.Char(
+        related='employee_id.cmt_hospital_city',
+        readonly=True
+    )
+
+    hse_hospital_name = fields.Char(
+        related='employee_id.hse_hospital_name',
+        readonly=True
+    )
+
+    hse_hospital_city = fields.Char(
+        related='employee_id.hse_hospital_city',
+        readonly=True
+    )
+
+    full_time_hospital_name = fields.Char(
+        related='employee_id.full_time_hospital_name',
+        readonly=True
+    )
+
+    full_time_hospital_city = fields.Char(
+        related='employee_id.full_time_hospital_city',
+        readonly=True
+    )
+    applicant_id = fields.Many2one(
+        'hr.applicant',
+        related='employee_id.applicant_id',
+        readonly=True
+    )
+
+    basic_pay = fields.Float(
+        string="Basic Pay",
+    )
+    hra = fields.Float(
+        string="HRA",
+    )
+    special_allowance = fields.Float(
+        string="Special Allowances",
+    )
+    total_gross_pay = fields.Float(
+        string="Total Gross Pay",
+    )
+    employer_pf = fields.Float(
+        string="Employer PF",
+    )
+
+    basic_pay_annual = fields.Float(
+        string="Basic Pay (Annual)",
+    )
+
+    hra_annual = fields.Float(
+        string="HRA (Annual)",
+    )
+
+    special_allowance_annual = fields.Float(
+        string="Special Allowance (Annual)",
+    )
+
+    total_gross_pay_annual = fields.Float(
+        string="Total Gross Pay (Annual)",
+    )
+
+    employer_pf_annual = fields.Float(
+        string="Employer PF (Annual)",
+    )
