@@ -184,9 +184,9 @@
                         <label class="fw-bold">Pin Code
                             <span class="text-danger">*</span>
                         </label>
-                        <input type="tel" class="form-control" name="pincode" id="pincode"
+                        <input type="text" class="form-control" name="pincode" id="pincode"
                                inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
-                               placeholder="6-digit PIN" required="required"/>
+                               placeholder="6-digit PIN" required="required" autocomplete="off"/>
                         <div class="invalid-feedback">Enter a valid 6-digit PIN code.</div>
                     </div>
                 </div>
