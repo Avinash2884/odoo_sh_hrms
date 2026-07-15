@@ -137,9 +137,9 @@
                         <label class="fw-bold">Mobile Number
                             <span class="text-danger">*</span>
                         </label>
-                        <input type="tel" class="form-control" name="partner_phone" id="partner_phone"
+                        <input type="text" class="form-control" name="partner_phone" id="partner_phone"
                                inputmode="numeric" pattern="[0-9]{10}" maxlength="10"
-                               placeholder="10-digit number" required="required"/>
+                               placeholder="10-digit number" required="required" autocomplete="off"/>
                         <div class="invalid-feedback">Enter a valid 10-digit mobile number.</div>
                     </div>
                     <div class="col-md-6">
@@ -184,9 +184,9 @@
                         <label class="fw-bold">Pin Code
                             <span class="text-danger">*</span>
                         </label>
-                        <input type="tel" class="form-control" name="pincode" id="pincode"
+                        <input type="text" class="form-control" name="pincode" id="pincode"
                                inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
-                               placeholder="6-digit PIN" required="required"/>
+                               placeholder="6-digit PIN" required="required" autocomplete="off"/>
                         <div class="invalid-feedback">Enter a valid 6-digit PIN code.</div>
                     </div>
                 </div>
