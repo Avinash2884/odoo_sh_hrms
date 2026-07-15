@@ -170,7 +170,7 @@
 <field name="tds_till_last_month"
        widget="monetary"
        options="{'currency_field': 'currency_id'}"
-       readonly="1"/>
+       />
             </xpath>
             <xpath expr="//field[@name='l10n_in_fixed_allowance']/ancestor::div[1]" position="after">
 
