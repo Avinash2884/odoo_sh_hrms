@@ -545,6 +545,22 @@ class HrPayslip(models.Model):
         #     res = True
 
         if valid_slips:
+
+            for slip in valid_slips:
+                employee = slip.employee_id
+
+                # Refresh cached values
+                employee.invalidate_recordset([
+                    'net_taxable_income',
+                    'tds_amount',
+                ])
+
+                # Recompute
+                employee._compute_net_taxable_income()
+                employee._compute_tds_amount()
+                employee._compute_tds_amount_new()
+                employee._compute_tds_amount_month()
+
             res = super(HrPayslip, valid_slips).action_payslip_done()
 
             for slip in valid_slips:
