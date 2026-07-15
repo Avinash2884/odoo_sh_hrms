@@ -43,34 +43,39 @@ class Employee(models.Model):
         string='Net Taxable Income',
         currency_field='currency_id',
         compute='_compute_net_taxable_income',
-        store=True
+        store=True,
+        readonly=False
     )
     tds_amount = fields.Monetary(
         string='TDS Amount (Annual)',
         currency_field='currency_id',
         compute='_compute_tds_amount',
-        store=True
+        store=True,
+        readonly=False
     )
 
     tds_amount_month = fields.Monetary(
         string='TDS Amount (Monthly)',
         currency_field='currency_id',
         compute='_compute_tds_amount_month',
-        store=True
+        store=True,
+        readonly=False
     )
 
     tds_amount_new = fields.Monetary(
         string='TDS Amount (New Regime)',
         currency_field='currency_id',
         compute='_compute_tds_amount_new',
-        store=True
+        store=True,
+        readonly=False
     )
 
     tds_amount_new_month = fields.Monetary(
         string='TDS Amount New Regime (Month)',
         currency_field='currency_id',
         compute="_compute_tds_amount_month",
-        store=True
+        store=True,
+        readonly=False
     )
     tds_till_last_month = fields.Monetary(
         string="TDS Till Last Month",

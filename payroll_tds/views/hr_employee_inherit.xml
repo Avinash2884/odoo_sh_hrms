@@ -110,18 +110,18 @@
                 </div>
                  <label name="net_taxable_income_label" for="net_taxable_income">Net Taxable Income</label>
                    <div name="net_taxable_income" class="o_row">
-                    <field name="net_taxable_income" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                    <field name="net_taxable_income" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                    </div>
                    <!-- Annual TDS for New Regime -->
                 <label name="tds_amount_new_label" for="tds_amount_new" invisible="tax_regime != 'new'">TDS Amount (New Regime)</label>
                 <div name="tds_amount_new" class="o_row">
-                 <field name="tds_amount_new" invisible="tax_regime != 'new'" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                 <field name="tds_amount_new" invisible="tax_regime != 'new'" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 </div>
 
                 <!-- Monthly TDS for New Regime -->
                 <label name="tds_amount_new_month_label" for="tds_amount_new_month" invisible="tax_regime != 'new'">TDS Amount New Regime (Month)</label>
                 <div name="tds_amount_new_month" class="o_row">
-                 <field name="tds_amount_new_month" invisible="tax_regime != 'new'" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                 <field name="tds_amount_new_month" invisible="tax_regime != 'new'" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 </div>
 
                 <label for="section_80c" invisible="tax_regime != 'old'">Section 80C</label>
@@ -170,7 +170,7 @@
 <field name="tds_till_last_month"
        widget="monetary"
        options="{'currency_field': 'currency_id'}"
-       readonly="1"/>
+       />
             </xpath>
             <xpath expr="//field[@name='l10n_in_fixed_allowance']/ancestor::div[1]" position="after">
 
