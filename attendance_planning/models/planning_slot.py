@@ -33,7 +33,7 @@ class PlanningSlot(models.Model):
     )
 
     shift_display = fields.Char(
-        string="Shift Template",
+        string="Shift_Template",
         compute="_compute_shift_display",
         store=True,
         help="Shows shift name or 'Week Off'"

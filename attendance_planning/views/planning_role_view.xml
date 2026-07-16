@@ -28,7 +28,7 @@
             <xpath expr="//field[@name='resource_id']" position="after">
                 <field name="department_id" optional="show" string="Department"/>
 <!--                <field name="calendar_id" optional="show" string="Shift Template"/>-->
-                <field name="shift_display" string="Shift Template"/>
+                <field name="shift_display" string="Shift_Template"/>
             </xpath>
         </field>
     </record>
