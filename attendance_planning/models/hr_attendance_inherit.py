@@ -833,6 +833,7 @@ class HrAttendance(models.Model):
                     ('start_datetime', '<', utc_day_end),
                     ('end_datetime', '>', utc_day_start),
                     ('state', '=', 'published'),
+                    ('is_week_off', '!=', True),  # ← ADDED THIS LINE
                 ])
 
                 if not has_slot:
@@ -877,6 +878,7 @@ class HrAttendance(models.Model):
                     ('start_datetime', '<', utc_day_end),
                     ('end_datetime', '>', utc_day_start),
                     ('state', '=', 'published'),
+                    ('is_week_off', '!=', True),  # ← ADDED THIS LINE
                 ])
 
                 # 7. If they don't have a slot, kick them out!

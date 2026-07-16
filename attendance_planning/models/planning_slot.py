@@ -25,6 +25,32 @@ class PlanningSlot(models.Model):
     # No compute, no inverse, no onchange. Odoo's JS cannot touch this!
     shift_date = fields.Date(string="Planned Date")
 
+    # ============ NEW FIELDS FOR WEEK OFF ============
+    is_week_off = fields.Boolean(
+        string="Is Week Off",
+        default=False,
+        help="True if this slot represents a week-off day (no shift assigned)"
+    )
+
+    shift_display = fields.Char(
+        string="Shift / Status",
+        compute="_compute_shift_display",
+        store=True,
+        help="Shows shift name or 'Week Off'"
+    )
+
+    @api.depends('calendar_id', 'is_week_off')
+    def _compute_shift_display(self):
+        """Display either shift name or 'Week Off' label"""
+        for rec in self:
+            if rec.is_week_off:
+                rec.shift_display = 'Week Off'
+            else:
+                rec.shift_display = rec.calendar_id.name if rec.calendar_id else ''
+
+    # ============ END NEW FIELDS ============
+
+
     def _get_work_hours(self, calendar, date_local):
         dayofweek = str(date_local.weekday())
         work_lines = calendar.attendance_ids.filtered(lambda a: a.dayofweek == dayofweek and a.day_period != 'lunch')
@@ -67,7 +93,26 @@ class PlanningSlot(models.Model):
                 else:
                     raise UserError(f"IMPORT HALTED: Could not find Employee ID '{custom_id}'.")
 
-            # 2. Grab HR's typed Date (or Excel import date) and do the math BEFORE saving
+            # =========================================================
+            # 2. NEW LOGIC: Handle WEEK OFF slots (no calendar_id required)
+            # =========================================================
+            if vals.get('is_week_off'):
+                target_date = vals.get('import_date') or vals.get('shift_date')
+                if target_date:
+                    import_date_val = fields.Date.to_date(target_date)
+
+                    # Set full-day span so Gantt renders it
+                    vals['shift_date'] = import_date_val
+                    vals['start_datetime'] = datetime.combine(import_date_val, time(0, 0))
+                    vals['end_datetime'] = datetime.combine(import_date_val, time(23, 59))
+                    vals['allocated_hours'] = 0.0
+                    vals['allocated_percentage'] = 0.0
+                    vals['calendar_id'] = False  # No shift template for week off
+                    vals['import_date'] = False
+                continue  # Skip the normal shift processing (Steps 3 & 4) below
+            # =========================================================
+
+            # 3. Grab HR's typed Date (or Excel import date) and do the math BEFORE saving
             target_date = vals.get('import_date') or vals.get('shift_date')
             if target_date and vals.get('calendar_id'):
                 calendar = self.env['resource.calendar'].browse(vals['calendar_id'])
@@ -94,7 +139,7 @@ class PlanningSlot(models.Model):
                 tz = pytz.timezone(tz_name)
 
                 start_local = tz.localize(datetime.combine(import_date_val, time(int(first_shift.hour_from), int((
-                                                                                                                             first_shift.hour_from % 1) * 60))))
+                                                                                                                         first_shift.hour_from % 1) * 60))))
                 end_local = tz.localize(datetime.combine(import_date_val, time(int(last_shift.hour_to),
                                                                                int((last_shift.hour_to % 1) * 60))))
 
@@ -104,7 +149,7 @@ class PlanningSlot(models.Model):
                 if 'import_date' in vals:
                     vals['import_date'] = False
 
-            # 3. Handle Allocated Hours
+            # 4. Handle Allocated Hours
             if vals.get('calendar_id') and vals.get('start_datetime'):
                 calendar = self.env['resource.calendar'].browse(vals['calendar_id'])
                 start_dt = vals['start_datetime']
@@ -121,7 +166,7 @@ class PlanningSlot(models.Model):
 
         records = super(PlanningSlot, self).create(vals_list)
 
-        # 4. If a shift was created on the Gantt Chart natively, back-fill our clean date
+        # 5. If a shift was created on the Gantt Chart natively, back-fill our clean date
         for rec in records:
             if rec.start_datetime and not rec.shift_date:
                 tz_name = rec.calendar_id.tz or rec.employee_id.tz or self.env.user.tz or 'UTC'

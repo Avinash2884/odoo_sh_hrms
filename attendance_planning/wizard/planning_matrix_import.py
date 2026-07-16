@@ -69,8 +69,14 @@ class PlanningMatrixImport(models.TransientModel):
             for col_idx, target_date in date_map.items():
                 shift_code = row[col_idx]
 
-                # Ignore empty cells or "WO"
+
+                # Create Week Off slot for empty cells or "WO"
                 if not shift_code or str(shift_code).strip().upper() in ['WO', 'OFF', '']:
+                    slots_to_create.append({
+                        'import_employee_id': emp_code,
+                        'import_date': target_date,
+                        'is_week_off': True,  # Mark as week off
+                    })
                     continue
 
                 shift_code = str(shift_code).strip()
