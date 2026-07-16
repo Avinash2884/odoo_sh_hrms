@@ -537,11 +537,11 @@ class InitiateSeparation(models.Model):
             template.sudo().send_mail(self.id, force_send=True, email_values=email_values)
 
     def _send_manager_reject_mail(self):
-        """Send manager rejection notification to HR & HR Head"""
+        """Send manager rejection notification to Employee, CC HR & HR Head"""
         self.ensure_one()
 
-        if not (self.hr_id and self.hr_head_id):
-            raise ValidationError(_("HR or HR Head is not configured."))
+        if not (self.employee_id and self.hr_id and self.hr_head_id):
+            raise ValidationError(_("Employee, HR or HR Head is not configured."))
 
         template = self.env.ref(
             'separation.mail_template_manager_reject',
@@ -550,10 +550,21 @@ class InitiateSeparation(models.Model):
 
         if template:
             email_values = {
-                'email_to': f"{self.hr_id.work_email}",
-                'email_cc': f"{self.hr_head_id.work_email}"
+                # ✅ TO → Employee
+                'email_to': self.employee_id.work_email,
+
+                # ✅ CC → HR + HR Head
+                'email_cc': ",".join(filter(None, [
+                    self.hr_id.work_email,
+                    self.hr_head_id.work_email
+                ]))
             }
-            template.sudo().send_mail(self.id, force_send=True, email_values=email_values)
+
+            template.sudo().send_mail(
+                self.id,
+                force_send=True,
+                email_values=email_values
+            )
 
     def _send_hr_approval_mail(self):
         """Send HR approval mail to Employee"""
