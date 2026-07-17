@@ -13,10 +13,12 @@
         'hr',
         'approval_recruitment',
         'user_geo_restriction',
+        'hr_work_entry'
     ],
     'data': [
         'data/cron.xml',
         'data/mail_template_permission.xml',
+        'security/security.xml',
         'security/ir.model.access.csv',
         'wizard/planning_department_wizard_views.xml',
         'wizard/planning_matrix_import_views.xml',

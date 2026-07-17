@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="group_employee_schedule_manager" model="res.groups">
+            <field name="name">Employee Schedule Manager</field>
+            <field name="comment">Allows the user to view and edit the Employee Schedule tab.</field>
+        </record>
+    </data>
+</odoo>
