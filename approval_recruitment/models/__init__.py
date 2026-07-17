@@ -20,5 +20,6 @@ from . import hr_pre_onboarding
 from . import hr_employee_public
 from . import calendar_event_inherit
 from . import account_sync
+from . import mail_compose_message_inherit
 
 from . import employee_configuration
