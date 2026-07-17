@@ -24,18 +24,62 @@ class HrAttendancePermission(models.Model):
     )
     reason = fields.Text(string="Reason", required=True, tracking=True)
 
+    # 1. UPDATE THE STATE FIELD
     state = fields.Selection([
-        ('draft', 'Pending'),
+        ('draft', 'Draft'),
+        ('submitted', 'Pending'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
         ('cancelled', 'Cancelled'),
     ], string="Status", default='draft', tracking=True)
+
+    # 2. ADD THE SUBMIT ACTION (This replaces the 'create' method!)
+    def action_submit(self):
+        for rec in self:
+            rec.state = 'submitted'
+            manager = rec.employee_id.parent_id
+            if manager and manager.user_id:
+                # Post to chatter and notify manager
+                rec.message_post(
+                    body=f"New Permission Request submitted by {rec.employee_id.name} for {rec.date}. Please review.",
+                    partner_ids=[manager.user_id.partner_id.id],
+                    subtype_xmlid="mail.mt_comment"
+                )
+
+                # TRIGGER EMAIL TO MANAGER
+                template = self.env.ref('attendance_planning.email_template_permission_manager',
+                                        raise_if_not_found=False)
+                if template:
+                    template.send_mail(rec.id, force_send=True)
 
     occasions_used = fields.Integer(
         string="Occasions Used This Month",
         compute="_compute_occasions_used",
         store=False,
     )
+
+    # Hidden field to control the buttons
+    can_approve_manager = fields.Boolean(
+        string="Can Approve Manager",
+        compute="_compute_can_approve_manager"
+    )
+
+    @api.depends('employee_id.parent_id', 'employee_id.parent_id.user_id')
+    def _compute_can_approve_manager(self):
+        for record in self:
+            is_manager = False
+
+            # MAPPING: If the employee has a Reporting Manager (parent_id),
+            # and that manager's login account (user_id) is the current user.
+            if record.employee_id.parent_id and record.employee_id.parent_id.user_id == self.env.user:
+                is_manager = True
+
+            # Always allow the top Admins/HR to bypass and approve if needed
+            if self.env.user.has_group('hr.group_hr_manager') or self.env.user.has_group('base.group_system'):
+                is_manager = True
+
+            record.can_approve_manager = is_manager
+
 
     @api.depends('employee_id', 'date', 'state')
     def _compute_occasions_used(self):
@@ -70,8 +114,19 @@ class HrAttendancePermission(models.Model):
                 )
             rec.state = 'approved'
 
+
+            template = self.env.ref('attendance_planning.email_template_permission_employee', raise_if_not_found=False)
+            if template:
+                template.send_mail(rec.id, force_send=True)
+
     def action_reject(self):
-        self.write({'state': 'rejected'})
+        for rec in self:
+            rec.state = 'rejected'
+
+            # TRIGGER EMAIL TO EMPLOYEE
+            template = self.env.ref('attendance_planning.email_template_permission_employee', raise_if_not_found=False)
+            if template:
+                template.send_mail(rec.id, force_send=True)
 
     def action_cancel(self):
         for rec in self:
@@ -120,4 +175,11 @@ class HrAttendancePermission(models.Model):
                     partner_ids=[manager.user_id.partner_id.id],
                     subtype_xmlid="mail.mt_comment"
                 )
+
+                # TRIGGER EMAIL TO MANAGER
+                template = self.env.ref('attendance_planning.email_template_permission_manager',
+                                        raise_if_not_found=False)
+                if template:
+                    template.send_mail(rec.id, force_send=True)
+
         return records

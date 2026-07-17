@@ -16,6 +16,7 @@
     ],
     'data': [
         'data/cron.xml',
+        'data/mail_template_permission.xml',
         'security/ir.model.access.csv',
         'wizard/planning_department_wizard_views.xml',
         'wizard/planning_matrix_import_views.xml',
