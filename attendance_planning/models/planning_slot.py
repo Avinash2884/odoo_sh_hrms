@@ -21,7 +21,7 @@ class PlanningSlot(models.Model):
     department_id = fields.Many2one('hr.department', string="Department", related='employee_id.department_id',
                                     store=True, readonly=True)
 
-    # 👇 THE NUCLEAR FIX: A completely disconnected, standalone field.
+    #  THE NUCLEAR FIX: A completely disconnected, standalone field.
     # No compute, no inverse, no onchange. Odoo's JS cannot touch this!
     shift_date = fields.Date(string="Planned Date")
 
@@ -33,7 +33,7 @@ class PlanningSlot(models.Model):
     )
 
     shift_display = fields.Char(
-        string="Shift / Status",
+        string="Shift_Template",
         compute="_compute_shift_display",
         store=True,
         help="Shows shift name or 'Week Off'"
@@ -77,7 +77,7 @@ class PlanningSlot(models.Model):
                 super(PlanningSlot, slot)._compute_allocated_percentage()
 
     # ==========================================================
-    # 🌟 CREATION INTERCEPTOR
+    #  CREATION INTERCEPTOR
     # ==========================================================
     @api.model_create_multi
     def create(self, vals_list):
@@ -193,7 +193,7 @@ class PlanningSlot(models.Model):
         return records
 
     # ==========================================================
-    # 🌟 EDIT INTERCEPTOR (Direct SQL Database Bypass)
+    #  EDIT INTERCEPTOR (Direct SQL Database Bypass)
     # ==========================================================
     def write(self, vals):
         # 1. Save whatever HR typed first
