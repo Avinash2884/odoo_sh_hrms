@@ -1,0 +1,19 @@
+<odoo>
+    <record id="view_email_compose_cc_inherit" model="ir.ui.view">
+        <field name="name">mail.compose.message.cc.inherit</field>
+        <field name="model">mail.compose.message</field>
+        <field name="inherit_id" ref="mail.email_compose_message_wizard_form"/>
+        <field name="arch" type="xml">
+
+            <!-- TO field கீழ CC add -->
+             <xpath expr="//field[@name='subject']" position="before">
+
+                <field name="cc_partner_ids"
+                       widget="many2many_tags_email"
+                       placeholder="Add CC recipients..."/>
+
+            </xpath>
+
+        </field>
+    </record>
+</odoo>
