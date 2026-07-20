@@ -25,11 +25,25 @@
                 <attribute name="string">Employee</attribute>
             </xpath>
 
+            <!--            <xpath expr="//field[@name='resource_id']" position="after">-->
+            <!--                <field name="department_id" optional="show" string="Department"/>-->
+            <!--&lt;!&ndash;                <field name="calendar_id" optional="show" string="Shift Template"/>&ndash;&gt;-->
+            <!--                <field name="shift_display" string="Shift_Template"/>-->
+            <!--            </xpath>-->
+
             <xpath expr="//field[@name='resource_id']" position="after">
                 <field name="department_id" optional="show" string="Department"/>
-<!--                <field name="calendar_id" optional="show" string="Shift Template"/>-->
-                <field name="shift_display" string="Shift_Template"/>
+
+                <!-- 1. The REAL Dropdown Field for shifts -->
+                <field name="calendar_id" string="Shift_Template" optional="show"/>
+
+                <!-- 2. HIDE the toggle switch completely -->
+                <field name="is_week_off" column_invisible="1"/>
+
+                <!-- 3. SHOW the pure text instead, colored red for visibility -->
+                <field name="shift_display" string="Week Off" decoration-danger="shift_display == 'Week Off'" optional="show"/>
             </xpath>
+
         </field>
     </record>
     <record id="view_planning_slot_form_clean_custom" model="ir.ui.view">
