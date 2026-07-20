@@ -24,17 +24,11 @@ class PlanningSlot(models.Model):
     shift_date = fields.Date(string="Planned Date")
 
     # ============ NEW FIELDS FOR WEEK OFF ============
-    # CHANGED: Now computed automatically based on the dropdown
+    # 1. Add the 'search' parameter to the field
     is_week_off = fields.Boolean(
         string="Is Week Off",
-        compute="_compute_is_week_off"
-    )
-
-    # CHANGED: Removed store=True so it updates instantly on the screen
-    shift_display = fields.Char(
-        string="Shift_Template",
-        compute="_compute_shift_display",
-        help="Shows shift name or 'Week Off'"
+        compute="_compute_is_week_off",
+        search="_search_is_week_off"
     )
 
     @api.depends('calendar_id')
@@ -45,11 +39,24 @@ class PlanningSlot(models.Model):
 
     @api.depends('is_week_off')
     def _compute_shift_display(self):
-        """Display 'Week Off' if true, otherwise leave it completely blank."""
+        """Display 'Week Off' if true, otherwise leave completely blank."""
         for rec in self:
             rec.shift_display = 'Week Off' if rec.is_week_off else ''
 
-    # ============ END NEW FIELDS ============
+    # 2. Add this new function to handle database searches
+    def _search_is_week_off(self, operator, value):
+        """Translates searches for 'is_week_off' into searches for 'calendar_id' so SQL understands it."""
+        if (operator == '=' and value is True) or (operator == '!=' and value is False):
+            return [('calendar_id', '=', False)]
+        return [('calendar_id', '!=', False)]
+
+    # CHANGED: Removed store=True so it updates instantly on the screen
+    shift_display = fields.Char(
+        string="Shift_Template",
+        compute="_compute_shift_display",
+        help="Shows shift name or 'Week Off'"
+    )
+
 
 
     def _get_work_hours(self, calendar, date_local):
