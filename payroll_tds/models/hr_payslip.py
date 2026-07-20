@@ -338,10 +338,17 @@ class HrPayslip(models.Model):
     )
 
     payslip_gross_wage = fields.Monetary(
-        related='employee_id.payslip_gross_wage',
-        string='Total Gross Earnings',
-        readonly=True
+        string="Total Gross Earnings",
+        currency_field="currency_id",
+        compute="_compute_payslip_gross_wage",
+        store=True
     )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_payslip_gross_wage(self):
+        for slip in self:
+            gross_line = slip.line_ids.filtered(lambda l: l.code == 'GROSS')[:1]
+            slip.payslip_gross_wage = gross_line.total if gross_line else 0.0
 
     total_period_days = fields.Integer(
         string='Working Days',
