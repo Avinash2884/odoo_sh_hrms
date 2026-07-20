@@ -52,7 +52,7 @@ class PlanningSlot(models.Model):
 
     # CHANGED: Removed store=True so it updates instantly on the screen
     shift_display = fields.Char(
-        string="Shift_Template",
+        string="Week Off",
         compute="_compute_shift_display",
         help="Shows shift name or 'Week Off'"
     )
