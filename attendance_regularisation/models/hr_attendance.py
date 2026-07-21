@@ -3,7 +3,6 @@ from odoo.exceptions import UserError, ValidationError
 
 
 class HrAttendance(models.Model):
-    """Inherited hr_attendance model to add new fields"""
     _inherit = 'hr.attendance'
 
     regularization = fields.Boolean(string="Regularization",
@@ -16,19 +15,27 @@ class HrAttendance(models.Model):
 
         for vals_item in vals_list:
             employee = self.env['hr.employee'].browse(vals_item.get('employee_id'))
-            now = fields.Datetime.now()
 
-            # 🔹 Check if this employee has any planning slots at all
-            has_planning = self.env['planning.slot'].search_count([
-                ('employee_id', '=', employee.id)
+            check_in_val = vals_item.get('check_in') or fields.Datetime.now()
+            if isinstance(check_in_val, str):
+                check_in_val = fields.Datetime.from_string(check_in_val)
+
+            day_start = check_in_val.replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = check_in_val.replace(hour=23, minute=59, second=59, microsecond=0)
+
+            # 🔹 Check if this employee has a planning slot covering that day
+            has_planning_that_day = self.env['planning.slot'].search_count([
+                ('employee_id', '=', employee.id),
+                ('start_datetime', '<=', day_end),
+                ('end_datetime', '>=', day_start),
             ]) > 0
 
-            if has_planning:
-                # Validate only if employee has planning
+            if has_planning_that_day:
+                # Validate the check-in time against that day's planning slot
                 planning = self.env['planning.slot'].search([
                     ('employee_id', '=', employee.id),
-                    ('start_datetime', '<=', now),
-                    ('end_datetime', '>=', now)
+                    ('start_datetime', '<=', check_in_val),
+                    ('end_datetime', '>=', check_in_val)
                 ], limit=1)
 
                 if not planning:
