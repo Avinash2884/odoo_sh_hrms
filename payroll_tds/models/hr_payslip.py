@@ -192,6 +192,21 @@ class HrPayslip(models.Model):
             special_line = slip.line_ids.filtered(lambda l: l.code == 'SPI')[:1]
             slip.special_allowance = special_line.total if special_line else 0.0
 
+    salary_arrear_amount = fields.Monetary(
+        string="Salary Arrear",
+        compute="_compute_salary_arrear",
+        currency_field="currency_id",
+        store=True,
+    )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_salary_arrear(self):
+        for slip in self:
+            arrear_line = slip.line_ids.filtered(
+                lambda l: l.code == 'SAP1'
+            )[:1]
+            slip.salary_arrear_amount = arrear_line.total if arrear_line else 0.0
+
     stipend = fields.Monetary(
         related='employee_id.stipend',
         string='Stipend',
@@ -205,10 +220,19 @@ class HrPayslip(models.Model):
     )
 
     incentive = fields.Monetary(
-        related='employee_id.employee_incentive',
-        string='Incentive',
-        readonly=True
+        string="Incentive",
+        compute="_compute_incentive",
+        currency_field="currency_id",
+        store=True,
     )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_incentive(self):
+        for slip in self:
+            incentive_line = slip.line_ids.filtered(
+                lambda l: l.code == 'IN'
+            )[:1]
+            slip.incentive = incentive_line.total if incentive_line else 0.0
 
     referral = fields.Monetary(
         related='employee_id.referral_incentive',
@@ -243,20 +267,44 @@ class HrPayslip(models.Model):
     )
 
     epf_contribution = fields.Monetary(
-        related='employee_id.l10n_in_pf_employee_amount',
-        string='EPF Contribution',
-        readonly=True
+        string="EPF Contribution",
+        compute="_compute_epf_contribution",
+        currency_field="currency_id",
+        store=True,
     )
 
-    pt = fields.Float(
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_epf_contribution(self):
+        for slip in self:
+            pf_line = slip.line_ids.filtered(
+                lambda l: l.code == 'PF'
+            )[:1]
+            slip.epf_contribution = abs(pf_line.total) if pf_line else 0.0
+
+    pt = fields.Monetary(
         string="PT",
+        compute="_compute_pt",
+        currency_field="currency_id",
+        store=True,
     )
 
-    @api.onchange("employee_id")
-    def _onchange_pt(self):
-        if self.employee_id.pt_rule_parameter_id and \
-                self.employee_id.pt_rule_parameter_id.name == "Tamilnadu: Professional Tax":
-            self.pt = 208.0
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_pt(self):
+        for slip in self:
+            pt_line = slip.line_ids.filtered(
+                lambda l: l.code == 'PT'
+            )[:1]
+            slip.pt = abs(pt_line.total) if pt_line else 0.0
+
+    # pt = fields.Float(
+    #     string="PT",
+    # )
+
+    # @api.onchange("employee_id")
+    # def _onchange_pt(self):
+    #     if self.employee_id.pt_rule_parameter_id and \
+    #             self.employee_id.pt_rule_parameter_id.name == "Tamilnadu: Professional Tax":
+    #         self.pt = 208.0
 
     income_tax = fields.Float(
         string="Income Tax",
@@ -270,11 +318,26 @@ class HrPayslip(models.Model):
         readonly=True
     )
 
+    # total_deduction = fields.Monetary(
+    #     string="Total Deduction",
+    #     currency_field="currency_id",
+    #     store=True,
+    # )
     total_deduction = fields.Monetary(
         string="Total Deduction",
+        compute="_compute_total_deduction",
         currency_field="currency_id",
         store=True,
     )
+
+    @api.depends('line_ids.total', 'line_ids.category_id')
+    def _compute_total_deduction(self):
+        for slip in self:
+            slip.total_deduction = sum(
+                abs(line.total)
+                for line in slip.line_ids
+                if line.category_id.code == 'DED'
+            )
 
     net_wage = fields.Monetary(
         string="Net Pay",
@@ -293,44 +356,36 @@ class HrPayslip(models.Model):
                     or 0.0
             )
 
-    # @api.depends('payslip_gross_wage', 'net_wage')
-    # def _compute_total_deduction(self):
+    # @api.onchange(
+    #     'epf_contribution',
+    #     'pt',
+    #     'income_tax',
+    #     'other_deductions',
+    #     'loan_deduction',
+    #     'payslip_gross_wage',
+    #     'net_wage'
+    # )
+    # def _onchange_total_deduction(self):
     #     for rec in self:
-    #         rec.total_deduction = (
+    #
+    #         deduction_sum = (
+    #                 (rec.epf_contribution or 0.0)
+    #                 + (rec.pt or 0.0)
+    #                 + (rec.income_tax or 0.0)
+    #                 + (rec.other_deductions or 0.0)
+    #                 + (rec.loan_deduction or 0.0)
+    #         )
+    #
+    #         gross_net_diff = (
     #                 (rec.payslip_gross_wage or 0.0)
     #                 - (rec.net_wage or 0.0)
     #         )
-
-    @api.onchange(
-        'epf_contribution',
-        'pt',
-        'income_tax',
-        'other_deductions',
-        'loan_deduction',
-        'payslip_gross_wage',
-        'net_wage'
-    )
-    def _onchange_total_deduction(self):
-        for rec in self:
-
-            deduction_sum = (
-                    (rec.epf_contribution or 0.0)
-                    + (rec.pt or 0.0)
-                    + (rec.income_tax or 0.0)
-                    + (rec.other_deductions or 0.0)
-                    + (rec.loan_deduction or 0.0)
-            )
-
-            gross_net_diff = (
-                    (rec.payslip_gross_wage or 0.0)
-                    - (rec.net_wage or 0.0)
-            )
-
-            if not rec.total_deduction:
-                if round(deduction_sum, 2) == round(gross_net_diff, 2):
-                    rec.total_deduction = deduction_sum
-                else:
-                    rec.total_deduction = gross_net_diff
+    #
+    #         if not rec.total_deduction:
+    #             if round(deduction_sum, 2) == round(gross_net_diff, 2):
+    #                 rec.total_deduction = deduction_sum
+    #             else:
+    #                 rec.total_deduction = gross_net_diff
 
     payslip_month = fields.Selection(
         related='employee_id.payslip_month',
