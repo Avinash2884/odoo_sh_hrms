@@ -306,6 +306,71 @@ class HrPayslip(models.Model):
     #             self.employee_id.pt_rule_parameter_id.name == "Tamilnadu: Professional Tax":
     #         self.pt = 208.0
 
+    pt_previous_deducted = fields.Float(
+        string="Previous Half-Year PT",
+        copy=False,
+    )
+
+    def _calculate_previous_pt(self):
+
+        for slip in self:
+
+            slip.pt_previous_deducted = 0.0
+
+            if not slip.date_from:
+                continue
+
+            month = slip.date_from.month
+            year = slip.date_from.year
+
+            # April - September half year
+            if 4 <= month <= 9:
+
+                start_date = fields.Date.from_string(
+                    f"{year}-04-01"
+                )
+
+            # October - March half year
+            else:
+
+                if month >= 10:
+                    start_date = fields.Date.from_string(
+                        f"{year}-10-01"
+                    )
+                else:
+                    start_date = fields.Date.from_string(
+                        f"{year - 1}-10-01"
+                    )
+
+            previous_slips = self.env['hr.payslip'].search([
+                ('employee_id', '=', slip.employee_id.id),
+                ('state', 'in', ['done', 'paid']),
+                ('date_from', '>=', start_date),
+                ('date_from', '<', slip.date_from),
+            ])
+
+            previous_pt = 0.0
+
+            for prev in previous_slips:
+                pt_line = prev.line_ids.filtered(
+                    lambda x: x.code == 'PT'
+                )
+
+                previous_pt += abs(
+                    sum(pt_line.mapped('total'))
+                )
+
+            slip.write({
+                'pt_previous_deducted': previous_pt
+            })
+
+    def compute_sheet(self):
+
+        for slip in self:
+            slip._calculate_previous_pt()
+
+        return super().compute_sheet()
+
     income_tax = fields.Float(
         string="Income Tax",
         compute="_compute_income_tax",
@@ -506,6 +571,7 @@ class HrPayslip(models.Model):
 
         if self.env.context.get('install_demo'):
             return super().action_payslip_done()
+
         #
         # for slip in valid_slips:
         #
@@ -563,6 +629,7 @@ class HrPayslip(models.Model):
             })
 
             # 3. GET ANNUAL SALARY (IMPORTANT CHECK FIRST)
+
             annual_salary = slip.employee_id.payslip_yearly_cost or 0.0
 
             # 🚀 SKIP instead of error
@@ -571,6 +638,8 @@ class HrPayslip(models.Model):
                 continue
 
             # 3. COMPUTE SHEET FIRST
+            # Calculate previous PT first
+
             slip.compute_sheet()
 
             # 4. TDS CHECK (IMPORTANT FIX)
@@ -663,6 +732,7 @@ class HrPayslip(models.Model):
                 employee._compute_tds_amount_month()
 
             res = super(HrPayslip, valid_slips).action_payslip_done()
+
 
             for slip in valid_slips:
 
@@ -770,3 +840,4 @@ class HrPayslip(models.Model):
                 slip.employee_id.paid_installments += 1
 
         return res
+
