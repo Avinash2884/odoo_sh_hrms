@@ -13,9 +13,13 @@
         'hr',
         'approval_recruitment',
         'user_geo_restriction',
+        'hr_work_entry',
+        'hr_work_entry_enterprise'
     ],
     'data': [
         'data/cron.xml',
+        'data/mail_template_permission.xml',
+        'security/security.xml',
         'security/ir.model.access.csv',
         'wizard/planning_department_wizard_views.xml',
         'wizard/planning_matrix_import_views.xml',
@@ -27,6 +31,8 @@
         'views/hr_employee_views.xml',
         'views/edp_approval_views.xml',
         'views/res_config_settings_views.xml',
+        'views/menu.xml',
+
         # 'views/selfie_kiosk_action.xml',
     ],
     'assets': {

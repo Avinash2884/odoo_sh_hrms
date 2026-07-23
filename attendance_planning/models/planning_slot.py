@@ -21,34 +21,42 @@ class PlanningSlot(models.Model):
     department_id = fields.Many2one('hr.department', string="Department", related='employee_id.department_id',
                                     store=True, readonly=True)
 
-    #  THE NUCLEAR FIX: A completely disconnected, standalone field.
-    # No compute, no inverse, no onchange. Odoo's JS cannot touch this!
     shift_date = fields.Date(string="Planned Date")
 
     # ============ NEW FIELDS FOR WEEK OFF ============
+    # 1. Add the 'search' parameter to the field
     is_week_off = fields.Boolean(
         string="Is Week Off",
-        default=False,
-        help="True if this slot represents a week-off day (no shift assigned)"
+        compute="_compute_is_week_off",
+        search="_search_is_week_off"
     )
 
+    @api.depends('calendar_id')
+    def _compute_is_week_off(self):
+        """Automatically detect a week off if the dropdown is empty."""
+        for rec in self:
+            rec.is_week_off = False if rec.calendar_id else True
+
+    @api.depends('is_week_off')
+    def _compute_shift_display(self):
+        """Display 'Week Off' if true, otherwise leave completely blank."""
+        for rec in self:
+            rec.shift_display = 'Week Off' if rec.is_week_off else ''
+
+    # 2. Add this new function to handle database searches
+    def _search_is_week_off(self, operator, value):
+        """Translates searches for 'is_week_off' into searches for 'calendar_id' so SQL understands it."""
+        if (operator == '=' and value is True) or (operator == '!=' and value is False):
+            return [('calendar_id', '=', False)]
+        return [('calendar_id', '!=', False)]
+
+    # CHANGED: Removed store=True so it updates instantly on the screen
     shift_display = fields.Char(
-        string="Shift_Template",
+        string="Week Off",
         compute="_compute_shift_display",
-        store=True,
         help="Shows shift name or 'Week Off'"
     )
 
-    @api.depends('calendar_id', 'is_week_off')
-    def _compute_shift_display(self):
-        """Display either shift name or 'Week Off' label"""
-        for rec in self:
-            if rec.is_week_off:
-                rec.shift_display = 'Week Off'
-            else:
-                rec.shift_display = rec.calendar_id.name if rec.calendar_id else ''
-
-    # ============ END NEW FIELDS ============
 
 
     def _get_work_hours(self, calendar, date_local):
@@ -94,9 +102,9 @@ class PlanningSlot(models.Model):
                     raise UserError(f"IMPORT HALTED: Could not find Employee ID '{custom_id}'.")
 
             # =========================================================
-            # 2. NEW LOGIC: Handle WEEK OFF slots (no calendar_id required)
+            # 2. CHANGED LOGIC: Trigger Week Off if NO calendar_id is provided
             # =========================================================
-            if vals.get('is_week_off'):
+            if not vals.get('calendar_id'):
                 target_date = vals.get('import_date') or vals.get('shift_date')
                 if target_date:
                     import_date_val = fields.Date.to_date(target_date)
@@ -260,5 +268,3 @@ class PlanningSlot(models.Model):
             for res_id in result['working_periods'].keys():
                 result['working_periods'][res_id] = [["1970-01-01 00:00:00", "2099-12-31 23:59:59"]]
         return result
-
-

@@ -128,6 +128,7 @@
                     <field name="basic" string="Basic"/>
                     <field name="hra" string="HRA"/>
                     <field name="special_allowance" string="Special Allowance"/>
+                    <field name="salary_arrear_amount"/>
                     <field name="stipend" string="Stipend"/>
                     <field name="bonus" string="Bonus"/>
                     <field name="incentive" string="Incentive"/>
@@ -145,6 +146,7 @@
                      <field name="epf_contribution"
                            string="EPF Contribution"/>
                     <field name="pt" string="PT" />
+                    <field name="pt_previous_deducted" readonly="1"/>
                     <field name="income_tax" string="Income Tax" readonly="1"/>
                     <field name="loan_deduction"
                            string="Loan Deduction"

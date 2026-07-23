@@ -1,3 +1,4 @@
+import calendar
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
@@ -191,6 +192,21 @@ class HrPayslip(models.Model):
             special_line = slip.line_ids.filtered(lambda l: l.code == 'SPI')[:1]
             slip.special_allowance = special_line.total if special_line else 0.0
 
+    salary_arrear_amount = fields.Monetary(
+        string="Salary Arrear",
+        compute="_compute_salary_arrear",
+        currency_field="currency_id",
+        store=True,
+    )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_salary_arrear(self):
+        for slip in self:
+            arrear_line = slip.line_ids.filtered(
+                lambda l: l.code == 'SAP1'
+            )[:1]
+            slip.salary_arrear_amount = arrear_line.total if arrear_line else 0.0
+
     stipend = fields.Monetary(
         related='employee_id.stipend',
         string='Stipend',
@@ -204,10 +220,19 @@ class HrPayslip(models.Model):
     )
 
     incentive = fields.Monetary(
-        related='employee_id.employee_incentive',
-        string='Incentive',
-        readonly=True
+        string="Incentive",
+        compute="_compute_incentive",
+        currency_field="currency_id",
+        store=True,
     )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_incentive(self):
+        for slip in self:
+            incentive_line = slip.line_ids.filtered(
+                lambda l: l.code == 'IN'
+            )[:1]
+            slip.incentive = incentive_line.total if incentive_line else 0.0
 
     referral = fields.Monetary(
         related='employee_id.referral_incentive',
@@ -242,20 +267,109 @@ class HrPayslip(models.Model):
     )
 
     epf_contribution = fields.Monetary(
-        related='employee_id.l10n_in_pf_employee_amount',
-        string='EPF Contribution',
-        readonly=True
+        string="EPF Contribution",
+        compute="_compute_epf_contribution",
+        currency_field="currency_id",
+        store=True,
     )
 
-    pt = fields.Float(
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_epf_contribution(self):
+        for slip in self:
+            pf_line = slip.line_ids.filtered(
+                lambda l: l.code == 'PF'
+            )[:1]
+            slip.epf_contribution = abs(pf_line.total) if pf_line else 0.0
+
+    pt = fields.Monetary(
         string="PT",
+        compute="_compute_pt",
+        currency_field="currency_id",
+        store=True,
     )
 
-    @api.onchange("employee_id")
-    def _onchange_pt(self):
-        if self.employee_id.pt_rule_parameter_id and \
-                self.employee_id.pt_rule_parameter_id.name == "Tamilnadu: Professional Tax":
-            self.pt = 208.0
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_pt(self):
+        for slip in self:
+            pt_line = slip.line_ids.filtered(
+                lambda l: l.code == 'PT'
+            )[:1]
+            slip.pt = abs(pt_line.total) if pt_line else 0.0
+
+    # pt = fields.Float(
+    #     string="PT",
+    # )
+
+    # @api.onchange("employee_id")
+    # def _onchange_pt(self):
+    #     if self.employee_id.pt_rule_parameter_id and \
+    #             self.employee_id.pt_rule_parameter_id.name == "Tamilnadu: Professional Tax":
+    #         self.pt = 208.0
+
+    pt_previous_deducted = fields.Float(
+        string="Previous Half-Year PT",
+        copy=False,
+    )
+
+    def _calculate_previous_pt(self):
+
+        for slip in self:
+
+            slip.pt_previous_deducted = 0.0
+
+            if not slip.date_from:
+                continue
+
+            month = slip.date_from.month
+            year = slip.date_from.year
+
+            # April - September half year
+            if 4 <= month <= 9:
+
+                start_date = fields.Date.from_string(
+                    f"{year}-04-01"
+                )
+
+            # October - March half year
+            else:
+
+                if month >= 10:
+                    start_date = fields.Date.from_string(
+                        f"{year}-10-01"
+                    )
+                else:
+                    start_date = fields.Date.from_string(
+                        f"{year - 1}-10-01"
+                    )
+
+            previous_slips = self.env['hr.payslip'].search([
+                ('employee_id', '=', slip.employee_id.id),
+                ('state', 'in', ['done', 'paid']),
+                ('date_from', '>=', start_date),
+                ('date_from', '<', slip.date_from),
+            ])
+
+            previous_pt = 0.0
+
+            for prev in previous_slips:
+                pt_line = prev.line_ids.filtered(
+                    lambda x: x.code == 'PT'
+                )
+
+                previous_pt += abs(
+                    sum(pt_line.mapped('total'))
+                )
+
+            slip.write({
+                'pt_previous_deducted': previous_pt
+            })
+
+    def compute_sheet(self):
+
+        for slip in self:
+            slip._calculate_previous_pt()
+
+        return super().compute_sheet()
 
     income_tax = fields.Float(
         string="Income Tax",
@@ -269,11 +383,26 @@ class HrPayslip(models.Model):
         readonly=True
     )
 
+    # total_deduction = fields.Monetary(
+    #     string="Total Deduction",
+    #     currency_field="currency_id",
+    #     store=True,
+    # )
     total_deduction = fields.Monetary(
         string="Total Deduction",
+        compute="_compute_total_deduction",
         currency_field="currency_id",
         store=True,
     )
+
+    @api.depends('line_ids.total', 'line_ids.category_id')
+    def _compute_total_deduction(self):
+        for slip in self:
+            slip.total_deduction = sum(
+                abs(line.total)
+                for line in slip.line_ids
+                if line.category_id.code == 'DED'
+            )
 
     net_wage = fields.Monetary(
         string="Net Pay",
@@ -292,44 +421,36 @@ class HrPayslip(models.Model):
                     or 0.0
             )
 
-    # @api.depends('payslip_gross_wage', 'net_wage')
-    # def _compute_total_deduction(self):
+    # @api.onchange(
+    #     'epf_contribution',
+    #     'pt',
+    #     'income_tax',
+    #     'other_deductions',
+    #     'loan_deduction',
+    #     'payslip_gross_wage',
+    #     'net_wage'
+    # )
+    # def _onchange_total_deduction(self):
     #     for rec in self:
-    #         rec.total_deduction = (
+    #
+    #         deduction_sum = (
+    #                 (rec.epf_contribution or 0.0)
+    #                 + (rec.pt or 0.0)
+    #                 + (rec.income_tax or 0.0)
+    #                 + (rec.other_deductions or 0.0)
+    #                 + (rec.loan_deduction or 0.0)
+    #         )
+    #
+    #         gross_net_diff = (
     #                 (rec.payslip_gross_wage or 0.0)
     #                 - (rec.net_wage or 0.0)
     #         )
-
-    @api.onchange(
-        'epf_contribution',
-        'pt',
-        'income_tax',
-        'other_deductions',
-        'loan_deduction',
-        'payslip_gross_wage',
-        'net_wage'
-    )
-    def _onchange_total_deduction(self):
-        for rec in self:
-
-            deduction_sum = (
-                    (rec.epf_contribution or 0.0)
-                    + (rec.pt or 0.0)
-                    + (rec.income_tax or 0.0)
-                    + (rec.other_deductions or 0.0)
-                    + (rec.loan_deduction or 0.0)
-            )
-
-            gross_net_diff = (
-                    (rec.payslip_gross_wage or 0.0)
-                    - (rec.net_wage or 0.0)
-            )
-
-            if not rec.total_deduction:
-                if round(deduction_sum, 2) == round(gross_net_diff, 2):
-                    rec.total_deduction = deduction_sum
-                else:
-                    rec.total_deduction = gross_net_diff
+    #
+    #         if not rec.total_deduction:
+    #             if round(deduction_sum, 2) == round(gross_net_diff, 2):
+    #                 rec.total_deduction = deduction_sum
+    #             else:
+    #                 rec.total_deduction = gross_net_diff
 
     payslip_month = fields.Selection(
         related='employee_id.payslip_month',
@@ -338,10 +459,17 @@ class HrPayslip(models.Model):
     )
 
     payslip_gross_wage = fields.Monetary(
-        related='employee_id.payslip_gross_wage',
-        string='Total Gross Earnings',
-        readonly=True
+        string="Total Gross Earnings",
+        currency_field="currency_id",
+        compute="_compute_payslip_gross_wage",
+        store=True
     )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_payslip_gross_wage(self):
+        for slip in self:
+            gross_line = slip.line_ids.filtered(lambda l: l.code == 'GROSS')[:1]
+            slip.payslip_gross_wage = gross_line.total if gross_line else 0.0
 
     total_period_days = fields.Integer(
         string='Working Days',
@@ -383,14 +511,52 @@ class HrPayslip(models.Model):
             else:
                 rec.total_period_days = 0
 
-    @api.depends('worked_days_line_ids.number_of_days', 'worked_days_line_ids.code')
+    # @api.depends('worked_days_line_ids.number_of_days', 'worked_days_line_ids.code')
+    # def _compute_attendance_days(self):
+    #     for rec in self:
+    #         rec.attendance_days = sum(
+    #             line.number_of_days
+    #             for line in rec.worked_days_line_ids
+    #             if line.code == 'WORK100'
+    #         )
+
+    @api.depends(
+        'date_from',
+        'date_to',
+        'employee_id.joining_date_recruit',
+        'unpaid_days'
+    )
     def _compute_attendance_days(self):
         for rec in self:
-            rec.attendance_days = sum(
-                line.number_of_days
-                for line in rec.worked_days_line_ids
-                if line.code == 'WORK100'
-            )
+
+            rec.attendance_days = 0.0
+
+            if not rec.date_from or not rec.date_to:
+                continue
+
+            total_days = (rec.date_to - rec.date_from).days + 1
+            joining_date = rec.employee_id.joining_date_recruit
+
+            if joining_date:
+
+                # Joined after payslip period
+                if joining_date > rec.date_to:
+                    eligible_days = 0
+
+                # Joined during payslip period
+                elif rec.date_from <= joining_date <= rec.date_to:
+                    eligible_days = (rec.date_to - joining_date).days + 1
+
+                # Joined before payslip period
+                else:
+                    eligible_days = total_days
+
+            else:
+                eligible_days = total_days
+
+            paid_days = eligible_days - (rec.unpaid_days or 0)
+
+            rec.attendance_days = max(paid_days, 0)
 
     @api.depends('worked_days_line_ids.number_of_days', 'worked_days_line_ids.work_entry_type_id')
     def _compute_unpaid_days(self):
@@ -405,6 +571,7 @@ class HrPayslip(models.Model):
 
         if self.env.context.get('install_demo'):
             return super().action_payslip_done()
+
         #
         # for slip in valid_slips:
         #
@@ -462,6 +629,7 @@ class HrPayslip(models.Model):
             })
 
             # 3. GET ANNUAL SALARY (IMPORTANT CHECK FIRST)
+
             annual_salary = slip.employee_id.payslip_yearly_cost or 0.0
 
             # 🚀 SKIP instead of error
@@ -470,6 +638,8 @@ class HrPayslip(models.Model):
                 continue
 
             # 3. COMPUTE SHEET FIRST
+            # Calculate previous PT first
+
             slip.compute_sheet()
 
             # 4. TDS CHECK (IMPORTANT FIX)
@@ -562,6 +732,7 @@ class HrPayslip(models.Model):
                 employee._compute_tds_amount_month()
 
             res = super(HrPayslip, valid_slips).action_payslip_done()
+
 
             for slip in valid_slips:
 
@@ -669,3 +840,4 @@ class HrPayslip(models.Model):
                 slip.employee_id.paid_installments += 1
 
         return res
+
