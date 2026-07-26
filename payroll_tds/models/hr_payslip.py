@@ -128,7 +128,7 @@ class HrPayslip(models.Model):
         string="Bank Name",
         compute="_compute_bank_details",
     )
-    #
+    
     ifsc_code = fields.Char(
         string="IFSC Code",
         compute="_compute_bank_details",

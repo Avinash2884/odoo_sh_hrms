@@ -134,20 +134,20 @@
                     <field name="incentive" string="Incentive"/>
                     <field name="referral" string="Referral"/>
                     <field name="other_deductions" string="Other Deductions"/>
-                    <field name="total_period_days" readonly="1"/>
-                    <field name="attendance_days" readonly="1"/>
-                    <field name="unpaid_days" readonly="1"/>
+                    <field name="total_period_days" />
+                    <field name="attendance_days" />
+                    <field name="unpaid_days"/>
                     <field name="gross"/>
                     <field name="payslip_gross_wage"
                            string="Total Gross Earnings"
-                           readonly="1"/>
+                           />
                   <field name="leave_encashment" string="Leave Encashment" readonly="0"/>
                     <field name="notice_pay" string="Notice Pay"/>
                      <field name="epf_contribution"
                            string="EPF Contribution"/>
                     <field name="pt" string="PT" />
                     <field name="pt_previous_deducted" readonly="1"/>
-                    <field name="income_tax" string="Income Tax" readonly="1"/>
+                    <field name="income_tax" string="Income Tax"/>
                     <field name="loan_deduction"
                            string="Loan Deduction"
                            readonly="1"/>
