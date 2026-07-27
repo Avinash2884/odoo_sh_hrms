@@ -193,6 +193,7 @@ class EmployeeAPI(http.Controller):
                     emp_list.append({
                         "id": emp.id,
                         "name": emp.name or '',
+                        "employee_id": emp.ls_employee_id or '',
                         "email": emp.work_email or '',
                         "company_id": emp.company_id.id,
                         "company_name": emp.company_id.name
