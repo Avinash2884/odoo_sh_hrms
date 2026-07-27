@@ -168,5 +168,59 @@ class EmployeeAPI(http.Controller):
                 }),
             )
 
+    @http.route('/hrms/api/department/employees', type='http', auth='none', methods=['GET'], csrf=False)
+    def department_employee_dropdown(self, **kwargs):
+        try:
+            token = request.httprequest.headers.get('X-API-TOKEN')
+            if token != self.API_TOKEN:
+                return request.make_response(
+                    json.dumps({"status": "error", "message": "Unauthorized"}),
+                    status=401,
+                    headers=[('Content-Type', 'application/json')]
+                )
 
+            departments = request.env['hr.department'].sudo().search([])
 
+            result = []
+
+            for dept in departments:
+                employees = request.env['hr.employee'].sudo().search([
+                    ('department_id', '=', dept.id)
+                ])
+
+                emp_list = []
+                for emp in employees:
+                    emp_list.append({
+                        "id": emp.id,
+                        "name": emp.name or '',
+                        "employee_id": emp.ls_employee_id or '',
+                        "email": emp.work_email or '',
+                        "company_id": emp.company_id.id,
+                        "company_name": emp.company_id.name
+                    })
+
+                result.append({
+                    "department_id": dept.id,
+                    "department_name": dept.name,
+                    "company_id": dept.company_id.id if dept.company_id else '',
+                    "company_name": dept.company_id.name if dept.company_id else '',
+                    "employees": emp_list
+                })
+
+            return request.make_response(
+                json.dumps({
+                    "status": "success",
+                    "count": len(result),
+                    "data": result
+                }),
+                headers=[('Content-Type', 'application/json')]
+            )
+
+        except Exception as e:
+            return request.make_response(
+                json.dumps({
+                    "status": "error",
+                    "message": str(e)
+                }),
+                headers=[('Content-Type', 'application/json')]
+            )

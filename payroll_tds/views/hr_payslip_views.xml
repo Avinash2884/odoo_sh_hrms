@@ -146,6 +146,7 @@
                      <field name="epf_contribution"
                            string="EPF Contribution"/>
                     <field name="pt" string="PT" />
+                    <field name="pt_previous_deducted" readonly="1"/>
                     <field name="income_tax" string="Income Tax" readonly="1"/>
                     <field name="loan_deduction"
                            string="Loan Deduction"
