@@ -719,16 +719,19 @@ class HrPayslip(models.Model):
             for slip in valid_slips:
                 employee = slip.employee_id
 
-                # Refresh cached values
-                employee.invalidate_recordset([
-                    'net_taxable_income',
-                    'tds_amount',
-                ])
+                # First recompute projected annual income
+                employee._compute_payslip_yearly_cost()
 
-                # Recompute
+                # Then recompute taxable income
                 employee._compute_net_taxable_income()
+
+                # Then recompute annual TDS
                 employee._compute_tds_amount()
+
+                # New regime TDS
                 employee._compute_tds_amount_new()
+
+                # Monthly TDS
                 employee._compute_tds_amount_month()
 
             res = super(HrPayslip, valid_slips).action_payslip_done()
@@ -840,4 +843,29 @@ class HrPayslip(models.Model):
                 slip.employee_id.paid_installments += 1
 
         return res
+
+    def _get_projected_annual_income(self):
+
+        self.ensure_one()
+
+        employee = self.employee_id
+
+        joining = employee.contract_date_start
+
+        # Existing employee
+        fy_start = fields.Date.from_string(f"{self.date_from.year}-04-01")
+
+        if joining < fy_start:
+            return employee.final_yearly_costs or 0.0
+
+        actual = self.payslip_gross_wage or 0.0
+
+        remaining = 0
+
+        if joining.month >= 4:
+            remaining = 12 - joining.month
+        else:
+            remaining = 3 - joining.month
+
+        return actual + (employee.wage * remaining)
 

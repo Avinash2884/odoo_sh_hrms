@@ -201,13 +201,38 @@ class Employee(models.Model):
             if payslip:
                 emp.payslip_gross_wage = payslip.gross_wage or 0.0
 
-
-    @api.depends('payslip_gross_wage')
+    @api.depends(
+        'payslip_gross_wage',
+        'wage',
+        'contract_date_start',
+        'payslip_month',
+        'final_yearly_costs'
+    )
     def _compute_payslip_yearly_cost(self):
         for emp in self:
-            emp.payslip_yearly_cost = (
-                                              emp.payslip_gross_wage or 0.0
-                                      ) * 12
+
+            # Default
+            yearly_cost = emp.final_yearly_costs or 0.0
+
+            if emp.contract_date_start and emp.payslip_month:
+
+                joining = emp.contract_date_start
+                month = int(emp.payslip_month)
+
+                # Employee joined in this payslip month
+                if joining.month == month and joining.year == fields.Date.today().year:
+
+                    if month >= 4:
+                        remaining_months = 12 - month + 3
+                    else:
+                        remaining_months = 3 - month
+
+                    yearly_cost = (
+                            (emp.payslip_gross_wage or 0.0)
+                            + ((emp.wage or 0.0) * remaining_months)
+                    )
+
+            emp.payslip_yearly_cost = yearly_cost
 
     month = fields.Selection([
         ('1', 'January'), ('2', 'February'), ('3', 'March'),
@@ -403,7 +428,12 @@ class Employee(models.Model):
     )
     def _compute_net_taxable_income(self):
         for emp in self:
-            annual_income = emp.final_yearly_costs or 0.0
+
+            if emp.contract_date_start and emp.payslip_yearly_cost:
+                annual_income = emp.payslip_yearly_cost
+            else:
+                annual_income = emp.final_yearly_costs or 0.0
+
             deduction = emp.standard_deduction or 0.0
 
             if emp.tax_regime == 'old':
