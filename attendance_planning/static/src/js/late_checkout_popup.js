@@ -2,15 +2,6 @@ const TEST_MODE = false;   //  CHANGE TO true FOR TESTING
 
 console.log(" Late checkout JS loaded");
 
-// DISABLED: this used to fire on ANY click matching a checkout-looking button,
-// then blindly wait a fixed 5 seconds before opening the late-checkout popup —
-// completely independent of the Face ID checkout flow in systray_face_patch.js.
-// That race is what caused the two camera/blink popups to clash.
-//
-// checkLateCheckout() is now called explicitly and sequentially from
-// systray_face_patch.js, right after the native checkout has actually
-// finished, so it can never overlap with the Face ID dialog anymore.
-// The function itself (below) is unchanged and still globally callable.
 //
 // document.addEventListener("click", function (ev) {
 //     const btn = ev.target.closest("button.btn.btn-warning, .o_hr_attendance_sign_out_icon");
@@ -185,3 +176,5 @@ function showLateCheckoutPopup(attendance) {
         }
     };
 }
+
+window.checkLateCheckout = checkLateCheckout;

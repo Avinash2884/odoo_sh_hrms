@@ -348,10 +348,18 @@ if (ActualAttendanceMenu) {
                 geoZoneId: currentGeoZoneId, // PASS THE ID TO THE VERIFICATION DIALOG
                 onSuccess: async () => {
                     try {
-                        // Pure native call — this is what makes the button
-                        // color and check-in/out location fields update
-                        // automatically, exactly like your old working code.
                         await super.signInOut();
+
+                        console.log("Checkout completed, currentState was:", currentState);
+
+                        if (currentState === 'checked_in') {
+                            if (typeof window.checkLateCheckout === 'function') {
+                                console.log("Calling checkLateCheckout in 1s...");
+                                setTimeout(window.checkLateCheckout, 1000);
+                            } else {
+                                console.error("checkLateCheckout is not available on window!");
+                            }
+                        }
                     } finally {
                         clearTimeout(safetyUnlock);
                         this._punchInProgress = false;
