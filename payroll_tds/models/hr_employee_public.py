@@ -1,0 +1,492 @@
+from odoo import models, fields
+
+
+class EmployeePublic(models.Model):
+    _inherit = 'hr.employee.public'
+
+    # ==========================================================
+    # Leave Allocation Fields
+    # ==========================================================
+
+    pl_allocation_year = fields.Integer(
+        related='employee_id.pl_allocation_year',
+        string="PL Allocation Year",
+        readonly=False,
+    )
+
+    last_cl_allocation_month = fields.Char(
+        related='employee_id.last_cl_allocation_month',
+        string="Last CL Allocation Month",
+        readonly=False,
+    )
+
+    last_sl_allocation_month = fields.Char(
+        related='employee_id.last_sl_allocation_month',
+        string="Last SL Allocation Month",
+        readonly=False,
+    )
+
+    bereavement_allocation_year = fields.Integer(
+        related='employee_id.bereavement_allocation_year',
+        string="Bereavement Allocation Year",
+        readonly=False,
+    )
+
+    # ==========================================================
+    # Tax / TDS Fields
+    # ==========================================================
+
+    tax_regime = fields.Selection(
+        related='employee_id.tax_regime',
+        string='Tax Regime',
+        readonly=False,
+    )
+
+    standard_deduction = fields.Monetary(
+        related='employee_id.standard_deduction',
+        string='Standard Deduction',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    section_80c = fields.Monetary(
+        related='employee_id.section_80c',
+        string='Section 80C',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    section_80d = fields.Monetary(
+        related='employee_id.section_80d',
+        string='Section 80D',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    section_80g = fields.Monetary(
+        related='employee_id.section_80g',
+        string='Section 80G',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    nps = fields.Monetary(
+        related='employee_id.nps',
+        string='NPS (80CCD(1B))',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    home_loan_interest = fields.Monetary(
+        related='employee_id.home_loan_interest',
+        string='Home Loan Interest',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    net_taxable_income = fields.Monetary(
+        related='employee_id.net_taxable_income',
+        string='Net Taxable Income',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    tds_amount = fields.Monetary(
+        related='employee_id.tds_amount',
+        string='TDS Amount (Annual)',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    tds_amount_month = fields.Monetary(
+        related='employee_id.tds_amount_month',
+        string='TDS Amount (Monthly)',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    tds_amount_new = fields.Monetary(
+        related='employee_id.tds_amount_new',
+        string='TDS Amount (New Regime)',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    tds_amount_new_month = fields.Monetary(
+        related='employee_id.tds_amount_new_month',
+        string='TDS Amount New Regime (Month)',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    tds_till_last_month = fields.Monetary(
+        related='employee_id.tds_till_last_month',
+        string='TDS Till Last Month',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    surcharge_amount = fields.Monetary(
+        related='employee_id.surcharge_amount',
+        string='Surcharge Amount',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    relief_amount = fields.Monetary(
+        related='employee_id.relief_amount',
+        string='Marginal Relief Amount',
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    l10n_in_incentive_percentage = fields.Monetary(
+        related='employee_id.l10n_in_incentive_percentage',
+        readonly=False,
+    )
+
+    # ==========================================================
+    # Currency
+    # ==========================================================
+
+    currency_id = fields.Many2one(
+        related='employee_id.currency_id',
+        string='Currency',
+        readonly=True,
+    )
+
+    # ==========================================================
+    # Payslip Fields
+    # ==========================================================
+
+    payslip_gross_wage = fields.Monetary(
+        related='employee_id.payslip_gross_wage',
+        string="Payslip Gross Wage",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    payslip_yearly_cost = fields.Monetary(
+        related='employee_id.payslip_yearly_cost',
+        string="Payslip Yearly Cost",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    payslip_month = fields.Selection(
+        related='employee_id.payslip_month',
+        string="Payslip Month",
+        readonly=False,
+    )
+
+    month = fields.Selection(
+        related='employee_id.month',
+        string="Month",
+        readonly=False,
+    )
+
+    year = fields.Char(
+        related='employee_id.year',
+        string="Year",
+        readonly=False,
+    )
+
+    # ==========================================================
+    # Salary / Working Day Calculation Fields
+    # ==========================================================
+
+    total_days = fields.Integer(
+        related='employee_id.total_days',
+        string="Total Days in Month",
+        readonly=False,
+    )
+
+    per_day_gross = fields.Float(
+        related='employee_id.per_day_gross',
+        string="Per Day Gross",
+        readonly=False,
+    )
+
+    per_day_basic = fields.Float(
+        related='employee_id.per_day_basic',
+        string="Per Day Basic",
+        readonly=False,
+    )
+
+    prorated_salary = fields.Float(
+        related='employee_id.prorated_salary',
+        string="Prorated Salary",
+        readonly=False,
+    )
+
+    leave_encashment = fields.Monetary(
+        related='employee_id.leave_encashment',
+        string="Leave Encashment Amount",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    total_earnings = fields.Monetary(
+        related='employee_id.total_earnings',
+        string="Total Earnings",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    # ==========================================================
+    # Notice Period / Full & Final Fields
+    # ==========================================================
+
+    period_days = fields.Float(
+        related='employee_id.period_days',
+        string="Notice Period (Days)",
+        readonly=False,
+    )
+
+    notice_served_days = fields.Float(
+        related='employee_id.notice_served_days',
+        string="Notice Served (Days)",
+        readonly=False,
+    )
+
+    unserved_days = fields.Float(
+        related='employee_id.unserved_days',
+        string="Unserved Days",
+        readonly=False,
+    )
+
+    notice_recovery = fields.Monetary(
+        related='employee_id.notice_recovery',
+        string="Notice Recovery",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    total_advance = fields.Monetary(
+        related='employee_id.total_advance',
+        string="Total Advance",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    amount_recovered = fields.Monetary(
+        related='employee_id.amount_recovered',
+        string="Amount Recovered",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    outstanding_amount = fields.Monetary(
+        related='employee_id.outstanding_amount',
+        string="Outstanding Amount",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    # ==========================================================
+    # Full & Final Salary Fields
+    # ==========================================================
+
+    ff_total_wage = fields.Float(
+        related='employee_id.ff_total_wage',
+        string="Total Wage",
+        readonly=False,
+    )
+
+    ff_basic = fields.Float(
+        related='employee_id.ff_basic',
+        string="FF Basic",
+        readonly=False,
+    )
+
+    ff_paid_days = fields.Float(
+        related='employee_id.ff_paid_days',
+        string="FF Paid Days",
+        readonly=False,
+    )
+
+    ff_paid_days1 = fields.Float(
+        related='employee_id.ff_paid_days1',
+        string="Paid Days",
+        readonly=False,
+    )
+
+    # ==========================================================
+    # Earnings / Arrears Fields
+    # ==========================================================
+
+    variable_pay = fields.Monetary(
+        related='employee_id.variable_pay',
+        string="Variable Pay",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    variable_bonus = fields.Monetary(
+        related='employee_id.variable_bonus',
+        string="Bonus",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    basic_arrear = fields.Monetary(
+        related='employee_id.basic_arrear',
+        string="Basic Arrear",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    hra_arrear = fields.Monetary(
+        related='employee_id.hra_arrear',
+        string="HRA Arrear",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    special_allowance_arrear = fields.Monetary(
+        related='employee_id.special_allowance_arrear',
+        string="Special Allowance Arrear",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    fixed_stipend = fields.Monetary(
+        related='employee_id.fixed_stipend',
+        string="Fixed Stipend",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    stipend = fields.Monetary(
+        related='employee_id.stipend',
+        string="Stipend",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    stipend_arrear = fields.Monetary(
+        related='employee_id.stipend_arrear',
+        string="Stipend Arrear",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    employee_incentive = fields.Monetary(
+        related='employee_id.employee_incentive',
+        string="Incentive",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    referral_incentive = fields.Monetary(
+        related='employee_id.referral_incentive',
+        string="Referral Incentive",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    notice_period = fields.Monetary(
+        related='employee_id.notice_period',
+        string="Notice Period Pay",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    salary_arrear = fields.Monetary(
+        related='employee_id.salary_arrear',
+        string="Salary Arrear",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    hold_salary = fields.Monetary(
+        related='employee_id.hold_salary',
+        string="Hold Salary",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    other_earnings = fields.Monetary(
+        related='employee_id.other_earnings',
+        string="Other Earnings",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    # ==========================================================
+    # Deduction Fields
+    # ==========================================================
+
+    notice_pay_deduction = fields.Monetary(
+        related='employee_id.notice_pay_deduction',
+        string="Notice Pay Deduction",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    loan_deduction = fields.Monetary(
+        related='employee_id.loan_deduction',
+        string="Loan",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    pf_arrear = fields.Monetary(
+        related='employee_id.pf_arrear',
+        string="PF Arrear",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    other_deductions = fields.Monetary(
+        related='employee_id.other_deductions',
+        string="Other Deductions",
+        currency_field='currency_id',
+        readonly=False,
+    )
+
+    # ==========================================================
+    # Loan Fields
+    # ==========================================================
+
+    loan_amount = fields.Float(
+        related='employee_id.loan_amount',
+        string="Loan Amount",
+        readonly=False,
+    )
+
+    loan_interest = fields.Float(
+        related='employee_id.loan_interest',
+        string="Interest %",
+        readonly=False,
+    )
+
+    loan_months = fields.Integer(
+        related='employee_id.loan_months',
+        string="No of Installments",
+        readonly=False,
+    )
+
+    monthly_installment = fields.Float(
+        related='employee_id.monthly_installment',
+        string="Monthly Installment",
+        readonly=False,
+    )
+
+    total_payable_amount = fields.Float(
+        related='employee_id.total_payable_amount',
+        string="Total Payable",
+        readonly=False,
+    )
+
+    remaining_balance = fields.Float(
+        related='employee_id.remaining_balance',
+        string="Remaining Balance",
+        readonly=False,
+    )
+
+    paid_installments = fields.Integer(
+        related='employee_id.paid_installments',
+        string="Paid Installments",
+        readonly=False,
+    )
