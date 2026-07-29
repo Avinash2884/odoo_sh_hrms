@@ -3,7 +3,7 @@ import re
 from odoo import models, fields, api, _
 from datetime import timedelta, date
 
-from odoo.exceptions import ValidationError, UserError
+from odoo.exceptions import ValidationError, UserError, RedirectWarning
 
 
 class HrEmployeeInherit(models.Model):
@@ -492,3 +492,20 @@ class HrEmployeeInherit(models.Model):
     def _compute_employer_pf_annual(self):
         for rec in self:
             rec.employer_pf_annual = (rec.employer_pf or 0.0) * 12
+
+    def action_create_users_confirmation(self):
+        total_users = self.env['res.users'].search_count([])
+
+        raise RedirectWarning(
+            message=_(
+                "Total allowed users: 300.\n"
+                "Currently %s users exist in the system.\n"
+                "You are about to create %s new users.\n\n"
+                "Do you wish to continue?"
+            ) % (total_users, len(self.ids)),
+            action=self.env.ref('hr.action_hr_employee_create_users').id,
+            button_text=_('Confirm'),
+            additional_context={
+                'selected_ids': self.ids,
+            },
+        )
