@@ -128,7 +128,7 @@ class HrPayslip(models.Model):
         string="Bank Name",
         compute="_compute_bank_details",
     )
-    
+    #
     ifsc_code = fields.Char(
         string="IFSC Code",
         compute="_compute_bank_details",
@@ -617,16 +617,16 @@ class HrPayslip(models.Model):
             # 1. FORCE MONTH FROM PAYSLIP DATE
             if slip.date_from:
                 month = slip.date_from.month
-                slip.employee_id.write({
-                    'payslip_month': str(month),
-                })
+
 
             # 2. GROSS WAGE FROM EMPLOYEE (NO contract_id)
             gross = slip.employee_id.payslip_gross_wage or 0.0
-
             slip.employee_id.write({
+                'payslip_month': str(month),
                 'payslip_gross_wage': gross,
+                'payslip_paid_days': slip.attendance_days,
             })
+
 
             # 3. GET ANNUAL SALARY (IMPORTANT CHECK FIRST)
 
@@ -719,19 +719,27 @@ class HrPayslip(models.Model):
             for slip in valid_slips:
                 employee = slip.employee_id
 
-                # First recompute projected annual income
-                employee._compute_payslip_yearly_cost()
+                # Refresh cached values
+                employee.invalidate_recordset([
+                    'net_taxable_income',
+                    'tds_amount',
+                ])
 
-                # Then recompute taxable income
+                # Recompute
                 employee._compute_net_taxable_income()
-
-                # Then recompute annual TDS
                 employee._compute_tds_amount()
-
-                # New regime TDS
                 employee._compute_tds_amount_new()
 
-                # Monthly TDS
+                # Save Annual TDS only for new joiner (once)
+                if (
+                        employee.contract_date_start
+                        and employee.contract_date_start.day > 1
+                        and employee.contract_date_start.month == slip.date_from.month
+                        and not employee.annual_tds_base
+                ):
+                    employee.annual_tds_base = employee.tds_amount_new
+
+                # Compute Monthly TDS
                 employee._compute_tds_amount_month()
 
             res = super(HrPayslip, valid_slips).action_payslip_done()
@@ -816,6 +824,9 @@ class HrPayslip(models.Model):
             if slip.date_from.month == 4:
                 employee.tds_till_last_month = 0.0
 
+            if slip.date_from.month == 4:
+                employee.annual_tds_base = 0.0
+
             # -----------------------------
             # Get current month's TDS
             # -----------------------------
@@ -843,29 +854,3 @@ class HrPayslip(models.Model):
                 slip.employee_id.paid_installments += 1
 
         return res
-
-    def _get_projected_annual_income(self):
-
-        self.ensure_one()
-
-        employee = self.employee_id
-
-        joining = employee.contract_date_start
-
-        # Existing employee
-        fy_start = fields.Date.from_string(f"{self.date_from.year}-04-01")
-
-        if joining < fy_start:
-            return employee.final_yearly_costs or 0.0
-
-        actual = self.payslip_gross_wage or 0.0
-
-        remaining = 0
-
-        if joining.month >= 4:
-            remaining = 12 - joining.month
-        else:
-            remaining = 3 - joining.month
-
-        return actual + (employee.wage * remaining)
-
