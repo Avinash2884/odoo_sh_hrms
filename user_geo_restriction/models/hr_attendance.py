@@ -62,13 +62,13 @@ class HrAttendance(models.Model):
             # -------------------------
             if vals.get('check_in'):
 
-                lat = attendance.in_latitude
-                lon = attendance.in_longitude
+                lat = vals.get('in_latitude') or attendance.in_latitude
+                lon = vals.get('in_longitude') or attendance.in_longitude
                 _logger.info("---- CHECK-IN START ----")
                 _logger.info("Check-in Latitude: %s", lat)
                 _logger.info("Check-in Longitude: %s", lon)
 
-                if not lat or not lon:
+                if lat is None or lon is None:
                     _logger.error("Missing check-in location")
                     raise UserError(_("Location required for check-in."))
 
@@ -85,6 +85,8 @@ class HrAttendance(models.Model):
 
                     _logger.info("Calculated Distance: %s meters", distance)
 
+                    allowed_radius = geo.allowed_distance + 50
+
                     if distance <= geo.allowed_distance:
                         _logger.warning("✅ MATCHED CHECK-IN with Geo ID: %s", geo.id)
                         attendance.geo_restriction_id = geo.id
@@ -100,14 +102,14 @@ class HrAttendance(models.Model):
             # -------------------------
             if vals.get('check_out'):
 
-                lat = attendance.out_latitude
-                lon = attendance.out_longitude
+                lat = vals.get('out_latitude') or attendance.out_latitude
+                lon = vals.get('out_longitude') or attendance.out_longitude
 
                 _logger.info("---- CHECK-OUT START ----")
                 _logger.info("Check-out Latitude: %s", lat)
                 _logger.info("Check-out Longitude: %s", lon)
 
-                if not lat or not lon:
+                if lat is None or lon is None:
                     _logger.error("Missing check-out location")
                     raise UserError(_("Location required for check-out."))
 
@@ -123,6 +125,8 @@ class HrAttendance(models.Model):
                     ).meters
 
                     _logger.info("Calculated Distance: %s meters", distance)
+
+                    allowed_radius = geo.allowed_distance + 50
 
                     if distance <= geo.allowed_distance:
                         _logger.warning("✅ MATCHED CHECK-OUT with Geo ID: %s", geo.id)
