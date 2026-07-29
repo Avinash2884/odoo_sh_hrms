@@ -19,6 +19,9 @@
                             <!-- Declare the native field directly -->
                             <field name="resource_calendar_id" string="Working Schedule"/>
                         </group>
+                        <group name="schedule_geo" string="Location Rules">
+                            <field name="bypass_geo_restriction"/>
+                        </group>
                     </group>
                 </page>
             </xpath>

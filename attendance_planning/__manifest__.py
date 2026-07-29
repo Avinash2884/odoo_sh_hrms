@@ -55,6 +55,9 @@
             'attendance_planning/static/src/js/systray_face_patch.js',
             'attendance_planning/static/src/xml/systray_face_popup.xml',
 
+            'attendance_planning/static/src/models/tiny_face_detector_model-weights_manifest.json',
+            'attendance_planning/static/src/models/tiny_face_detector_model-shard1',
+
         ],
     },
     'installable': True,

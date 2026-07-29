@@ -12,6 +12,16 @@ class HrEmployee(models.Model):
         ('rotational', 'Rotational Shift (Dynamic Week-Offs)')
     ], string="Shift Type", default='regular', tracking=True)
 
+    bypass_geo_restriction = fields.Boolean(
+        string="Allow Check-in Anywhere",
+        default=False,
+        tracking=True,
+        help="If enabled, this employee can Check In / Check Out from any "
+             "location — the office geo-fence restriction will be skipped "
+             "for them. Use this for field staff, sales reps, or remote "
+             "employees who don't work from a fixed office location."
+    )
+
     face_descriptor = fields.Text(string="Face Recognition Data", copy=False, groups="hr.group_hr_user")
     has_registered_face = fields.Boolean(compute='_compute_has_registered_face')
     is_current_user = fields.Boolean(compute='_compute_is_current_user')
