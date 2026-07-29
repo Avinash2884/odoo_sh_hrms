@@ -210,8 +210,21 @@ export class FaceVerificationDialog extends Component {
                             // 1. Do the actual punch
                             await this.props.onSuccess();
 
-                            // 2. Save photo against the attendance record
-                            if (photoBase64) {
+                            // 2. Save photo against the attendance record.
+                            // NOTE: previously, if photoBase64 was falsy
+                            // (capture silently failed), this whole block
+                            // was skipped with NO warning at all — the punch
+                            // succeeded but the photo vanished without a
+                            // trace. That gap is now closed below.
+                            if (!photoBase64) {
+                                console.warn('❌ Photo capture returned empty — nothing to save.');
+                                if (this.props.notificationService) {
+                                    this.props.notificationService.add(
+                                        "Your attendance was recorded, but the photo capture failed. Please inform admin.",
+                                        { type: "warning", sticky: true }
+                                    );
+                                }
+                            } else {
                                 const punchType = this.props.attendanceState === 'checked_in'
                                     ? 'checkout'
                                     : 'checkin';
@@ -220,28 +233,36 @@ export class FaceVerificationDialog extends Component {
                                 console.log("Punch Type:", punchType);
                                 console.log("Geo Zone ID being sent:", geoResult.zone_id);
 
-                                try {
-                                    const saveResult = await this.orm.call(
-                                        'hr.attendance',
-                                        'save_attendance_photo',
-                                        [photoBase64, punchType, geoResult.zone_id]
-                                    );
-                                    if (saveResult && saveResult.success) {
-                                        console.log("✅ Photo and Geo ID saved successfully!");
-                                    } else {
-                                        console.warn('❌ Attendance photo save failed:', saveResult && saveResult.error);
-                                        if (this.props.notificationService) {
-                                            this.props.notificationService.add(
-                                                "Your attendance was recorded, but the photo could not be saved. Please inform admin.",
-                                                { type: "warning", sticky: true }
-                                            );
+                                // Retry once on failure before giving up —
+                                // covers a transient network blip (common
+                                // cause of "works in local, fails in prod").
+                                let saveResult = null;
+                                let lastError = null;
+                                for (let attempt = 1; attempt <= 2; attempt++) {
+                                    try {
+                                        saveResult = await this.orm.call(
+                                            'hr.attendance',
+                                            'save_attendance_photo',
+                                            [photoBase64, punchType, geoResult.zone_id]
+                                        );
+                                        if (saveResult && saveResult.success) {
+                                            console.log("✅ Photo and Geo ID saved successfully! (attempt " + attempt + ")");
+                                            lastError = null;
+                                            break;
+                                        } else {
+                                            lastError = saveResult && saveResult.error;
+                                            console.warn('❌ Attendance photo save failed (attempt ' + attempt + '):', lastError);
                                         }
+                                    } catch (e) {
+                                        lastError = e;
+                                        console.warn('❌ Attendance photo save threw (attempt ' + attempt + '):', e);
                                     }
-                                } catch (e) {
-                                    console.warn('❌ Attendance photo save failed:', e);
+                                }
+
+                                if (lastError) {
                                     if (this.props.notificationService) {
                                         this.props.notificationService.add(
-                                            "Your attendance was recorded, but the photo could not be saved. Please inform admin.",
+                                            "Your attendance was recorded, but the photo could not be saved after retrying. Please inform admin.",
                                             { type: "warning", sticky: true }
                                         );
                                     }
@@ -282,11 +303,21 @@ export class FaceVerificationDialog extends Component {
     capturePhotoBase64() {
         try {
             const video = this.videoRef.el;
+            if (!video || !video.videoWidth || !video.videoHeight) {
+                console.warn('Photo capture skipped: video element not ready (videoWidth/videoHeight is 0).');
+                return null;
+            }
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth || 400;
-            canvas.height = video.videoHeight || 400;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            return canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            const base64 = dataUrl.split(',')[1];
+            if (!base64 || base64.length < 100) {
+                console.warn('Photo capture produced suspiciously small/empty data.');
+                return null;
+            }
+            return base64;
         } catch (e) {
             console.warn('Photo capture failed:', e);
             return null;
