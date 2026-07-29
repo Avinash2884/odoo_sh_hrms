@@ -1,6 +1,8 @@
 from odoo import models, api, _, fields
 from odoo.exceptions import UserError, ValidationError
 from geopy.distance import geodesic
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class HrAttendance(models.Model):
@@ -37,8 +39,9 @@ class HrAttendance(models.Model):
     def _check_geo_restriction(self, vals):
 
         for attendance in self:
-            print("Employee Name:", attendance.employee_id.name)
-            print("Employee ID:", attendance.employee_id.id)
+            _logger.warning("🚀 GEO CHECK STARTED for Attendance ID: %s", attendance.id)
+            _logger.info("Employee Name: %s", attendance.employee_id.name)
+            _logger.info("Employee ID: %s", attendance.employee_id.id)
 
             # ✅ Skip if no check-in / check-out (demo safe)
             if not attendance.check_in and not attendance.check_out:
@@ -61,35 +64,35 @@ class HrAttendance(models.Model):
 
                 lat = attendance.in_latitude
                 lon = attendance.in_longitude
-                print("\n--- CHECK-IN ---")
-                print("Check-in Latitude:", lat)
-                print("Check-in Longitude:", lon)
+                _logger.info("---- CHECK-IN START ----")
+                _logger.info("Check-in Latitude: %s", lat)
+                _logger.info("Check-in Longitude: %s", lon)
 
                 if not lat or not lon:
-                    print("ERROR: Missing check-in location")
+                    _logger.error("Missing check-in location")
                     raise UserError(_("Location required for check-in."))
 
                 matched_geo = False
 
                 for geo in geo_locations:
-                    print("\nChecking Geo Location ID:", geo.id)
-                    print("Office Latitude:", geo.company_latitude)
-                    print("Office Longitude:", geo.company_longitude)
-                    print("Allowed Radius (meters):", geo.allowed_distance)
+                    _logger.info("Checking Geo ID: %s", geo.id)
+                    _logger.info("Office Lat: %s, Lon: %s", geo.company_latitude, geo.company_longitude)
+                    _logger.info("Allowed Radius: %s meters", geo.allowed_distance)
                     distance = geodesic(
                         (geo.company_latitude, geo.company_longitude),
                         (lat, lon)
                     ).meters
 
-                    print("Calculated Distance (meters):", distance)
+                    _logger.info("Calculated Distance: %s meters", distance)
 
                     if distance <= geo.allowed_distance:
+                        _logger.warning("✅ MATCHED CHECK-IN with Geo ID: %s", geo.id)
                         attendance.geo_restriction_id = geo.id
                         matched_geo = True
                         break
 
                 if not matched_geo:
-                    print("❌ Outside allowed location (Check-in)")
+                    _logger.error("❌ Outside allowed location (Check-in)")
                     raise UserError(_("Outside allowed location (Check-in)."))
 
             # -------------------------
@@ -100,34 +103,33 @@ class HrAttendance(models.Model):
                 lat = attendance.out_latitude
                 lon = attendance.out_longitude
 
-                print("\n--- CHECK-OUT ---")
-                print("Check-out Latitude:", lat)
-                print("Check-out Longitude:", lon)
+                _logger.info("---- CHECK-OUT START ----")
+                _logger.info("Check-out Latitude: %s", lat)
+                _logger.info("Check-out Longitude: %s", lon)
 
                 if not lat or not lon:
-                    print("ERROR: Missing check-out location")
+                    _logger.error("Missing check-out location")
                     raise UserError(_("Location required for check-out."))
 
                 matched_geo = False
 
                 for geo in geo_locations:
-                    print("\nChecking Geo Location ID:", geo.id)
-                    print("Office Latitude:", geo.company_latitude)
-                    print("Office Longitude:", geo.company_longitude)
-                    print("Allowed Radius (meters):", geo.allowed_distance)
+                    _logger.info("Checking Geo ID: %s", geo.id)
+                    _logger.info("Office Lat: %s, Lon: %s", geo.company_latitude, geo.company_longitude)
+                    _logger.info("Allowed Radius: %s meters", geo.allowed_distance)
                     distance = geodesic(
                         (geo.company_latitude, geo.company_longitude),
                         (lat, lon)
                     ).meters
 
-                    print("Calculated Distance (meters):", distance)
+                    _logger.info("Calculated Distance: %s meters", distance)
 
                     if distance <= geo.allowed_distance:
-                        print("✅ MATCHED (Check-out) with Geo ID:", geo.id)
+                        _logger.warning("✅ MATCHED CHECK-OUT with Geo ID: %s", geo.id)
                         attendance.check_out_geo_restriction_id = geo.id
                         matched_geo = True
                         break
 
                 if not matched_geo:
-                    print("❌ Outside allowed location (Check-out)")
+                    _logger.error("❌ Outside allowed location (Check-out)")
                     raise UserError(_("You must check-out from an assigned location."))
