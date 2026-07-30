@@ -86,7 +86,7 @@ class HrAttendance(models.Model):
                     )
 
                     # 🔥 buffer added
-                    allowed_radius = geo.allowed_distance + 150
+                    allowed_radius = geo.allowed_distance + max(150, geo.allowed_distance * 0.1)
 
                     _logger.info(
                         "📏 Office(%s,%s) → User(%s,%s) | Distance: %.2f m | Allowed: %s",
