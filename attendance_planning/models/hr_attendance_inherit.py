@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import math
+import time as time_module
 from odoo import models, fields, api
 from datetime import datetime, time, timedelta
 from odoo.exceptions import UserError, ValidationError
@@ -547,37 +548,20 @@ class HrAttendance(models.Model):
         return res
 
     @api.model
-    def save_attendance_photo(self, photo_base64, punch_type, geo_zone_id=False):
+    def save_attendance_photo(self, attendance_id, photo_base64, punch_type, geo_zone_id=False):
         """
-        Called from JS after face verification.
-        Creates a new attendance.photo record linked to this attendance,
-        and maps the geo location field.
-        punch_type: 'checkin' or 'checkout'
+        Called from JS after face verification. The attendance_id is now
+        passed in directly by the JS (determined deterministically via a
+        before/after open-session snapshot) — no server-side searching or
+        guessing needed anymore.
         """
         employee = self.env.user.employee_id
         if not employee:
             return {'success': False, 'error': 'No employee linked to your account.'}
 
-        if punch_type == 'checkin':
-            domain = [
-                ('employee_id', '=', employee.id),
-                ('check_out', '=', False),
-            ]
-        else:  # checkout
-            domain = [
-                ('employee_id', '=', employee.id),
-                ('check_out', '!=', False),
-            ]
-
-        attendance = self.search(domain, order='id desc', limit=1)
-
-        if not attendance:
-            attendance = self.search([
-                ('employee_id', '=', employee.id),
-            ], order='id desc', limit=1)
-
-        if not attendance:
-            return {'success': False, 'error': 'No attendance record found to attach photo to.'}
+        attendance = self.browse(attendance_id).exists()
+        if not attendance or attendance.employee_id.id != employee.id:
+            return {'success': False, 'error': 'Invalid or unauthorized attendance record.'}
 
         try:
             self.env['attendance.photo'].sudo().create({
@@ -595,6 +579,24 @@ class HrAttendance(models.Model):
                 attendance.sudo().write({'check_out_geo_restriction_id': geo_zone_id})
 
         return {'success': True, 'attendance_id': attendance.id}
+
+
+    @api.model
+    def get_open_attendance_id(self):
+        """Returns the id of the employee's currently open (not checked-out)
+        attendance session, or False if none. Called by JS before AND after
+        a punch to deterministically identify which record that specific
+        punch touched — no searching by 'latest timestamp', no race."""
+        employee = self.env.user.employee_id
+        if not employee:
+            return False
+        att = self.search([
+            ('employee_id', '=', employee.id),
+            ('check_out', '=', False),
+        ], order='check_in desc', limit=1)
+        return att.id if att else False
+
+
 
     @api.model
     def check_employee_geo_allowed(self, latitude, longitude):
