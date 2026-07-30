@@ -39,7 +39,7 @@ class HrAttendance(models.Model):
     def _check_geo_restriction(self, vals):
 
         for attendance in self:
-            _logger.warning("🚀 GEO CHECK STARTED for Attendance ID: %s", attendance.id)
+            _logger.info("🚀 GEO CHECK STARTED for Attendance ID: %s", attendance.id)
             _logger.info("Employee Name: %s", attendance.employee_id.name)
             _logger.info("Employee ID: %s", attendance.employee_id.id)
 
@@ -88,7 +88,7 @@ class HrAttendance(models.Model):
                     allowed_radius = geo.allowed_distance + 50
 
                     if distance <= geo.allowed_distance:
-                        _logger.warning("✅ MATCHED CHECK-IN with Geo ID: %s", geo.id)
+                        _logger.info("✅ MATCHED CHECK-IN with Geo ID: %s", geo.id)
                         attendance.geo_restriction_id = geo.id
                         matched_geo = True
                         break
@@ -129,7 +129,7 @@ class HrAttendance(models.Model):
                     allowed_radius = geo.allowed_distance + 50
 
                     if distance <= geo.allowed_distance:
-                        _logger.warning("✅ MATCHED CHECK-OUT with Geo ID: %s", geo.id)
+                        _logger.info("✅ MATCHED CHECK-OUT with Geo ID: %s", geo.id)
                         attendance.check_out_geo_restriction_id = geo.id
                         matched_geo = True
                         break
