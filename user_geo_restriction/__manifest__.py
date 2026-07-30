@@ -13,11 +13,6 @@
         "views/hr_attendance_inherit.xml",
         "views/hr_employee.xml",
     ],
-    'assets': {
-        'web.assets_backend': [
-            'user_geo_restriction/static/src/components/check_in_check_out.js',
-        ],
-    },
     'installable': True,
     'application': True,
 }
