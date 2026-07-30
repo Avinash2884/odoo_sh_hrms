@@ -402,6 +402,12 @@ if (ActualAttendanceMenu) {
                     });
                     latitude = position.coords.latitude;
                     longitude = position.coords.longitude;
+
+                    console.log("--- LOCATION FETCHED ---");
+                    console.log("Latitude:", latitude);
+                    console.log("Longitude:", longitude);
+                    console.log("Accuracy (meters):", position.coords.accuracy);
+                    console.log("Timestamp:", new Date(position.timestamp).toLocaleString());
                 } catch (e) {
                     return {
                         allowed: false,
@@ -485,3 +491,9 @@ if (ActualAttendanceMenu) {
         }
     });
 }
+
+
+
+
+
+
