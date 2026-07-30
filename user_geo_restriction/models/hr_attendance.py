@@ -77,6 +77,8 @@ class HrAttendance(models.Model):
 
                     office_lat = self._round_geo(geo.company_latitude)
                     office_lon = self._round_geo(geo.company_longitude)
+                    _logger.info("🎯 Office Lat: %s", office_lat)
+                    _logger.info("🎯 Office Lon: %s", office_lon)
 
                     distance = geodesic(
                         (office_lat, office_lon),
@@ -124,6 +126,8 @@ class HrAttendance(models.Model):
 
                     office_lat = self._round_geo(geo.company_latitude)
                     office_lon = self._round_geo(geo.company_longitude)
+                    _logger.info("🎯 Office Lat: %s", office_lat)
+                    _logger.info("🎯 Office Lon: %s", office_lon)
 
                     distance = geodesic(
                         (office_lat, office_lon),
