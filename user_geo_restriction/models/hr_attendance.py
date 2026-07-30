@@ -1,16 +1,40 @@
 from odoo import models, api, _, fields
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from geopy.distance import geodesic
 import logging
-
 _logger = logging.getLogger(__name__)
 
 
 class HrAttendance(models.Model):
     _inherit = 'hr.attendance'
 
-    geo_restriction_id = fields.Many2one('geo.restriction', string="Check-in Location")
-    check_out_geo_restriction_id = fields.Many2one('geo.restriction', string="Check-out Location")
+    geo_restriction_id = fields.Many2one(
+        'geo.restriction',
+        string="Check-in Location"
+    )
+    check_out_geo_restriction_id = fields.Many2one(
+        'geo.restriction',
+        string="Check-out Location"
+    )
+
+    @api.model
+    def create(self, vals_list):
+
+        records = super().create(vals_list)
+
+        # ensure list
+        if isinstance(vals_list, dict):
+            vals_list = [vals_list]
+
+        for rec, vals in zip(records, vals_list):
+            rec._check_geo_restriction(vals)
+
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        self._check_geo_restriction(vals)
+        return res
 
     def _check_geo_restriction(self, vals):
 
