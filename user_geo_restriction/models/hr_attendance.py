@@ -37,7 +37,7 @@ class HrAttendance(models.Model):
         return res
 
     def _round_geo(self, value):
-        return round(value, 5) if value is not None else value
+        return round(value, 4) if value is not None else value
 
     def _check_geo_restriction(self, vals):
 
