@@ -36,6 +36,9 @@ class HrAttendance(models.Model):
         self._check_geo_restriction(vals)
         return res
 
+    def _round_geo(self, value):
+        return round(value, 5) if value else value
+
     def _check_geo_restriction(self, vals):
 
         for attendance in self:
@@ -50,8 +53,8 @@ class HrAttendance(models.Model):
             # -------------------------
             if vals.get('check_in'):
 
-                lat = vals.get('in_latitude') or attendance.in_latitude
-                lon = vals.get('in_longitude') or attendance.in_longitude
+                lat = self._round_geo(lat)
+                lon = self._round_geo(lon)
 
                 _logger.info("📍 RAW Check-in Lat: %s", lat)
                 _logger.info("📍 RAW Check-in Lon: %s", lon)
@@ -71,8 +74,8 @@ class HrAttendance(models.Model):
 
                 for geo in geo_locations:
 
-                    office_lat = round(geo.company_latitude, 5)
-                    office_lon = round(geo.company_longitude, 5)
+                    office_lat = self._round_geo(geo.company_latitude)
+                    office_lon = self._round_geo(geo.company_longitude)
 
                     _logger.info("🏢 Geo ID: %s", geo.id)
                     _logger.info("🏢 Office Lat: %s", office_lat)
@@ -105,8 +108,8 @@ class HrAttendance(models.Model):
             # -------------------------
             if vals.get('check_out'):
 
-                lat = vals.get('out_latitude') or attendance.out_latitude
-                lon = vals.get('out_longitude') or attendance.out_longitude
+                lat = self._round_geo(lat)
+                lon = self._round_geo(lon)
 
                 _logger.info("📍 RAW Check-out Lat: %s", lat)
                 _logger.info("📍 RAW Check-out Lon: %s", lon)
@@ -126,8 +129,8 @@ class HrAttendance(models.Model):
 
                 for geo in geo_locations:
 
-                    office_lat = round(geo.company_latitude, 5)
-                    office_lon = round(geo.company_longitude, 5)
+                    office_lat = self._round_geo(geo.company_latitude)
+                    office_lon = self._round_geo(geo.company_longitude)
 
                     _logger.info("🏢 Geo ID: %s", geo.id)
                     _logger.info("🏢 Office Lat: %s", office_lat)
