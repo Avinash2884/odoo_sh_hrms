@@ -1,6 +1,8 @@
 from odoo import models, api, _, fields
 from odoo.exceptions import UserError, ValidationError
 from geopy.distance import geodesic
+import logging
+_logger = logging.getLogger(__name__)
 
 class HrAttendance(models.Model):
     _inherit = 'hr.attendance'
@@ -46,10 +48,6 @@ class HrAttendance(models.Model):
 
             geo_locations = attendance.employee_id.geo_restriction_ids
 
-            # if not geo_locations:
-            #     print("ERROR: No geo locations configured!")
-            #     raise ValidationError(_("No office locations configured for this employee."))
-
             # -------------------------
             # CHECK-IN
             # -------------------------
@@ -58,11 +56,11 @@ class HrAttendance(models.Model):
                 lat = vals.get('in_latitude') or attendance.in_latitude
                 lon = vals.get('in_longitude') or attendance.in_longitude
 
-
                 if lat is None or lon is None:
                     raise UserError(_("Location required for check-in."))
 
                 matched_geo = False
+                matched_geo_record = False
 
                 for geo in geo_locations:
                     distance = geodesic(
@@ -75,9 +73,18 @@ class HrAttendance(models.Model):
                     if distance <= geo.allowed_distance:
                         attendance.geo_restriction_id = geo.id
                         matched_geo = True
+                        matched_geo_record = geo
                         break
 
-                if not matched_geo:
+                if matched_geo:
+                    _logger.info(
+                        "[CHECK-IN] Employee: %s | User Location: (%s, %s) | Office Location: (%s, %s)",
+                        attendance.employee_id.name,
+                        lat, lon,
+                        matched_geo_record.company_latitude,
+                        matched_geo_record.company_longitude
+                    )
+                else:
                     raise UserError(_("Outside allowed location (Check-in)."))
 
             # -------------------------
@@ -87,10 +94,12 @@ class HrAttendance(models.Model):
 
                 lat = vals.get('out_latitude') or attendance.out_latitude
                 lon = vals.get('out_longitude') or attendance.out_longitude
+
                 if lat is None or lon is None:
                     raise UserError(_("Location required for check-out."))
 
                 matched_geo = False
+                matched_geo_record = False
 
                 for geo in geo_locations:
                     distance = geodesic(
@@ -101,7 +110,16 @@ class HrAttendance(models.Model):
                     if distance <= geo.allowed_distance:
                         attendance.check_out_geo_restriction_id = geo.id
                         matched_geo = True
+                        matched_geo_record = geo
                         break
 
-                if not matched_geo:
+                if matched_geo:
+                    _logger.info(
+                        "[CHECK-OUT] Employee: %s | User Location: (%s, %s) | Office Location: (%s, %s)",
+                        attendance.employee_id.name,
+                        lat, lon,
+                        matched_geo_record.company_latitude,
+                        matched_geo_record.company_longitude
+                    )
+                else:
                     raise UserError(_("You must check-out from an assigned location."))
