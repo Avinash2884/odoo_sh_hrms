@@ -446,8 +446,8 @@ if (ActualAttendanceMenu) {
                 notificationService: this.notificationService,
                 onSuccess: async () => {
                     try {
-                        await super.signInOut();
-
+                        const punchResult = await super.signInOut();
+                        console.log("--- PUNCH RESULT ---", JSON.stringify(punchResult));
 
                         if (currentState === 'checked_in') {
                             if (typeof window.checkLateCheckout === 'function') {
