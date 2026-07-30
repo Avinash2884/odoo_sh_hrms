@@ -547,90 +547,92 @@ class HrAttendance(models.Model):
         return res
 
     @api.model
-    def save_attendance_photo(self, photo_base64, punch_type, geo_zone_id=False):
+    def save_attendance_photo(self, photo_base64, geo_zone_id=False):
         """
         Called from JS after face verification.
         Creates a new attendance.photo record linked to this attendance,
         and maps the geo location field.
-        punch_type: 'checkin' or 'checkout'
+
+        NOTE: We do NOT trust any client-provided punch_type — the client's
+        local state can go stale (e.g. an employee had an old forgotten
+        open session from hours earlier). Instead we find the ONE record
+        with the most recent actual event — whichever of check_in or
+        check_out happened last, across ALL of the employee's records —
+        using a single SQL query with GREATEST(check_in, check_out). This
+        is simpler than comparing separate "latest open" / "latest closed"
+        candidates and is immune to ambiguity from rapid successive
+        punches, since it always resolves to exactly one record: the one
+        whose most recent timestamp is closest to right now.
+
+        We deliberately do NOT use write_date here — this module's
+        _sync_siblings_on_save() recomputes stored fields on EVERY sibling
+        record for the day on every punch, which bumps write_date on
+        unrelated older records too and would make write_date desc
+        unreliable (confirmed by testing).
         """
         employee = self.env.user.employee_id
         if not employee:
             return {'success': False, 'error': 'No employee linked to your account.'}
 
-        base_domain = [
-            ('employee_id', '=', employee.id),
-        ]
+        self.env.cr.execute("""
+                SELECT id, check_in, check_out,
+                       GREATEST(check_in, COALESCE(check_out, '-infinity'::timestamp)) AS latest_event
+                FROM hr_attendance
+                WHERE employee_id = %s
+                ORDER BY latest_event DESC
+                LIMIT 1
+            """, (employee.id,))
+        row = self.env.cr.dictfetchone()
 
-        if punch_type == 'checkin':
-            # The check-in we just made is normally still open (no
-            # check_out yet) — order by check_in TIME (not id) to reliably
-            # get the most recently opened session, even across multiple
-            # sessions in the same day, and regardless of any backdated/
-            # manual records that may have a higher database id than
-            # today's real punch.
-            domain = base_domain + [('check_out', '=', False)]
-            attendance = self.search(domain, order='check_in desc', limit=1)
-
-            # ---> FAST CHECKIN-THEN-CHECKOUT FALLBACK: if the employee
-            # checks out again within a couple of minutes (before this
-            # checkin photo-save call actually reaches the backend), the
-            # record is no longer "open" and the domain above finds
-            # nothing. In that case, fall back to the employee's single
-            # most recent record by check_in time regardless of its
-            # current check_out state — it's still the right record, the
-            # recency check below protects against this being wrong.
-            if not attendance:
-                attendance = self.search(base_domain, order='check_in desc', limit=1)
-
-            relevant_time = attendance.check_in if attendance else False
-        else:  # checkout
-            # The record we just closed — order by check_out TIME (not id)
-            # to reliably get the session that was just closed, the same
-            # way the existing get_my_latest_attendance() method already
-            # does it.
-            domain = base_domain + [('check_out', '!=', False)]
-            attendance = self.search(domain, order='check_out desc', limit=1)
-            relevant_time = attendance.check_out if attendance else False
-
-        if not attendance:
+        if not row:
             return {'success': False, 'error': 'No attendance record found to attach photo to.'}
 
-        # ---> SANITY CHECK: the matched record's punch time must be very
+        attendance = self.browse(row['id'])
+        relevant_time = row['latest_event']
+
+        # The winning event is a checkout if check_out is set AND it's the
+        # more recent of the two timestamps on that same record; otherwise
+        # it's a checkin.
+        if row['check_out'] and row['check_out'] >= (row['check_in'] or row['check_out']):
+            actual_punch_type = 'checkout'
+        else:
+            actual_punch_type = 'checkin'
+
+        # ---> SANITY CHECK: the winning record's punch time must be very
         # recent (within the last 5 minutes of server time). If it isn't,
         # refuse to attach rather than silently guessing and risking a
         # mismatch — this turns a silent wrong-attachment into a visible,
         # catchable error instead.
-        if relevant_time:
-            age_seconds = (fields.Datetime.now() - relevant_time).total_seconds()
-            if age_seconds > 300 or age_seconds < -60:
-                return {
-                    'success': False,
-                    'error': (
-                        f'Matched attendance record time ({relevant_time}) is not '
-                        f'recent enough (age: {int(age_seconds)}s) — refusing to '
-                        f'attach photo to avoid a possible mismatch. Please contact admin.'
-                    ),
-                }
+        age_seconds = (fields.Datetime.now() - relevant_time).total_seconds()
+        if age_seconds > 300 or age_seconds < -60:
+            return {
+                'success': False,
+                'error': (
+                    f'Matched attendance record time ({relevant_time}) is not '
+                    f'recent enough (age: {int(age_seconds)}s) — refusing to '
+                    f'attach photo to avoid a possible mismatch. Please contact admin.'
+                ),
+            }
 
-        # Save the photo record
+        # Save the photo record — using the SERVER-determined punch type,
+        # not blindly trusting whatever the client sent.
         try:
             self.env['attendance.photo'].sudo().create({
                 'attendance_id': attendance.id,
                 'photo': photo_base64,
-                'punch_type': punch_type,
+                'punch_type': actual_punch_type,
             })
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
         # Map the geo restriction ID to the corresponding field
         if geo_zone_id:
-            if punch_type == 'checkin':
+            if actual_punch_type == 'checkin':
                 attendance.sudo().write({'geo_restriction_id': geo_zone_id})
-            elif punch_type == 'checkout':
+            elif actual_punch_type == 'checkout':
                 attendance.sudo().write({'check_out_geo_restriction_id': geo_zone_id})
 
-        return {'success': True, 'attendance_id': attendance.id}
+        return {'success': True, 'attendance_id': attendance.id, 'punch_detected': actual_punch_type}
 
 
     @api.model

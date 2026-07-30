@@ -204,18 +204,16 @@ export class FaceVerificationDialog extends Component {
                             await this.props.onSuccess();
 
                             // 2. Save photo against the attendance record.
-                            // Diagnostics go to console only (DevTools) — no
-                            // UI toast is shown to the end user for photo
-                            // save issues; the punch itself already succeeded.
+                            // NOTE: we no longer send a client-guessed
+                            // punch_type at all — the server determines the
+                            // real event itself by comparing actual
+                            // check_in/check_out timestamps, since the
+                            // client's local "am I checked in?" state can
+                            // go stale (e.g. an old forgotten open session).
                             if (!photoBase64) {
                                 console.warn('❌ Photo capture returned empty — nothing to save.');
                             } else {
-                                const punchType = this.props.attendanceState === 'checked_in'
-                                    ? 'checkout'
-                                    : 'checkin';
-
                                 console.log("--- ATTEMPTING TO SAVE PHOTO AND GEO ID ---");
-                                console.log("Punch Type:", punchType);
                                 console.log("Geo Zone ID being sent:", geoResult.zone_id);
 
                                 // Retry once on failure before giving up —
@@ -228,10 +226,10 @@ export class FaceVerificationDialog extends Component {
                                         saveResult = await this.orm.call(
                                             'hr.attendance',
                                             'save_attendance_photo',
-                                            [photoBase64, punchType, geoResult.zone_id]
+                                            [photoBase64, geoResult.zone_id]
                                         );
                                         if (saveResult && saveResult.success) {
-                                            console.log("✅ Photo and Geo ID saved successfully! (attempt " + attempt + ")");
+                                            console.log("✅ Photo saved successfully to attendance_id " + saveResult.attendance_id + " (detected: " + saveResult.punch_detected + ", attempt " + attempt + ")");
                                             lastError = null;
                                             break;
                                         } else {
@@ -279,7 +277,8 @@ export class FaceVerificationDialog extends Component {
         }
     }
 
-    // ---> Capture current video frame as JPEG base64
+    // ---> Capture current video frame as JPEG base64 (downscaled for
+    // faster, more reliable upload on slower/production networks)
     capturePhotoBase64() {
         try {
             const video = this.videoRef.el;
@@ -287,10 +286,19 @@ export class FaceVerificationDialog extends Component {
                 return null;
             }
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+            // Downscale to max 480px width — plenty for face verification
+            // records, but cuts payload size drastically (often 2-4MB down
+            // to under 100KB), reducing upload time and the chance of
+            // hitting proxy/timeout/payload-size issues on production
+            // mobile networks.
+            const maxWidth = 480;
+            const scale = Math.min(1, maxWidth / video.videoWidth);
+            canvas.width = Math.round(video.videoWidth * scale);
+            canvas.height = Math.round(video.videoHeight * scale);
+
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
             const base64 = dataUrl.split(',')[1];
             if (!base64 || base64.length < 100) {
                 return null;
@@ -446,8 +454,8 @@ if (ActualAttendanceMenu) {
                 notificationService: this.notificationService,
                 onSuccess: async () => {
                     try {
-                        const punchResult = await super.signInOut();
-                        console.log("--- PUNCH RESULT ---", JSON.stringify(punchResult));
+                        await super.signInOut();
+
 
                         if (currentState === 'checked_in') {
                             if (typeof window.checkLateCheckout === 'function') {
@@ -464,3 +472,8 @@ if (ActualAttendanceMenu) {
         }
     });
 }
+
+
+
+
+
