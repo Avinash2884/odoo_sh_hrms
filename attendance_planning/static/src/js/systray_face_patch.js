@@ -93,8 +93,6 @@ export class FaceVerificationDialog extends Component {
                 script.src = '/attendance_planning/static/src/lib/face-api.js';
                 script.onload = () => resolve();
                 script.onerror = () => {
-                    console.error("❌ CRITICAL: Could not find face-api.js at", script.src);
-                    console.error("Please verify the file exists in your static/src/lib folder and restart the Odoo server.");
                     _faceApiScriptPromise = null;
                     reject(new Error("Failed to load face-api.js"));
                 };
@@ -190,12 +188,7 @@ export class FaceVerificationDialog extends Component {
 
                         if (!geoResult || !geoResult.allowed) {
                             this.state.statusMessage = "❌ " + (geoResult?.message || "You are outside the allowed office location.");
-                            if (this.props.notificationService) {
-                                this.props.notificationService.add(
-                                    geoResult?.message || "You are outside the allowed office location.",
-                                    { type: "danger", sticky: true }
-                                );
-                            }
+                            console.warn('Geo check failed:', geoResult?.message);
                             this.stopCamera();
                             setTimeout(() => this.props.close(), 1500);
                             return;
@@ -206,24 +199,16 @@ export class FaceVerificationDialog extends Component {
                         // NOW stop camera after photo captured
                         this.stopCamera();
 
-                        setTimeout(async () => {
+                        (async () => {
                             // 1. Do the actual punch
                             await this.props.onSuccess();
 
                             // 2. Save photo against the attendance record.
-                            // NOTE: previously, if photoBase64 was falsy
-                            // (capture silently failed), this whole block
-                            // was skipped with NO warning at all — the punch
-                            // succeeded but the photo vanished without a
-                            // trace. That gap is now closed below.
+                            // Diagnostics go to console only (DevTools) — no
+                            // UI toast is shown to the end user for photo
+                            // save issues; the punch itself already succeeded.
                             if (!photoBase64) {
                                 console.warn('❌ Photo capture returned empty — nothing to save.');
-                                if (this.props.notificationService) {
-                                    this.props.notificationService.add(
-                                        "Your attendance was recorded, but the photo capture failed. Please inform admin.",
-                                        { type: "warning", sticky: true }
-                                    );
-                                }
                             } else {
                                 const punchType = this.props.attendanceState === 'checked_in'
                                     ? 'checkout'
@@ -255,22 +240,17 @@ export class FaceVerificationDialog extends Component {
                                         }
                                     } catch (e) {
                                         lastError = e;
-                                        console.warn('❌ Attendance photo save threw (attempt ' + attempt + '):', e);
+                                        console.error('❌ Attendance photo save threw (attempt ' + attempt + '):', e);
                                     }
                                 }
 
                                 if (lastError) {
-                                    if (this.props.notificationService) {
-                                        this.props.notificationService.add(
-                                            "Your attendance was recorded, but the photo could not be saved after retrying. Please inform admin.",
-                                            { type: "warning", sticky: true }
-                                        );
-                                    }
+                                    console.error('❌ Photo save gave up after retry. Employee attendance was still recorded successfully.');
                                 }
                             }
 
                             this.props.close();
-                        }, 1000);
+                        })();
                     }
                     return;
                 } else {
@@ -304,7 +284,6 @@ export class FaceVerificationDialog extends Component {
         try {
             const video = this.videoRef.el;
             if (!video || !video.videoWidth || !video.videoHeight) {
-                console.warn('Photo capture skipped: video element not ready (videoWidth/videoHeight is 0).');
                 return null;
             }
             const canvas = document.createElement('canvas');
@@ -314,12 +293,10 @@ export class FaceVerificationDialog extends Component {
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
             const base64 = dataUrl.split(',')[1];
             if (!base64 || base64.length < 100) {
-                console.warn('Photo capture produced suspiciously small/empty data.');
                 return null;
             }
             return base64;
         } catch (e) {
-            console.warn('Photo capture failed:', e);
             return null;
         }
     }
@@ -355,7 +332,6 @@ if (ActualAttendanceMenu) {
                     await preloadFaceApiScript();
                     await preloadFaceApiModels();
                 } catch (e) {
-                    console.warn('Face-api preload failed (will retry on click):', e);
                 }
             })();
         },
@@ -472,14 +448,11 @@ if (ActualAttendanceMenu) {
                     try {
                         await super.signInOut();
 
-                        console.log("Checkout completed, currentState was:", currentState);
 
                         if (currentState === 'checked_in') {
                             if (typeof window.checkLateCheckout === 'function') {
-                                console.log("Calling checkLateCheckout in 1s...");
                                 setTimeout(window.checkLateCheckout, 1000);
                             } else {
-                                console.error("checkLateCheckout is not available on window!");
                             }
                         }
                     } finally {
@@ -491,9 +464,3 @@ if (ActualAttendanceMenu) {
         }
     });
 }
-
-
-
-
-
-
