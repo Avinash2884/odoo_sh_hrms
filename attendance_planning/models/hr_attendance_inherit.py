@@ -556,32 +556,45 @@ class HrAttendance(models.Model):
         """
         employee = self.env.user.employee_id
         if not employee:
-            return False
+            return {'success': False, 'error': 'No employee linked to your account.'}
 
-        # We removed the if/else entirely!
-        # Whether checking in or out, we just grab the most recent record.
-        attendance = self.search([
-            ('employee_id', '=', employee.id),
-        ], order='id desc', limit=1)
+        if punch_type == 'checkin':
+            domain = [
+                ('employee_id', '=', employee.id),
+                ('check_out', '=', False),
+            ]
+        else:  # checkout
+            domain = [
+                ('employee_id', '=', employee.id),
+                ('check_out', '!=', False),
+            ]
+
+        attendance = self.search(domain, order='id desc', limit=1)
 
         if not attendance:
-            return False
+            attendance = self.search([
+                ('employee_id', '=', employee.id),
+            ], order='id desc', limit=1)
 
-        # Save the photo record
-        self.env['attendance.photo'].sudo().create({
-            'attendance_id': attendance.id,
-            'photo': photo_base64,
-            'punch_type': punch_type,
-        })
+        if not attendance:
+            return {'success': False, 'error': 'No attendance record found to attach photo to.'}
 
-        # Map the geo restriction ID to the corresponding field
+        try:
+            self.env['attendance.photo'].sudo().create({
+                'attendance_id': attendance.id,
+                'photo': photo_base64,
+                'punch_type': punch_type,
+            })
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
         if geo_zone_id:
             if punch_type == 'checkin':
                 attendance.sudo().write({'geo_restriction_id': geo_zone_id})
             elif punch_type == 'checkout':
                 attendance.sudo().write({'check_out_geo_restriction_id': geo_zone_id})
 
-        return True
+        return {'success': True, 'attendance_id': attendance.id}
 
     @api.model
     def check_employee_geo_allowed(self, latitude, longitude):
@@ -596,6 +609,9 @@ class HrAttendance(models.Model):
         if not employee:
             return {'allowed': False, 'message': 'No employee linked to your account.'}
 
+        if employee.bypass_geo_restriction:
+            return {'allowed': True, 'zone_id': False}
+
         geo_locations = employee.geo_restriction_ids
         if not geo_locations:
             return {'allowed': False, 'message': 'No office locations configured for you. Contact HR.'}
@@ -606,7 +622,6 @@ class HrAttendance(models.Model):
                 (latitude, longitude)
             ).meters
             if distance <= geo.allowed_distance:
-                # ---> THE ONLY CHANGE IS HERE: Changed 'geo_id' to 'zone_id'
                 return {'allowed': True, 'zone_id': geo.id}
 
         return {

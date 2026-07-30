@@ -23,6 +23,41 @@ function getEAR(eye) {
 let _faceApiScriptPromise = null;
 let _faceApiModelsPromise = null;
 
+// Standalone preload versions (no dependency on component `this.state`) so
+// they can be safely called from the attendance menu on page load, before
+// any FaceVerificationDialog instance exists.
+async function preloadFaceApiScript() {
+    if (window.faceapi) return;
+    if (!_faceApiScriptPromise) {
+        _faceApiScriptPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = '/attendance_planning/static/src/lib/face-api.js';
+            script.onload = () => resolve();
+            script.onerror = () => {
+                _faceApiScriptPromise = null;
+                reject(new Error("Failed to load face-api.js"));
+            };
+            document.head.appendChild(script);
+        });
+    }
+    return _faceApiScriptPromise;
+}
+
+async function preloadFaceApiModels() {
+    if (!_faceApiModelsPromise) {
+        const modelPath = '/attendance_planning/static/src/models';
+        _faceApiModelsPromise = Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
+            faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
+            faceapi.nets.faceRecognitionNet.loadFromUri(modelPath),
+        ]).catch((e) => {
+            _faceApiModelsPromise = null;
+            throw e;
+        });
+    }
+    return _faceApiModelsPromise;
+}
+
 export class FaceVerificationDialog extends Component {
     setup() {
         this.videoRef = useRef("videoElement");
@@ -77,7 +112,7 @@ export class FaceVerificationDialog extends Component {
             this.state.statusMessage = "Loading AI Models...";
             const modelPath = '/attendance_planning/static/src/models';
             _faceApiModelsPromise = Promise.all([
-                faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath),
+                faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
                 faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
                 faceapi.nets.faceRecognitionNet.loadFromUri(modelPath),
             ]).catch((e) => {
@@ -110,7 +145,7 @@ export class FaceVerificationDialog extends Component {
             if (this.state.isProcessing) return;
 
             const videoEl = this.videoRef.el;
-            const detection = await faceapi.detectSingleFace(videoEl).withFaceLandmarks().withFaceDescriptor();
+            const detection = await faceapi.detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })).withFaceLandmarks().withFaceDescriptor();
 
             if (detection) {
 //                // ---> BLINK DETECTION
@@ -139,13 +174,34 @@ export class FaceVerificationDialog extends Component {
                 const isMatch = await this.verifyWithDatabase(detection.descriptor);
 
                 if (isMatch) {
-                    this.state.statusMessage = "✅ Identity Verified!";
-
                     if (!this.hasPunched) {
                         this.hasPunched = true;
+                        this.state.isProcessing = true;
+                        this.state.statusMessage = "Verifying location...";
 
                         // ---> FIX 1: Capture photo BEFORE stopping camera
                         const photoBase64 = this.capturePhotoBase64();
+
+                        // Await the geo-check that started in the background
+                        // when the popup opened. In almost every case this
+                        // resolves instantly here since it's been running
+                        // the whole time the camera/AI models were loading.
+                        const geoResult = await this.props.geoCheckPromise;
+
+                        if (!geoResult || !geoResult.allowed) {
+                            this.state.statusMessage = "❌ " + (geoResult?.message || "You are outside the allowed office location.");
+                            if (this.props.notificationService) {
+                                this.props.notificationService.add(
+                                    geoResult?.message || "You are outside the allowed office location.",
+                                    { type: "danger", sticky: true }
+                                );
+                            }
+                            this.stopCamera();
+                            setTimeout(() => this.props.close(), 1500);
+                            return;
+                        }
+
+                        this.state.statusMessage = "✅ Identity Verified!";
 
                         // NOW stop camera after photo captured
                         this.stopCamera();
@@ -162,17 +218,33 @@ export class FaceVerificationDialog extends Component {
 
                                 console.log("--- ATTEMPTING TO SAVE PHOTO AND GEO ID ---");
                                 console.log("Punch Type:", punchType);
-                                console.log("Geo Zone ID being sent:", this.props.geoZoneId);
+                                console.log("Geo Zone ID being sent:", geoResult.zone_id);
 
                                 try {
-                                    await this.orm.call(
+                                    const saveResult = await this.orm.call(
                                         'hr.attendance',
                                         'save_attendance_photo',
-                                        [photoBase64, punchType, this.props.geoZoneId]
+                                        [photoBase64, punchType, geoResult.zone_id]
                                     );
-                                    console.log("✅ Photo and Geo ID saved successfully!");
+                                    if (saveResult && saveResult.success) {
+                                        console.log("✅ Photo and Geo ID saved successfully!");
+                                    } else {
+                                        console.warn('❌ Attendance photo save failed:', saveResult && saveResult.error);
+                                        if (this.props.notificationService) {
+                                            this.props.notificationService.add(
+                                                "Your attendance was recorded, but the photo could not be saved. Please inform admin.",
+                                                { type: "warning", sticky: true }
+                                            );
+                                        }
+                                    }
                                 } catch (e) {
                                     console.warn('❌ Attendance photo save failed:', e);
+                                    if (this.props.notificationService) {
+                                        this.props.notificationService.add(
+                                            "Your attendance was recorded, but the photo could not be saved. Please inform admin.",
+                                            { type: "warning", sticky: true }
+                                        );
+                                    }
                                 }
                             }
 
@@ -238,17 +310,30 @@ if (ActualAttendanceMenu) {
             this.dialogService = useService("dialog");
             this.orm = useService("orm");
             this.notificationService = useService("notification");
-            // Guard flag: this is the actual fix for the "hasn't checked out"
-            // validation error. The old code had no protection against a
-            // double-click (or a bubbled double-fire event) calling signInOut()
-            // twice in quick succession — each call independently tried to
-            // create an attendance record, and the second one collided with
-            // the first, producing that error. This flag makes signInOut()
-            // ignore any call while one is already in flight.
             this._punchInProgress = false;
+
+            // PRELOAD: start downloading face-api.js + the AI models the
+            // moment this menu mounts (i.e. as soon as the page/session
+            // loads), instead of waiting for the user's first click. This
+            // uses the same module-level cached promises as the dialog, so
+            // by the time the user actually clicks Check In, the models are
+            // already downloaded and the camera opens instantly — even on
+            // the very first punch of the day.
+            (async () => {
+                try {
+                    await preloadFaceApiScript();
+                    await preloadFaceApiModels();
+                } catch (e) {
+                    console.warn('Face-api preload failed (will retry on click):', e);
+                }
+            })();
         },
 
-        // ---> FIX 2: Check geo BEFORE opening camera
+        // ---> FIX 2 (updated): Open popup INSTANTLY. Geo is checked in the
+        // background while the camera/AI models are loading, instead of
+        // blocking the popup from opening. By the time the user's face is
+        // detected and matched, the geo result has almost always already
+        // arrived — so there is no extra wait, just a different order.
         async signInOut() {
             // Hard stop re-entrancy: this is what actually fixes the
             // "hasn't checked out since ..." validation error. Ignore any
@@ -268,69 +353,68 @@ if (ActualAttendanceMenu) {
                 currentState = this.attendance.attendance_state;
             }
 
-            // Step 1: Get GPS coordinates
-            let latitude = null;
-            let longitude = null;
-            let currentGeoZoneId = false;
+            // Kick off geo-check in the BACKGROUND — do not await it here.
+            // This promise resolves to { allowed, zone_id, message } and is
+            // handed to the dialog, which awaits it only once a face match
+            // is found (by then it's almost always already resolved).
+            const geoCheckPromise = (async () => {
+                let latitude = null;
+                let longitude = null;
 
-            try {
-                const position = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, {
-                        timeout: 10000,
-                        enableHighAccuracy: true,
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            timeout: 5000,
+                            enableHighAccuracy: false,
+                            maximumAge: 30000,
+                        });
                     });
-                });
-                latitude = position.coords.latitude;
-                longitude = position.coords.longitude;
-            } catch (e) {
-                this.notificationService.add(
-                    "Location access is required for attendance. Please allow location and try again.",
-                    { type: "danger", sticky: true }
-                );
-                this._punchInProgress = false;
-                return;
-            }
+                    latitude = position.coords.latitude;
+                    longitude = position.coords.longitude;
+                } catch (e) {
+                    return {
+                        allowed: false,
+                        message: "Location access is required for attendance. Please allow location and try again.",
+                    };
+                }
 
-            // Step 2: Ask backend if employee is within allowed zone
-            try {
-                const result = await this.orm.call(
-                    'hr.attendance',
-                    'check_employee_geo_allowed',
-                    [latitude, longitude]
-                );
-
-                console.log("--- GEO CHECK RESULT FROM PYTHON ---");
-                console.log("Full Result Object:", result);
-
-                if (!result || (typeof result === 'object' && !result.allowed) || result === false) {
-                    this.notificationService.add(
-                        (result && result.message) ? result.message : "You are outside the allowed office location.",
-                        { type: "danger", sticky: true }
+                try {
+                    const result = await this.orm.call(
+                        'hr.attendance',
+                        'check_employee_geo_allowed',
+                        [latitude, longitude]
                     );
-                    this._punchInProgress = false;
-                    return;
+
+                    console.log("--- GEO CHECK RESULT FROM PYTHON ---");
+                    console.log("Full Result Object:", result);
+
+                    if (!result || (typeof result === 'object' && !result.allowed) || result === false) {
+                        return {
+                            allowed: false,
+                            message: (result && result.message) ? result.message : "You are outside the allowed office location.",
+                        };
+                    }
+
+                    let zoneId = false;
+                    if (result && result.zone_id) {
+                        zoneId = result.zone_id;
+                    } else if (result && result.id) {
+                        // Fallback just in case their python code returns 'id' instead of 'zone_id'
+                        zoneId = result.id;
+                    }
+
+                    console.log("Extracted Geo Zone ID mapping to:", zoneId);
+                    return { allowed: true, zone_id: zoneId };
+
+                } catch (e) {
+                    return {
+                        allowed: false,
+                        message: "Could not verify your location. Please try again.",
+                    };
                 }
+            })();
 
-                // EXTRACT THE ID RETURNED BY THE BACKEND
-                if (result && result.zone_id) {
-                    currentGeoZoneId = result.zone_id;
-                } else if (result && result.id) {
-                    // Fallback just in case their python code returns 'id' instead of 'zone_id'
-                    currentGeoZoneId = result.id;
-                }
-
-                console.log("Extracted Geo Zone ID mapping to:", currentGeoZoneId);
-
-            } catch (e) {
-                this.notificationService.add(
-                    "Could not verify your location. Please try again.",
-                    { type: "danger", sticky: true }
-                );
-                this._punchInProgress = false;
-                return;
-            }
-
-            // Step 3: Geo passed — open face verification.
+            // Open face verification IMMEDIATELY — no waiting on geo.
             // Safety net: force-release the lock after 60s no matter what,
             // so the button can never get stuck until a page refresh even if
             // the user closes the dialog without completing it. We deliberately
@@ -345,7 +429,8 @@ if (ActualAttendanceMenu) {
 
             this.dialogService.add(FaceVerificationDialog, {
                 attendanceState: currentState,
-                geoZoneId: currentGeoZoneId, // PASS THE ID TO THE VERIFICATION DIALOG
+                geoCheckPromise: geoCheckPromise, // dialog awaits this before punching
+                notificationService: this.notificationService,
                 onSuccess: async () => {
                     try {
                         await super.signInOut();
@@ -369,5 +454,3 @@ if (ActualAttendanceMenu) {
         }
     });
 }
-
-
