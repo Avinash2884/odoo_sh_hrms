@@ -200,8 +200,19 @@ export class FaceVerificationDialog extends Component {
                         this.stopCamera();
 
                         (async () => {
-                            // 1. Do the actual punch
+                            // 1. Do the actual punch in Odoo core
                             await this.props.onSuccess();
+
+                            // ---> Small buffer (NOT the risky 1.5s version):
+                            // on odoo.sh's multi-worker setup, there can be a
+                            // brief window where the just-written check_in/
+                            // check_out isn't yet visible to the very next
+                            // request. 400ms is enough to close that gap
+                            // without meaningfully reopening the "backgrounded
+                            // tab kills the pending save" risk we fixed
+                            // earlier (that was about MINUTES of
+                            // backgrounding, not milliseconds).
+                            await new Promise(resolve => setTimeout(resolve, 400));
 
                             // 2. Save photo against the attendance record.
                             // NOTE: we no longer send a client-guessed
@@ -472,8 +483,3 @@ if (ActualAttendanceMenu) {
         }
     });
 }
-
-
-
-
-
