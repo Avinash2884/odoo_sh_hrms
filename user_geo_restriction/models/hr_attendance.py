@@ -70,7 +70,7 @@ class HrAttendance(models.Model):
                         matched_geo = True
                         break
                     else:
-                        _logger.warning("⚠️ Not matched with Geo ID: %s", geo.id)
+                        _logger.info("⚠️ Not matched with Geo ID: %s", geo.id)
 
                 if not matched_geo:
                     _logger.error("❌ FINAL RESULT: Outside allowed location (Check-in)")
@@ -125,7 +125,7 @@ class HrAttendance(models.Model):
                         matched_geo = True
                         break
                     else:
-                        _logger.warning("⚠️ Not matched with Geo ID: %s", geo.id)
+                        _logger.info("⚠️ Not matched with Geo ID: %s", geo.id)
 
                 if not matched_geo:
                     _logger.error("❌ FINAL RESULT: Outside allowed location (Check-out)")
