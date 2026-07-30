@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import math
+import time as time_module
 from odoo import models, fields, api
 from datetime import datetime, time, timedelta
 from odoo.exceptions import UserError, ValidationError
@@ -547,42 +548,61 @@ class HrAttendance(models.Model):
         return res
 
     @api.model
-    def save_attendance_photo(self, photo_base64, geo_zone_id=False):
+    def save_attendance_photo(self, photo_base64, geo_zone_id=False, expected_type=False):
         """
         Called from JS after face verification.
         Creates a new attendance.photo record linked to this attendance,
         and maps the geo location field.
 
-        NOTE: We do NOT trust any client-provided punch_type — the client's
-        local state can go stale (e.g. an employee had an old forgotten
-        open session from hours earlier). Instead we find the ONE record
-        with the most recent actual event — whichever of check_in or
-        check_out happened last, across ALL of the employee's records —
-        using a single SQL query with GREATEST(check_in, check_out). This
-        is simpler than comparing separate "latest open" / "latest closed"
-        candidates and is immune to ambiguity from rapid successive
-        punches, since it always resolves to exactly one record: the one
-        whose most recent timestamp is closest to right now.
+        NOTE: We do NOT trust `expected_type` as authority — it's only
+        used as a hint to detect a likely race condition (see below). The
+        actual punch_type saved is always determined server-side, from
+        real check_in/check_out timestamps via SQL, using GREATEST().
 
         We deliberately do NOT use write_date here — this module's
         _sync_siblings_on_save() recomputes stored fields on EVERY sibling
         record for the day on every punch, which bumps write_date on
         unrelated older records too and would make write_date desc
         unreliable (confirmed by testing).
+
+        RACE-CONDITION SELF-CORRECTION: on odoo.sh's infrastructure there
+        can be a brief window where the punch's write (from the request
+        just before this one) isn't yet visible to this query — most
+        often seen as a checkout being (wrongly, momentarily) detected as
+        a checkin. If `expected_type` disagrees with what we just found,
+        AND the matched event is extremely fresh (<10s old — exactly the
+        signature of this race), we re-run the query a couple more times
+        with a short pause first, instead of trusting either side blindly.
         """
         employee = self.env.user.employee_id
         if not employee:
             return {'success': False, 'error': 'No employee linked to your account.'}
 
-        self.env.cr.execute("""
-                SELECT id, check_in, check_out,
-                       GREATEST(check_in, COALESCE(check_out, '-infinity'::timestamp)) AS latest_event
-                FROM hr_attendance
-                WHERE employee_id = %s
-                ORDER BY latest_event DESC
-                LIMIT 1
-            """, (employee.id,))
-        row = self.env.cr.dictfetchone()
+        def fetch_latest():
+            self.env.cr.execute("""
+                    SELECT id, check_in, check_out,
+                           GREATEST(check_in, COALESCE(check_out, '-infinity'::timestamp)) AS latest_event
+                    FROM hr_attendance
+                    WHERE employee_id = %s
+                    ORDER BY latest_event DESC
+                    LIMIT 1
+                """, (employee.id,))
+            return self.env.cr.dictfetchone()
+
+        row = fetch_latest()
+
+        for _ in range(3):
+            if not row:
+                break
+            age_now = (fields.Datetime.now() - row['latest_event']).total_seconds()
+            detected = 'checkout' if (
+                        row['check_out'] and row['check_out'] >= (row['check_in'] or row['check_out'])) else 'checkin'
+
+            if expected_type and detected != expected_type and age_now < 10:
+                time_module.sleep(0.4)
+                row = fetch_latest()
+                continue
+            break
 
         if not row:
             return {'success': False, 'error': 'No attendance record found to attach photo to.'}
@@ -590,19 +610,11 @@ class HrAttendance(models.Model):
         attendance = self.browse(row['id'])
         relevant_time = row['latest_event']
 
-        # The winning event is a checkout if check_out is set AND it's the
-        # more recent of the two timestamps on that same record; otherwise
-        # it's a checkin.
         if row['check_out'] and row['check_out'] >= (row['check_in'] or row['check_out']):
             actual_punch_type = 'checkout'
         else:
             actual_punch_type = 'checkin'
 
-        # ---> SANITY CHECK: the winning record's punch time must be very
-        # recent (within the last 5 minutes of server time). If it isn't,
-        # refuse to attach rather than silently guessing and risking a
-        # mismatch — this turns a silent wrong-attachment into a visible,
-        # catchable error instead.
         age_seconds = (fields.Datetime.now() - relevant_time).total_seconds()
         if age_seconds > 300 or age_seconds < -60:
             return {
@@ -614,8 +626,6 @@ class HrAttendance(models.Model):
                 ),
             }
 
-        # Save the photo record — using the SERVER-determined punch type,
-        # not blindly trusting whatever the client sent.
         try:
             self.env['attendance.photo'].sudo().create({
                 'attendance_id': attendance.id,
@@ -625,7 +635,6 @@ class HrAttendance(models.Model):
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
-        # Map the geo restriction ID to the corresponding field
         if geo_zone_id:
             if actual_punch_type == 'checkin':
                 attendance.sudo().write({'geo_restriction_id': geo_zone_id})

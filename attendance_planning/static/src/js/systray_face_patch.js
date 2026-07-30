@@ -221,6 +221,11 @@ export class FaceVerificationDialog extends Component {
                             // check_in/check_out timestamps, since the
                             // client's local "am I checked in?" state can
                             // go stale (e.g. an old forgotten open session).
+                            const expectedType = this.props.attendanceState === 'checked_in'
+                                ? 'checkout'
+                                : 'checkin';
+
+
                             if (!photoBase64) {
                                 console.warn('❌ Photo capture returned empty — nothing to save.');
                             } else {
@@ -237,7 +242,7 @@ export class FaceVerificationDialog extends Component {
                                         saveResult = await this.orm.call(
                                             'hr.attendance',
                                             'save_attendance_photo',
-                                            [photoBase64, geoResult.zone_id]
+                                            [photoBase64, geoResult.zone_id, expectedType]
                                         );
                                         if (saveResult && saveResult.success) {
                                             console.log("✅ Photo saved successfully to attendance_id " + saveResult.attendance_id + " (detected: " + saveResult.punch_detected + ", attempt " + attempt + ")");
