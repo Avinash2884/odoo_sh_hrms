@@ -548,100 +548,54 @@ class HrAttendance(models.Model):
         return res
 
     @api.model
-    def save_attendance_photo(self, photo_base64, geo_zone_id=False, expected_type=False):
+    def save_attendance_photo(self, attendance_id, photo_base64, punch_type, geo_zone_id=False):
         """
-        Called from JS after face verification.
-        Creates a new attendance.photo record linked to this attendance,
-        and maps the geo location field.
-
-        NOTE: We do NOT trust `expected_type` as authority — it's only
-        used as a hint to detect a likely race condition (see below). The
-        actual punch_type saved is always determined server-side, from
-        real check_in/check_out timestamps via SQL, using GREATEST().
-
-        We deliberately do NOT use write_date here — this module's
-        _sync_siblings_on_save() recomputes stored fields on EVERY sibling
-        record for the day on every punch, which bumps write_date on
-        unrelated older records too and would make write_date desc
-        unreliable (confirmed by testing).
-
-        RACE-CONDITION SELF-CORRECTION: on odoo.sh's infrastructure there
-        can be a brief window where the punch's write (from the request
-        just before this one) isn't yet visible to this query — most
-        often seen as a checkout being (wrongly, momentarily) detected as
-        a checkin. If `expected_type` disagrees with what we just found,
-        AND the matched event is extremely fresh (<10s old — exactly the
-        signature of this race), we re-run the query a couple more times
-        with a short pause first, instead of trusting either side blindly.
+        Called from JS after face verification. The attendance_id is now
+        passed in directly by the JS (determined deterministically via a
+        before/after open-session snapshot) — no server-side searching or
+        guessing needed anymore.
         """
         employee = self.env.user.employee_id
         if not employee:
             return {'success': False, 'error': 'No employee linked to your account.'}
 
-        def fetch_latest():
-            self.env.cr.execute("""
-                    SELECT id, check_in, check_out,
-                           GREATEST(check_in, COALESCE(check_out, '-infinity'::timestamp)) AS latest_event
-                    FROM hr_attendance
-                    WHERE employee_id = %s
-                    ORDER BY latest_event DESC
-                    LIMIT 1
-                """, (employee.id,))
-            return self.env.cr.dictfetchone()
-
-        row = fetch_latest()
-
-        for _ in range(3):
-            if not row:
-                break
-            age_now = (fields.Datetime.now() - row['latest_event']).total_seconds()
-            detected = 'checkout' if (
-                        row['check_out'] and row['check_out'] >= (row['check_in'] or row['check_out'])) else 'checkin'
-
-            if expected_type and detected != expected_type and age_now < 10:
-                time_module.sleep(0.4)
-                row = fetch_latest()
-                continue
-            break
-
-        if not row:
-            return {'success': False, 'error': 'No attendance record found to attach photo to.'}
-
-        attendance = self.browse(row['id'])
-        relevant_time = row['latest_event']
-
-        if row['check_out'] and row['check_out'] >= (row['check_in'] or row['check_out']):
-            actual_punch_type = 'checkout'
-        else:
-            actual_punch_type = 'checkin'
-
-        age_seconds = (fields.Datetime.now() - relevant_time).total_seconds()
-        if age_seconds > 300 or age_seconds < -60:
-            return {
-                'success': False,
-                'error': (
-                    f'Matched attendance record time ({relevant_time}) is not '
-                    f'recent enough (age: {int(age_seconds)}s) — refusing to '
-                    f'attach photo to avoid a possible mismatch. Please contact admin.'
-                ),
-            }
+        attendance = self.browse(attendance_id).exists()
+        if not attendance or attendance.employee_id.id != employee.id:
+            return {'success': False, 'error': 'Invalid or unauthorized attendance record.'}
 
         try:
             self.env['attendance.photo'].sudo().create({
                 'attendance_id': attendance.id,
                 'photo': photo_base64,
-                'punch_type': actual_punch_type,
+                'punch_type': punch_type,
             })
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
         if geo_zone_id:
-            if actual_punch_type == 'checkin':
+            if punch_type == 'checkin':
                 attendance.sudo().write({'geo_restriction_id': geo_zone_id})
-            elif actual_punch_type == 'checkout':
+            elif punch_type == 'checkout':
                 attendance.sudo().write({'check_out_geo_restriction_id': geo_zone_id})
 
-        return {'success': True, 'attendance_id': attendance.id, 'punch_detected': actual_punch_type}
+        return {'success': True, 'attendance_id': attendance.id}
+
+
+    @api.model
+    def get_open_attendance_id(self):
+        """Returns the id of the employee's currently open (not checked-out)
+        attendance session, or False if none. Called by JS before AND after
+        a punch to deterministically identify which record that specific
+        punch touched — no searching by 'latest timestamp', no race."""
+        employee = self.env.user.employee_id
+        if not employee:
+            return False
+        att = self.search([
+            ('employee_id', '=', employee.id),
+            ('check_out', '=', False),
+        ], order='check_in desc', limit=1)
+        return att.id if att else False
+
 
 
     @api.model
