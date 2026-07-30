@@ -43,13 +43,13 @@ class HrAttendance(models.Model):
             _logger.info("Employee Name: %s", attendance.employee_id.name)
             _logger.info("Employee ID: %s", attendance.employee_id.id)
 
-            # ✅ Skip if no check-in / check-out (demo safe)
-            if not attendance.check_in and not attendance.check_out:
-                continue
-
-            # ✅ Skip if no GPS data (demo safe)
-            if not attendance.in_latitude and not attendance.out_latitude:
-                continue
+            # # ✅ Skip if no check-in / check-out (demo safe)
+            # if not attendance.check_in and not attendance.check_out:
+            #     continue
+            #
+            # # ✅ Skip if no GPS data (demo safe)
+            # if not attendance.in_latitude and not attendance.out_latitude:
+            #     continue
 
             geo_locations = attendance.employee_id.geo_restriction_ids
 
