@@ -558,19 +558,36 @@ class HrAttendance(models.Model):
         if not employee:
             return {'success': False, 'error': 'No employee linked to your account.'}
 
+        # Match TODAY'S DATE first, then punch state — NOT just "highest id".
+        # "id desc" alone breaks when an older/manual/backdated record ends
+        # up with a higher id than today's real punch (e.g. an admin-entered
+        # old-dated record created later than today's actual attendance).
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
+        now_local = fields.Datetime.now().astimezone(tz) if fields.Datetime.now().tzinfo else pytz.utc.localize(
+            fields.Datetime.now()).astimezone(tz)
+        today_start_local = tz.localize(datetime.combine(now_local.date(), datetime.min.time()))
+        today_end_local = tz.localize(datetime.combine(now_local.date(), datetime.max.time()))
+        today_start_utc = today_start_local.astimezone(pytz.utc).replace(tzinfo=None)
+        today_end_utc = today_end_local.astimezone(pytz.utc).replace(tzinfo=None)
+
+        base_domain = [
+            ('employee_id', '=', employee.id),
+            ('check_in', '>=', today_start_utc),
+            ('check_in', '<=', today_end_utc),
+        ]
+
         if punch_type == 'checkin':
-            domain = [
-                ('employee_id', '=', employee.id),
-                ('check_out', '=', False),
-            ]
+            domain = base_domain + [('check_out', '=', False)]
         else:  # checkout
-            domain = [
-                ('employee_id', '=', employee.id),
-                ('check_out', '!=', False),
-            ]
+            domain = base_domain + [('check_out', '!=', False)]
 
         attendance = self.search(domain, order='id desc', limit=1)
 
+        # Fallback 1: same day, any state.
+        if not attendance:
+            attendance = self.search(base_domain, order='id desc', limit=1)
+
+        # Fallback 2: absolute last resort — employee's overall latest record.
         if not attendance:
             attendance = self.search([
                 ('employee_id', '=', employee.id),
@@ -595,6 +612,7 @@ class HrAttendance(models.Model):
                 attendance.sudo().write({'check_out_geo_restriction_id': geo_zone_id})
 
         return {'success': True, 'attendance_id': attendance.id}
+
 
     @api.model
     def check_employee_geo_allowed(self, latitude, longitude):
