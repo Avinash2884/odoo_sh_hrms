@@ -1,34 +1,26 @@
-import { Component } from "@odoo/owl";
-import { useService } from "@web/core/utils/hooks";
-import { useDebounced } from "@web/core/utils/timing";
+/** @odoo-module **/
 
-export class CheckInOut extends Component {
-    static template = "hr_attendance.CheckInOut";
-    static props = {
-        checkedIn: Boolean,
-        employeeId: Number,
-        nextAction: String,
-    };
+import { CheckInOut } from "@hr_attendance/components/check_in_out/check_in_out";
+import { patch } from "@web/core/utils/patch";
 
-    setup() {
-        this.actionService = useService("action");
-        this.orm = useService("orm");
-        this.notification = useService("notification");
-
-        this.onClickSignInOut = useDebounced(this.signInOut, 200, { immediate: true });
-    }
+patch(CheckInOut.prototype, {
 
     async signInOut() {
-        console.log("🟢 signInOut STARTED - custom JS loaded");
+        console.log("🟢 Custom CheckInOut Triggered");
+
+        if (!this.props.employeeId) {
+            console.log("❌ No employeeId found");
+            return;
+        }
 
         const position = await new Promise((resolve) => {
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
-                    console.log("✅ GPS SUCCESS:", pos.coords.latitude, pos.coords.longitude);
+                    console.log("✅ GPS:", pos.coords.latitude, pos.coords.longitude);
                     resolve(pos);
                 },
                 (err) => {
-                    console.log("❌ GPS ERROR:", err.message, "code:", err.code);
+                    console.log("❌ GPS ERROR:", err.message);
                     resolve(null);
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -38,7 +30,11 @@ export class CheckInOut extends Component {
         const latitude = position ? position.coords.latitude : false;
         const longitude = position ? position.coords.longitude : false;
 
-        console.log("📍 Final coords being sent:", latitude, longitude);
+        if (!position) {
+            this.notification.add("Location access denied", { type: "warning" });
+        }
+
+        console.log("📍 Sending:", latitude, longitude);
 
         await this.orm.call("hr.employee", "update_last_position", [
             [this.props.employeeId],
@@ -46,16 +42,16 @@ export class CheckInOut extends Component {
             longitude
         ]);
 
-        console.log("✅ update_last_position DONE, now calling attendance_manual");
-
         const result = await this.orm.call("hr.employee", "attendance_manual", [
             [this.props.employeeId],
             this.props.nextAction,
         ]);
+
         if (result.action) {
             this.actionService.doAction(result.action);
         } else if (result.warning) {
-            this.notification.add(result.warning, {type: "danger"});
+            this.notification.add(result.warning, { type: "danger" });
         }
-    }
-}
+    },
+
+});
