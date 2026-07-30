@@ -78,13 +78,18 @@ class HrAttendance(models.Model):
 
                 if matched_geo:
                     _logger.info(
-                        "[CHECK-IN] Employee: %s | User Location: (%s, %s) | Office Location: (%s, %s)",
+                        "[CHECK-IN SUCCESS] Employee: %s | User Location: (%s, %s) | Office Location: (%s, %s)",
                         attendance.employee_id.name,
                         lat, lon,
                         matched_geo_record.company_latitude,
                         matched_geo_record.company_longitude
                     )
                 else:
+                    _logger.warning(  # ✅ better to use warning
+                        "[CHECK-IN FAILED] Employee: %s | User Location: (%s, %s) | No matching office location found",
+                        attendance.employee_id.name,
+                        lat, lon
+                    )
                     raise UserError(_("Outside allowed location (Check-in)."))
 
             # -------------------------
@@ -115,11 +120,16 @@ class HrAttendance(models.Model):
 
                 if matched_geo:
                     _logger.info(
-                        "[CHECK-OUT] Employee: %s | User Location: (%s, %s) | Office Location: (%s, %s)",
+                        "[CHECK-OUT SUCCESS] Employee: %s | User Location: (%s, %s) | Office Location: (%s, %s)",
                         attendance.employee_id.name,
                         lat, lon,
                         matched_geo_record.company_latitude,
                         matched_geo_record.company_longitude
                     )
                 else:
+                    _logger.warning(
+                        "[CHECK-OUT FAILED] Employee: %s | User Location: (%s, %s) | No matching office location found",
+                        attendance.employee_id.name,
+                        lat, lon
+                    )
                     raise UserError(_("You must check-out from an assigned location."))
