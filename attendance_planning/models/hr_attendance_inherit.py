@@ -558,44 +558,62 @@ class HrAttendance(models.Model):
         if not employee:
             return {'success': False, 'error': 'No employee linked to your account.'}
 
-        # Match TODAY'S DATE first, then punch state — NOT just "highest id".
-        # "id desc" alone breaks when an older/manual/backdated record ends
-        # up with a higher id than today's real punch (e.g. an admin-entered
-        # old-dated record created later than today's actual attendance).
-        tz = pytz.timezone(self.env.user.tz or 'UTC')
-        now_local = fields.Datetime.now().astimezone(tz) if fields.Datetime.now().tzinfo else pytz.utc.localize(
-            fields.Datetime.now()).astimezone(tz)
-        today_start_local = tz.localize(datetime.combine(now_local.date(), datetime.min.time()))
-        today_end_local = tz.localize(datetime.combine(now_local.date(), datetime.max.time()))
-        today_start_utc = today_start_local.astimezone(pytz.utc).replace(tzinfo=None)
-        today_end_utc = today_end_local.astimezone(pytz.utc).replace(tzinfo=None)
-
         base_domain = [
             ('employee_id', '=', employee.id),
-            ('check_in', '>=', today_start_utc),
-            ('check_in', '<=', today_end_utc),
         ]
 
         if punch_type == 'checkin':
+            # The check-in we just made is normally still open (no
+            # check_out yet) — order by check_in TIME (not id) to reliably
+            # get the most recently opened session, even across multiple
+            # sessions in the same day, and regardless of any backdated/
+            # manual records that may have a higher database id than
+            # today's real punch.
             domain = base_domain + [('check_out', '=', False)]
+            attendance = self.search(domain, order='check_in desc', limit=1)
+
+            # ---> FAST CHECKIN-THEN-CHECKOUT FALLBACK: if the employee
+            # checks out again within a couple of minutes (before this
+            # checkin photo-save call actually reaches the backend), the
+            # record is no longer "open" and the domain above finds
+            # nothing. In that case, fall back to the employee's single
+            # most recent record by check_in time regardless of its
+            # current check_out state — it's still the right record, the
+            # recency check below protects against this being wrong.
+            if not attendance:
+                attendance = self.search(base_domain, order='check_in desc', limit=1)
+
+            relevant_time = attendance.check_in if attendance else False
         else:  # checkout
+            # The record we just closed — order by check_out TIME (not id)
+            # to reliably get the session that was just closed, the same
+            # way the existing get_my_latest_attendance() method already
+            # does it.
             domain = base_domain + [('check_out', '!=', False)]
-
-        attendance = self.search(domain, order='id desc', limit=1)
-
-        # Fallback 1: same day, any state.
-        if not attendance:
-            attendance = self.search(base_domain, order='id desc', limit=1)
-
-        # Fallback 2: absolute last resort — employee's overall latest record.
-        if not attendance:
-            attendance = self.search([
-                ('employee_id', '=', employee.id),
-            ], order='id desc', limit=1)
+            attendance = self.search(domain, order='check_out desc', limit=1)
+            relevant_time = attendance.check_out if attendance else False
 
         if not attendance:
             return {'success': False, 'error': 'No attendance record found to attach photo to.'}
 
+        # ---> SANITY CHECK: the matched record's punch time must be very
+        # recent (within the last 5 minutes of server time). If it isn't,
+        # refuse to attach rather than silently guessing and risking a
+        # mismatch — this turns a silent wrong-attachment into a visible,
+        # catchable error instead.
+        if relevant_time:
+            age_seconds = (fields.Datetime.now() - relevant_time).total_seconds()
+            if age_seconds > 300 or age_seconds < -60:
+                return {
+                    'success': False,
+                    'error': (
+                        f'Matched attendance record time ({relevant_time}) is not '
+                        f'recent enough (age: {int(age_seconds)}s) — refusing to '
+                        f'attach photo to avoid a possible mismatch. Please contact admin.'
+                    ),
+                }
+
+        # Save the photo record
         try:
             self.env['attendance.photo'].sudo().create({
                 'attendance_id': attendance.id,
@@ -605,6 +623,7 @@ class HrAttendance(models.Model):
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
+        # Map the geo restriction ID to the corresponding field
         if geo_zone_id:
             if punch_type == 'checkin':
                 attendance.sudo().write({'geo_restriction_id': geo_zone_id})
