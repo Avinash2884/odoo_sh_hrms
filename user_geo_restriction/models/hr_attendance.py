@@ -18,6 +18,11 @@ class HrAttendance(models.Model):
     )
 
     @api.model
+    def debug_log_from_js(self, message):
+        _logger.warning("📱 JS DEBUG: %s", message)
+        return True
+
+    @api.model
     def create(self, vals_list):
 
         records = super().create(vals_list)
