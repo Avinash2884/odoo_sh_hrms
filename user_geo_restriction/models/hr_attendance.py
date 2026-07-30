@@ -37,7 +37,7 @@ class HrAttendance(models.Model):
         return res
 
     def _round_geo(self, value):
-        return round(value, 5) if value else value
+        return round(value, 5) if value is not None else value
 
     def _check_geo_restriction(self, vals):
 
@@ -53,8 +53,9 @@ class HrAttendance(models.Model):
             # -------------------------
             if vals.get('check_in'):
 
-                lat = self._round_geo(lat)
-                lon = self._round_geo(lon)
+                # ✅ FIRST assign
+                lat = vals.get('in_latitude') or attendance.in_latitude
+                lon = vals.get('in_longitude') or attendance.in_longitude
 
                 _logger.info("📍 RAW Check-in Lat: %s", lat)
                 _logger.info("📍 RAW Check-in Lon: %s", lon)
@@ -63,9 +64,9 @@ class HrAttendance(models.Model):
                     _logger.error("❌ Missing check-in location")
                     raise UserError(_("Location required for check-in."))
 
-                # ✅ Normalize
-                lat = round(lat, 5)
-                lon = round(lon, 5)
+                # ✅ THEN round
+                lat = self._round_geo(lat)
+                lon = self._round_geo(lon)
 
                 _logger.info("🎯 Rounded Lat: %s", lat)
                 _logger.info("🎯 Rounded Lon: %s", lon)
@@ -77,10 +78,6 @@ class HrAttendance(models.Model):
                     office_lat = self._round_geo(geo.company_latitude)
                     office_lon = self._round_geo(geo.company_longitude)
 
-                    _logger.info("🏢 Geo ID: %s", geo.id)
-                    _logger.info("🏢 Office Lat: %s", office_lat)
-                    _logger.info("🏢 Office Lon: %s", office_lon)
-
                     distance = geodesic(
                         (office_lat, office_lon),
                         (lat, lon)
@@ -88,19 +85,14 @@ class HrAttendance(models.Model):
 
                     allowed_radius = geo.allowed_distance + 100
 
-                    _logger.info("📏 Calculated Distance: %.2f meters", distance)
-                    _logger.info("🎯 Allowed Radius (with buffer): %s meters", allowed_radius)
+                    _logger.info("📏 Distance: %.2f | Allowed: %s", distance, allowed_radius)
 
                     if distance <= allowed_radius:
-                        _logger.info("✅ MATCH FOUND (Check-in) → Geo ID: %s", geo.id)
                         attendance.geo_restriction_id = geo.id
                         matched_geo = True
                         break
-                    else:
-                        _logger.info("⚠️ Not matched with Geo ID: %s", geo.id)
 
                 if not matched_geo:
-                    _logger.error("❌ FINAL RESULT: Outside allowed location (Check-in)")
                     raise UserError(_("Outside allowed location (Check-in)."))
 
             # -------------------------
@@ -108,8 +100,9 @@ class HrAttendance(models.Model):
             # -------------------------
             if vals.get('check_out'):
 
-                lat = self._round_geo(lat)
-                lon = self._round_geo(lon)
+                # ✅ FIRST assign
+                lat = vals.get('out_latitude') or attendance.out_latitude
+                lon = vals.get('out_longitude') or attendance.out_longitude
 
                 _logger.info("📍 RAW Check-out Lat: %s", lat)
                 _logger.info("📍 RAW Check-out Lon: %s", lon)
@@ -118,9 +111,9 @@ class HrAttendance(models.Model):
                     _logger.error("❌ Missing check-out location")
                     raise UserError(_("Location required for check-out."))
 
-                # ✅ Normalize
-                lat = round(lat, 5)
-                lon = round(lon, 5)
+                # ✅ THEN round
+                lat = self._round_geo(lat)
+                lon = self._round_geo(lon)
 
                 _logger.info("🎯 Rounded Lat: %s", lat)
                 _logger.info("🎯 Rounded Lon: %s", lon)
@@ -132,10 +125,6 @@ class HrAttendance(models.Model):
                     office_lat = self._round_geo(geo.company_latitude)
                     office_lon = self._round_geo(geo.company_longitude)
 
-                    _logger.info("🏢 Geo ID: %s", geo.id)
-                    _logger.info("🏢 Office Lat: %s", office_lat)
-                    _logger.info("🏢 Office Lon: %s", office_lon)
-
                     distance = geodesic(
                         (office_lat, office_lon),
                         (lat, lon)
@@ -143,19 +132,14 @@ class HrAttendance(models.Model):
 
                     allowed_radius = geo.allowed_distance + 100
 
-                    _logger.info("📏 Calculated Distance: %.2f meters", distance)
-                    _logger.info("🎯 Allowed Radius (with buffer): %s meters", allowed_radius)
+                    _logger.info("📏 Distance: %.2f | Allowed: %s", distance, allowed_radius)
 
                     if distance <= allowed_radius:
-                        _logger.info("✅ MATCH FOUND (Check-out) → Geo ID: %s", geo.id)
                         attendance.check_out_geo_restriction_id = geo.id
                         matched_geo = True
                         break
-                    else:
-                        _logger.info("⚠️ Not matched with Geo ID: %s", geo.id)
 
                 if not matched_geo:
-                    _logger.error("❌ FINAL RESULT: Outside allowed location (Check-out)")
                     raise UserError(_("You must check-out from an assigned location."))
 
             _logger.info("🏁 ===== GEO CHECK END =====\n")
