@@ -6,4 +6,4 @@ from . import hr_approval_requests
 from . import hr_attendance_inherit
 from . import hr_leave_allocation
 from . import employee_salary_revision
-
+from . import hr_employee_public

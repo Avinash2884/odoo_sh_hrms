@@ -23,6 +23,38 @@ function getEAR(eye) {
 let _faceApiScriptPromise = null;
 let _faceApiModelsPromise = null;
 
+async function preloadFaceApiScript() {
+    if (window.faceapi) return;
+    if (!_faceApiScriptPromise) {
+        _faceApiScriptPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = '/attendance_planning/static/src/lib/face-api.js';
+            script.onload = () => resolve();
+            script.onerror = () => {
+                _faceApiScriptPromise = null;
+                reject(new Error("Failed to load face-api.js"));
+            };
+            document.head.appendChild(script);
+        });
+    }
+    return _faceApiScriptPromise;
+}
+
+async function preloadFaceApiModels() {
+    if (!_faceApiModelsPromise) {
+        const modelPath = '/attendance_planning/static/src/models';
+        _faceApiModelsPromise = Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
+            faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
+            faceapi.nets.faceRecognitionNet.loadFromUri(modelPath),
+        ]).catch((e) => {
+            _faceApiModelsPromise = null;
+            throw e;
+        });
+    }
+    return _faceApiModelsPromise;
+}
+
 export class FaceVerificationDialog extends Component {
     setup() {
         this.videoRef = useRef("videoElement");
@@ -31,13 +63,16 @@ export class FaceVerificationDialog extends Component {
         this.state = useState({
             statusMessage: "Downloading AI Engine...",
             isProcessing: false,
-//            needsBlink: true
         });
 
         this.stream = null;
         this.scanInterval = null;
         this.hasPunched = false;
         this.isEyesClosed = false;
+
+        // ---> Stores the captured photo so the async save step (which runs
+        // after the camera is already stopped) can still access it.
+        this._capturedPhotoBase64 = null;
 
         onMounted(async () => {
             await this.injectFaceApiScript();
@@ -51,43 +86,16 @@ export class FaceVerificationDialog extends Component {
     }
 
     async injectFaceApiScript() {
-        if (window.faceapi) return;
-        if (!_faceApiScriptPromise) {
-            _faceApiScriptPromise = new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = '/attendance_planning/static/src/lib/face-api.js';
-                script.onload = () => resolve();
-                script.onerror = () => {
-                    console.error("❌ CRITICAL: Could not find face-api.js at", script.src);
-                    console.error("Please verify the file exists in your static/src/lib folder and restart the Odoo server.");
-                    _faceApiScriptPromise = null;
-                    reject(new Error("Failed to load face-api.js"));
-                };
-                document.head.appendChild(script);
-            });
-        }
-        return _faceApiScriptPromise;
+        return preloadFaceApiScript();
     }
 
-    // Models are only ever downloaded/initialized ONCE per page session now —
-    // every dialog open after the first reuses the same cached promise, so the
-    // camera opens instantly instead of reloading the AI models every click.
     async loadModels() {
         if (!_faceApiModelsPromise) {
             this.state.statusMessage = "Loading AI Models...";
-            const modelPath = '/attendance_planning/static/src/models';
-            _faceApiModelsPromise = Promise.all([
-                faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath),
-                faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
-                faceapi.nets.faceRecognitionNet.loadFromUri(modelPath),
-            ]).catch((e) => {
-                _faceApiModelsPromise = null;
-                throw e;
-            });
         } else {
             this.state.statusMessage = "Loading AI Models...";
         }
-        await _faceApiModelsPromise;
+        await preloadFaceApiModels();
         this.state.statusMessage = "Ready. Please look at the camera.";
     }
 
@@ -110,79 +118,125 @@ export class FaceVerificationDialog extends Component {
             if (this.state.isProcessing) return;
 
             const videoEl = this.videoRef.el;
-            const detection = await faceapi.detectSingleFace(videoEl).withFaceLandmarks().withFaceDescriptor();
+            const detection = await faceapi.detectSingleFace(
+                videoEl,
+                new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
+            ).withFaceLandmarks().withFaceDescriptor();
 
             if (detection) {
-//                // ---> BLINK DETECTION
-//                if (this.state.needsBlink) {
-//                    const leftEye = detection.landmarks.getLeftEye();
-//                    const rightEye = detection.landmarks.getRightEye();
-//                    const avgEAR = (getEAR(leftEye) + getEAR(rightEye)) / 2.0;
-//                    const BLINK_THRESHOLD = 0.25;
-//
-//                    if (avgEAR < BLINK_THRESHOLD) {
-//                        this.isEyesClosed = true;
-//                        this.state.statusMessage = "Blink detected! Verifying...";
-//                    } else if (this.isEyesClosed && avgEAR >= BLINK_THRESHOLD) {
-//                        this.isEyesClosed = false;
-//                        this.state.needsBlink = false;
-//                        this.state.statusMessage = "Liveness verified. Matching face...";
-//                    } else {
-//                        this.state.statusMessage = "Please BLINK to verify liveness!";
-//                    }
-//                    return;
-//                }
-
                 this.state.isProcessing = true;
                 this.state.statusMessage = "Face detected! Verifying...";
 
                 const isMatch = await this.verifyWithDatabase(detection.descriptor);
 
                 if (isMatch) {
-                    this.state.statusMessage = "✅ Identity Verified!";
-
                     if (!this.hasPunched) {
                         this.hasPunched = true;
+                        this.state.isProcessing = true;
+                        this.state.statusMessage = "Verifying location...";
 
-                        // ---> FIX 1: Capture photo BEFORE stopping camera
-                        const photoBase64 = this.capturePhotoBase64();
+                        // Capture photo BEFORE stopping camera
+                        this._capturedPhotoBase64 = this.capturePhotoBase64();
 
-                        // NOW stop camera after photo captured
+                        // Await the geo-check that started in the background
+                        // when the popup opened.
+                        const geoResult = await this.props.geoCheckPromise;
+
+                        if (!geoResult || !geoResult.allowed) {
+                            this.state.statusMessage = "❌ " + (geoResult?.message || "You are outside the allowed office location.");
+                            console.warn('Geo check failed:', geoResult?.message);
+                            this.stopCamera();
+                            // Release the lock here too — punch never happened.
+                            if (this.props.releaseLock) this.props.releaseLock();
+                            setTimeout(() => this.props.close(), 1500);
+                            return;
+                        }
+
+                        this.state.statusMessage = "✅ Identity Verified!";
                         this.stopCamera();
 
-                        setTimeout(async () => {
-                            // 1. Do the actual punch
-                            await this.props.onSuccess();
+                        (async () => {
+                            // 1. Do the actual punch in Odoo core.
+                            // onSuccess returns { openIdBefore } captured
+                            // BEFORE this punch happened, so we can
+                            // deterministically figure out which record
+                            // this exact punch touched.
+                            const punchInfo = await this.props.onSuccess();
+                            const openIdBefore = punchInfo ? punchInfo.openIdBefore : false;
 
-                            // 2. Save photo against the attendance record
-                            if (photoBase64) {
-                                const punchType = this.props.attendanceState === 'checked_in'
-                                    ? 'checkout'
-                                    : 'checkin';
+                            // Small buffer for odoo.sh multi-worker replication lag.
+                            await new Promise(resolve => setTimeout(resolve, 400));
 
-                                console.log("--- ATTEMPTING TO SAVE PHOTO AND GEO ID ---");
-                                console.log("Punch Type:", punchType);
-                                console.log("Geo Zone ID being sent:", this.props.geoZoneId);
+                            // ---> DETERMINISTIC RECORD MATCH (no searching by
+                            // "latest"). If there WAS an open session before
+                            // this punch, this punch just closed it ->
+                            // checkout. If there was NONE, this punch just
+                            // created a new open session -> checkin. Safe
+                            // because only one punch cycle can be in flight
+                            // at a time (lock held until we finish here).
+                            let attendanceId, punchType;
+                            if (openIdBefore) {
+                                attendanceId = openIdBefore;
+                                punchType = 'checkout';
+                            } else {
+                                attendanceId = await this.orm.call(
+                                    'hr.attendance', 'get_open_attendance_id', []
+                                );
+                                punchType = 'checkin';
+                            }
 
-                                try {
-                                    await this.orm.call(
-                                        'hr.attendance',
-                                        'save_attendance_photo',
-                                        [photoBase64, punchType, this.props.geoZoneId]
-                                    );
-                                    console.log("✅ Photo and Geo ID saved successfully!");
-                                } catch (e) {
-                                    console.warn('❌ Attendance photo save failed:', e);
+                            const photoBase64 = this._capturedPhotoBase64;
+
+                            if (!photoBase64) {
+                                console.warn('❌ Photo capture returned empty — nothing to save.');
+                            } else if (!attendanceId) {
+                                console.warn('❌ Could not determine attendance record id — nothing to save.');
+                            } else {
+                                console.log("--- ATTEMPTING TO SAVE PHOTO ---");
+                                console.log("Attendance ID:", attendanceId, "Punch Type:", punchType);
+                                console.log("Geo Zone ID being sent:", geoResult.zone_id);
+
+                                let saveResult = null;
+                                let lastError = null;
+                                for (let attempt = 1; attempt <= 2; attempt++) {
+                                    try {
+                                        saveResult = await this.orm.call(
+                                            'hr.attendance',
+                                            'save_attendance_photo',
+                                            [attendanceId, photoBase64, punchType, geoResult.zone_id]
+                                        );
+                                        if (saveResult && saveResult.success) {
+                                            console.log("✅ Photo saved successfully to attendance_id " + saveResult.attendance_id + " (attempt " + attempt + ")");
+                                            lastError = null;
+                                            break;
+                                        } else {
+                                            lastError = saveResult && saveResult.error;
+                                            console.warn('❌ Attendance photo save failed (attempt ' + attempt + '):', lastError);
+                                        }
+                                    } catch (e) {
+                                        lastError = e;
+                                        console.error('❌ Attendance photo save threw (attempt ' + attempt + '):', e);
+                                    }
+                                }
+
+                                if (lastError) {
+                                    console.error('❌ Photo save gave up after retry. Employee attendance was still recorded successfully.');
                                 }
                             }
 
+                            // ---> Release the punch lock ONLY NOW, after the
+                            // photo save has fully finished (success or not).
+                            // This is the actual fix for rapid check-in/out
+                            // cycles crossing wires — no second punch can
+                            // start until this entire cycle is done.
+                            if (this.props.releaseLock) this.props.releaseLock();
+
                             this.props.close();
-                        }, 1000);
+                        })();
                     }
                     return;
                 } else {
                     this.state.statusMessage = "❌ Face does not match profile.";
-//                    this.state.needsBlink = true;
                     this.state.isProcessing = false;
                 }
             }
@@ -206,17 +260,28 @@ export class FaceVerificationDialog extends Component {
         }
     }
 
-    // ---> Capture current video frame as JPEG base64
+    // ---> Capture current video frame as JPEG base64 (downscaled)
     capturePhotoBase64() {
         try {
             const video = this.videoRef.el;
+            if (!video || !video.videoWidth || !video.videoHeight) {
+                return null;
+            }
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth || 400;
-            canvas.height = video.videoHeight || 400;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            return canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+            const maxWidth = 480;
+            const scale = Math.min(1, maxWidth / video.videoWidth);
+            canvas.width = Math.round(video.videoWidth * scale);
+            canvas.height = Math.round(video.videoHeight * scale);
+
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+            const base64 = dataUrl.split(',')[1];
+            if (!base64 || base64.length < 100) {
+                return null;
+            }
+            return base64;
         } catch (e) {
-            console.warn('Photo capture failed:', e);
             return null;
         }
     }
@@ -238,21 +303,25 @@ if (ActualAttendanceMenu) {
             this.dialogService = useService("dialog");
             this.orm = useService("orm");
             this.notificationService = useService("notification");
-            // Guard flag: this is the actual fix for the "hasn't checked out"
-            // validation error. The old code had no protection against a
-            // double-click (or a bubbled double-fire event) calling signInOut()
-            // twice in quick succession — each call independently tried to
-            // create an attendance record, and the second one collided with
-            // the first, producing that error. This flag makes signInOut()
-            // ignore any call while one is already in flight.
             this._punchInProgress = false;
+
+            (async () => {
+                try {
+                    await preloadFaceApiScript();
+                    await preloadFaceApiModels();
+                } catch (e) {
+                }
+            })();
         },
 
-        // ---> FIX 2: Check geo BEFORE opening camera
         async signInOut() {
-            // Hard stop re-entrancy: this is what actually fixes the
-            // "hasn't checked out since ..." validation error. Ignore any
-            // click while a punch from a previous click is still running.
+            // Hard stop re-entrancy. This lock now stays held for the
+            // ENTIRE punch-to-photo-saved lifecycle (released inside the
+            // dialog's releaseLock callback below) — not just until
+            // super.signInOut() resolves. This is the core fix: it
+            // guarantees only one punch cycle (punch + its photo save)
+            // can ever be in flight at a time, so rapid check-in/out/in
+            // clicks can never cross wires with each other.
             if (this._punchInProgress) {
                 return;
             }
@@ -268,106 +337,101 @@ if (ActualAttendanceMenu) {
                 currentState = this.attendance.attendance_state;
             }
 
-            // Step 1: Get GPS coordinates
-            let latitude = null;
-            let longitude = null;
-            let currentGeoZoneId = false;
-
+            // ---> Snapshot the currently open session id BEFORE the punch.
+            // This is what lets us later determine EXACTLY which record
+            // this specific punch touched, deterministically — no search,
+            // no "latest record" guessing.
+            let openIdBefore = false;
             try {
-                const position = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, {
-                        timeout: 10000,
-                        enableHighAccuracy: true,
+                openIdBefore = await this.orm.call('hr.attendance', 'get_open_attendance_id', []);
+            } catch (e) {
+                openIdBefore = false;
+            }
+
+            const geoCheckPromise = (async () => {
+                let latitude = null;
+                let longitude = null;
+
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            timeout: 5000,
+                            enableHighAccuracy: false,
+                            maximumAge: 30000,
+                        });
                     });
-                });
-                latitude = position.coords.latitude;
-                longitude = position.coords.longitude;
-            } catch (e) {
-                this.notificationService.add(
-                    "Location access is required for attendance. Please allow location and try again.",
-                    { type: "danger", sticky: true }
-                );
-                this._punchInProgress = false;
-                return;
-            }
+                    latitude = position.coords.latitude;
+                    longitude = position.coords.longitude;
+                } catch (e) {
+                    return {
+                        allowed: false,
+                        message: "Location access is required for attendance. Please allow location and try again.",
+                    };
+                }
 
-            // Step 2: Ask backend if employee is within allowed zone
-            try {
-                const result = await this.orm.call(
-                    'hr.attendance',
-                    'check_employee_geo_allowed',
-                    [latitude, longitude]
-                );
-
-                console.log("--- GEO CHECK RESULT FROM PYTHON ---");
-                console.log("Full Result Object:", result);
-
-                if (!result || (typeof result === 'object' && !result.allowed) || result === false) {
-                    this.notificationService.add(
-                        (result && result.message) ? result.message : "You are outside the allowed office location.",
-                        { type: "danger", sticky: true }
+                try {
+                    const result = await this.orm.call(
+                        'hr.attendance',
+                        'check_employee_geo_allowed',
+                        [latitude, longitude]
                     );
-                    this._punchInProgress = false;
-                    return;
+
+                    if (!result || (typeof result === 'object' && !result.allowed) || result === false) {
+                        return {
+                            allowed: false,
+                            message: (result && result.message) ? result.message : "You are outside the allowed office location.",
+                        };
+                    }
+
+                    let zoneId = false;
+                    if (result && result.zone_id) {
+                        zoneId = result.zone_id;
+                    } else if (result && result.id) {
+                        zoneId = result.id;
+                    }
+
+                    return { allowed: true, zone_id: zoneId };
+
+                } catch (e) {
+                    return {
+                        allowed: false,
+                        message: "Could not verify your location. Please try again.",
+                    };
                 }
+            })();
 
-                // EXTRACT THE ID RETURNED BY THE BACKEND
-                if (result && result.zone_id) {
-                    currentGeoZoneId = result.zone_id;
-                } else if (result && result.id) {
-                    // Fallback just in case their python code returns 'id' instead of 'zone_id'
-                    currentGeoZoneId = result.id;
-                }
-
-                console.log("Extracted Geo Zone ID mapping to:", currentGeoZoneId);
-
-            } catch (e) {
-                this.notificationService.add(
-                    "Could not verify your location. Please try again.",
-                    { type: "danger", sticky: true }
-                );
-                this._punchInProgress = false;
-                return;
-            }
-
-            // Step 3: Geo passed — open face verification.
-            // Safety net: force-release the lock after 60s no matter what,
-            // so the button can never get stuck until a page refresh even if
-            // the user closes the dialog without completing it. We deliberately
-            // do NOT pass a custom "close" prop into the dialog here — Odoo's
-            // dialog service already auto-injects its own "close" function into
-            // every dialog it opens, and defining our own "close" key collides
-            // with that (this exact collision was the cause of an earlier
-            // "stuck until refresh" bug), so we avoid it entirely.
+            // Safety net: force-release the lock after 60s no matter what.
             const safetyUnlock = setTimeout(() => {
                 this._punchInProgress = false;
             }, 60000);
 
+            // releaseLock is called by the dialog itself, only after the
+            // photo save has fully completed — NOT right after signInOut.
+            const releaseLock = () => {
+                clearTimeout(safetyUnlock);
+                this._punchInProgress = false;
+            };
+
             this.dialogService.add(FaceVerificationDialog, {
                 attendanceState: currentState,
-                geoZoneId: currentGeoZoneId, // PASS THE ID TO THE VERIFICATION DIALOG
+                geoCheckPromise: geoCheckPromise,
+                notificationService: this.notificationService,
+                releaseLock: releaseLock,
                 onSuccess: async () => {
-                    try {
-                        await super.signInOut();
+                    // NOTE: lock is intentionally NOT released here anymore.
+                    await super.signInOut();
 
-                        console.log("Checkout completed, currentState was:", currentState);
-
-                        if (currentState === 'checked_in') {
-                            if (typeof window.checkLateCheckout === 'function') {
-                                console.log("Calling checkLateCheckout in 1s...");
-                                setTimeout(window.checkLateCheckout, 1000);
-                            } else {
-                                console.error("checkLateCheckout is not available on window!");
-                            }
+                    if (currentState === 'checked_in') {
+                        if (typeof window.checkLateCheckout === 'function') {
+                            setTimeout(window.checkLateCheckout, 1000);
                         }
-                    } finally {
-                        clearTimeout(safetyUnlock);
-                        this._punchInProgress = false;
                     }
+
+                    // Hand back the pre-punch snapshot so the dialog can
+                    // deterministically identify its own record.
+                    return { openIdBefore };
                 },
             });
         }
     });
 }
-
-
