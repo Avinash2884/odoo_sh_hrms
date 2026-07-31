@@ -752,7 +752,7 @@ class Employee(models.Model):
                               ) / total_days
 
            # emp.tds_amount_new_month = round(monthly_tds, 2)
-            emp.tds_amount_new_month = math.ceil(monthly_tds)
+            emp.tds_amount_new_month = round(monthly_tds)
     def write(self, vals):
 
         res = super().write(vals)
