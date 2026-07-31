@@ -97,9 +97,11 @@
        options="{'currency_field': 'currency_id'}"/>
 
 <field name="payslip_month"/>
+                <field name="payslip_paid_days" readonly="1"/>
                 <field name="payslip_yearly_cost"
        widget="monetary"
        options="{'currency_field': 'currency_id'}"/>
+                <field name="total_income" readonly="1"/>
                 <label name="tax_regime_label" for="tax_regime">Tax Regime</label>
                 <div name="tax_regime" class="o_row">
                     <field name="tax_regime"/>
@@ -164,6 +166,7 @@
                     <field name="tds_amount" invisible="tax_regime != 'old'" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
                 </div>
                 <label name="tds_amount_month_label" for="tds_amount_month" invisible="tax_regime != 'old'">TDS Amount (Month)</label>
+                <field name="annual_tds_base"/>
                 <div name="tds_amount_month" class="o_row">
                     <field name="tds_amount_month" invisible="tax_regime != 'old'" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
                 </div>

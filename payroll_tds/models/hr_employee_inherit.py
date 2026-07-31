@@ -1,3 +1,5 @@
+import calendar
+import math
 from odoo import models, fields, api
 from calendar import monthrange
 from datetime import date
@@ -155,6 +157,77 @@ class Employee(models.Model):
         string="Payslip Month",
         default=lambda self: str(fields.Date.today().month)
     )
+    payslip_paid_days = fields.Float(
+        string="Payslip Paid Days",
+        default=0.0,
+    )
+
+    total_income = fields.Monetary(
+        string="Total Income",
+        currency_field="currency_id",
+        compute="_compute_total_income",
+        store=True
+    )
+
+    @api.depends(
+        'wage',
+        'payslip_gross_wage',
+        'payslip_paid_days',
+        'payslip_month',
+        'contract_date_start',
+        'final_yearly_costs'
+    )
+    def _compute_total_income(self):
+        for emp in self:
+
+            # Existing employees
+            emp.total_income = emp.final_yearly_costs or 0.0
+
+            if not emp.contract_date_start or not emp.payslip_month:
+                continue
+
+            joining_date = emp.contract_date_start
+            payslip_month = int(emp.payslip_month)
+
+            # Join month and payslip month must be same
+            if joining_date.month != payslip_month:
+                continue
+
+            total_days = monthrange(
+                joining_date.year,
+                joining_date.month
+            )[1]
+
+            # Joined on 1st -> existing logic
+            if joining_date.day == 1:
+                continue
+
+            # Full month salary -> existing logic
+            if (emp.payslip_paid_days or 0.0) >= total_days:
+                continue
+
+            # Remaining full salary months
+            if payslip_month >= 4:
+                remaining_months = 15 - payslip_month
+            else:
+                remaining_months = 3 - payslip_month
+
+            print("Month:", payslip_month)
+            print("Remaining Months:", remaining_months)
+            print("Gross Wage:", emp.wage)
+            print("June Gross:", emp.payslip_gross_wage)
+
+            emp.total_income = (
+                                       (emp.wage or 0.0) * remaining_months
+                               ) + (emp.payslip_gross_wage or 0.0)
+
+            print("Total Income:", emp.total_income)
+
+    annual_tds_base = fields.Float(
+        string="Annual TDS Base",
+        copy=False,
+    )
+
     pl_allocation_year = fields.Integer(
         string="PL Allocation Year",
         default=0
@@ -393,6 +466,7 @@ class Employee(models.Model):
 
     @api.depends(
         'final_yearly_costs',
+        'total_income',          # <-- This is important
         'standard_deduction',
         'section_80c',
         'section_80d',
@@ -404,7 +478,32 @@ class Employee(models.Model):
     def _compute_net_taxable_income(self):
         for emp in self:
             annual_income = emp.final_yearly_costs or 0.0
+
+            joining_date = emp.contract_date_start
+
+            if joining_date and emp.payslip_month:
+
+                payslip_month = int(emp.payslip_month)
+
+                # New joiner in same payslip month
+                if (
+                        joining_date.month == payslip_month
+                        and joining_date.day > 1
+                ):
+
+                    gross_wage = emp.wage or 0.0
+                    payslip_gross = emp.payslip_gross_wage or 0.0
+
+                    # Partial month salary -> Use Total Income
+                    if round(gross_wage, 2) != round(payslip_gross, 2):
+                        annual_income = emp.total_income or annual_income
+
+                    # Full month salary -> Use Final Yearly Cost
+                    else:
+                        annual_income = emp.final_yearly_costs or 0.0
+
             deduction = emp.standard_deduction or 0.0
+
 
             if emp.tax_regime == 'old':
                 # Include all old regime deductions
@@ -418,6 +517,7 @@ class Employee(models.Model):
 
             # Net taxable income = annual - total deductions
             emp.net_taxable_income = max(annual_income - deduction, 0.0)
+
 
     @api.onchange('tax_regime')
     def _onchange_tax_regime(self):
@@ -589,7 +689,11 @@ class Employee(models.Model):
     @api.depends(
         'tds_amount_new',
         'tds_till_last_month',
-        'payslip_month'
+        'payslip_month',
+        'payslip_paid_days',
+        'contract_date_start',
+        'wage',
+        'payslip_gross_wage',
     )
     def _compute_tds_amount_month(self):
         for emp in self:
@@ -597,7 +701,7 @@ class Employee(models.Model):
             month = int(emp.payslip_month or 0)
 
             if not month:
-                emp.tds_amount_month = 0.0
+                emp.tds_amount_new_month = 0.0
                 continue
 
             if month >= 4:
@@ -607,18 +711,48 @@ class Employee(models.Model):
 
             remaining_months = max(remaining_months, 1)
 
-            annual_tds = emp.tds_amount_new or 0.0
+            joining_date = emp.contract_date_start
+
+            if (
+                    joining_date
+                    and joining_date.day > 1
+                    and emp.annual_tds_base
+            ):
+                annual_tds = emp.annual_tds_base
+            else:
+                annual_tds = emp.tds_amount_new or 0.0
 
             remaining_tax = max(
                 annual_tds - (emp.tds_till_last_month or 0.0),
                 0.0
             )
 
-            emp.tds_amount_month = round(
-                remaining_tax / remaining_months,
-                2
-            )
+            monthly_tds = remaining_tax / remaining_months
 
+            # ---------------------------------------
+            # Prorate TDS for New Joiner
+            # ---------------------------------------
+            joining_date = emp.contract_date_start
+
+            if (
+                    joining_date
+                    and joining_date.month == month
+                    and joining_date.day > 1
+                    and abs((emp.wage or 0.0) - (emp.payslip_gross_wage or 0.0)) > 0.01
+            ):
+                total_days = calendar.monthrange(
+                    joining_date.year,
+                    joining_date.month
+                )[1]
+
+                paid_days = emp.payslip_paid_days or total_days
+
+                monthly_tds = (
+                                      monthly_tds * paid_days
+                              ) / total_days
+
+           # emp.tds_amount_new_month = round(monthly_tds, 2)
+            emp.tds_amount_new_month = round(monthly_tds)
     def write(self, vals):
 
         res = super().write(vals)
