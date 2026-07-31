@@ -631,6 +631,17 @@ class HrAttendance(models.Model):
             'message': 'You are outside the allowed office radius. Check-in not permitted.'
         }
 
+    @api.model
+    def is_geo_bypass_employee(self):
+        """Instant check — no GPS needed. Lets the frontend skip the GPS
+        fetch entirely for employees flagged 'Allow Check-in Anywhere',
+        instead of fetching GPS first and only THEN discovering it wasn't
+        even needed."""
+        employee = self.env.user.employee_id
+        if not employee:
+            return False
+        return bool(employee.bypass_geo_restriction)
+
 
     def _sync_siblings_on_save(self):
         """Forces all punches from the same day to recalculate together"""
