@@ -47,6 +47,9 @@ class HrAttendance(models.Model):
 
             geo_locations = attendance.employee_id.geo_restriction_ids
 
+            if attendance.employee_id.bypass_geo_restriction:
+                continue
+
             # if not geo_locations:
             #     print("ERROR: No geo locations configured!")
             #     raise ValidationError(_("No office locations configured for this employee."))
