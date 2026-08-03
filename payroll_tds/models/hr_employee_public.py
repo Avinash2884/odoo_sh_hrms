@@ -490,3 +490,20 @@ class EmployeePublic(models.Model):
         string="Paid Installments",
         readonly=False,
     )
+
+    payslip_paid_days = fields.Float(
+        string="Payslip Paid Days",
+        default=0.0,
+    )
+
+    total_income = fields.Monetary(
+        string="Total Income",
+        currency_field="currency_id",
+        compute="_compute_total_income",
+        store=True
+    )
+
+    annual_tds_base = fields.Float(
+        string="Annual TDS Base",
+        copy=False,
+    )
