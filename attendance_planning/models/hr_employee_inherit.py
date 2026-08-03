@@ -108,6 +108,14 @@ class HrEmployeePublic(models.Model):
         ('rotational', 'Rotational Shift (Dynamic Week-Offs)')
     ], string="Shift Type", default='regular')
 
+    bypass_geo_restriction = fields.Boolean(compute='_compute_bypass_geo_restriction')
+
+    def _compute_bypass_geo_restriction(self):
+        for emp in self:
+            real_emp = self.env['hr.employee'].sudo().search([('id', '=', emp.id)], limit=1)
+            emp.bypass_geo_restriction = bool(real_emp.bypass_geo_restriction) if real_emp else False
+
+
     def _compute_has_registered_face(self):
         for emp in self:
             # Sudo peeks at the REAL secure employee record to see if they have a face saved
@@ -127,3 +135,5 @@ class HrEmployeePublic(models.Model):
             'name': 'Register My Face',
             'context': {'default_employee_id': self.id},
         }
+
+

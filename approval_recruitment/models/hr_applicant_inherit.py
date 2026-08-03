@@ -468,7 +468,80 @@ class HrApplicantInherit(models.Model):
                 if edu_lines:
                     employee.write({'education_ids': edu_lines})
 
+
+            self._create_onboarding_document_folders(employee)
+
         return res
+
+    def _create_onboarding_document_folders(self, employee):
+
+        Document = self.env['documents.document']
+
+        # ── STEP 1: Find the employee's root folder (auto-created by Odoo) ──
+        employee_folder = Document.sudo().search([
+            ('type', '=', 'folder'),
+            ('res_model', '=', 'hr.employee'),
+            ('res_id', '=', employee.id),
+        ], limit=1)
+
+        if not employee_folder:
+            # Fallback: search by name if res_id link not set
+            employee_folder = Document.sudo().search([
+                ('type', '=', 'folder'),
+                ('name', '=', employee.name),
+            ], limit=1)
+
+        if not employee_folder:
+            _logger.warning(
+                "Onboarding folders: Could not find root folder for employee %s (id=%s)",
+                employee.name, employee.id
+            )
+            return
+
+        # ── STEP 2: Create "Onboarding Documents" parent folder ──
+        onboarding_folder = Document.sudo().create({
+            'name': 'Onboarding Documents',
+            'type': 'folder',
+            'folder_id': employee_folder.id,
+        })
+
+        # ── STEP 3: Define subfolder structure + their documents ──
+        # Format: (folder_name, [(field_value, filename), ...])
+        folder_structure = [
+            ('Identity Verification', [
+                (self.aadhaar_card, 'Aadhaar_Card.pdf'),
+                (self.pan_card, 'PAN_Card.pdf'),
+            ]),
+            ('Bank Documents', [
+                (self.bank_doc, 'Cheque_Passbook.pdf'),
+            ]),
+            ('Educational Records', [
+                (self.marksheet_10, '10th_Marksheet.pdf'),
+                (self.marksheet_12, '12th_Marksheet.pdf'),
+                (self.ug_degree, 'UG_Degree_Certificate.pdf'),
+                (self.pg_degree, 'PG_Degree_Certificate.pdf'),
+                (self.diploma_cert, 'Diploma_Certificate.pdf'),
+            ]),
+        ]
+
+        # ── STEP 4: Loop and create each subfolder + upload docs ──
+        for folder_name, docs in folder_structure:
+            subfolder = Document.sudo().create({
+                'name': folder_name,
+                'type': 'folder',
+                'folder_id': onboarding_folder.id,
+            })
+
+            for file_data, filename in docs:
+                if file_data:  # only upload if candidate actually submitted the file
+                    Document.sudo().create({
+                        'name': filename,
+                        'type': 'binary',
+                        'datas': file_data,
+                        'folder_id': subfolder.id,
+                        'res_model': 'hr.employee',
+                        'res_id': employee.id,
+                    })
 
     def action_hold_applicant(self):
         template = self.env.ref('approval_recruitment.mail_template_applicant_on_hold', raise_if_not_found=False)
