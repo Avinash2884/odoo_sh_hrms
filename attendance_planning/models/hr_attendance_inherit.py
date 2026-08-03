@@ -545,7 +545,45 @@ class HrAttendance(models.Model):
         res = super(HrAttendance, self).write(vals)
         if 'check_out' in vals or 'check_in' in vals:
             self._sync_siblings_on_save()
+        if 'late_checkout_state' in vals:
+            self._sync_native_overtime_record()
         return res
+
+    @api.model
+    def face_punch_and_save_photo(self, photo_base64, geo_zone_id=False):
+        """Atomic punch + photo save — punch and photo happen in ONE
+        request/transaction, so there's no gap for a race to occur."""
+        employee = self.env.user.employee_id
+        if not employee:
+            return {'success': False, 'error': 'No employee linked to your account.'}
+
+        was_checked_in = employee.attendance_state == 'checked_in'
+        employee.sudo()._attendance_action_change()
+        attendance = employee.sudo().last_attendance_id
+
+        if not attendance:
+            return {'success': False, 'error': 'Punch failed — no attendance record was created.'}
+
+        punch_type = 'checkout' if was_checked_in else 'checkin'
+
+        try:
+            self.env['attendance.photo'].sudo().create({
+                'attendance_id': attendance.id,
+                'photo': photo_base64,
+                'punch_type': punch_type,
+            })
+        except Exception as e:
+            return {
+                'success': False, 'error': str(e),
+                'punch_succeeded': True,
+                'attendance_id': attendance.id, 'punch_type': punch_type,
+            }
+
+        if geo_zone_id:
+            field = 'geo_restriction_id' if punch_type == 'checkin' else 'check_out_geo_restriction_id'
+            attendance.sudo().write({field: geo_zone_id})
+
+        return {'success': True, 'attendance_id': attendance.id, 'punch_type': punch_type}
 
     @api.model
     def save_attendance_photo(self, attendance_id, photo_base64, punch_type, geo_zone_id=False):
@@ -631,6 +669,17 @@ class HrAttendance(models.Model):
             'message': 'You are outside the allowed office radius. Check-in not permitted.'
         }
 
+    @api.model
+    def is_geo_bypass_employee(self):
+        """Instant check — no GPS needed. Lets the frontend skip the GPS
+        fetch entirely for employees flagged 'Allow Check-in Anywhere',
+        instead of fetching GPS first and only THEN discovering it wasn't
+        even needed."""
+        employee = self.env.user.employee_id
+        if not employee:
+            return False
+        return bool(employee.bypass_geo_restriction)
+
 
     def _sync_siblings_on_save(self):
         """Forces all punches from the same day to recalculate together"""
@@ -654,6 +703,28 @@ class HrAttendance(models.Model):
         ('0', 'Mon'), ('1', 'Tue'), ('2', 'Wed'),
         ('3', 'Thu'), ('4', 'Fri'), ('5', 'Sat'), ('6', 'Sun'),
     ], string="Day", compute="_compute_day_of_week", store=True)
+
+    def _sync_native_overtime_record(self):
+
+        for att in self:
+            if not att.employee_id or not att.check_in:
+                continue
+
+            att_date = att.check_in.date()
+            line_model = self.env['hr.attendance.overtime.line'].sudo()
+
+            existing_line = line_model.search([
+                ('employee_id', '=', att.employee_id.id),
+                ('date', '=', att_date),
+            ], limit=1)
+
+            if not existing_line:
+                continue
+
+            target_duration = att.approved_extra_hours or 0.0
+
+            if existing_line.duration != target_duration:
+                existing_line.write({'duration': target_duration})
 
     @api.depends('check_in')
     def _compute_day_of_week(self):

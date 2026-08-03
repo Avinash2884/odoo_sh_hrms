@@ -6,7 +6,6 @@ import { Dialog } from "@web/core/dialog/dialog";
 import { useService } from "@web/core/utils/hooks";
 import { Component, useRef, onMounted, onWillUnmount, useState } from "@odoo/owl";
 
-// ---> Math functions to measure the eye blink
 function euclideanDistance(point1, point2) {
     return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
 }
@@ -18,8 +17,6 @@ function getEAR(eye) {
     return (v1 + v2) / (2.0 * h);
 }
 
-// Module-level cache so the face-api script + AI models are only ever
-// loaded ONCE per page session, not on every single click.
 let _faceApiScriptPromise = null;
 let _faceApiModelsPromise = null;
 
@@ -68,10 +65,6 @@ export class FaceVerificationDialog extends Component {
         this.stream = null;
         this.scanInterval = null;
         this.hasPunched = false;
-        this.isEyesClosed = false;
-
-        // ---> Stores the captured photo so the async save step (which runs
-        // after the camera is already stopped) can still access it.
         this._capturedPhotoBase64 = null;
 
         onMounted(async () => {
@@ -90,11 +83,7 @@ export class FaceVerificationDialog extends Component {
     }
 
     async loadModels() {
-        if (!_faceApiModelsPromise) {
-            this.state.statusMessage = "Loading AI Models...";
-        } else {
-            this.state.statusMessage = "Loading AI Models...";
-        }
+        this.state.statusMessage = "Loading AI Models...";
         await preloadFaceApiModels();
         this.state.statusMessage = "Ready. Please look at the camera.";
     }
@@ -135,102 +124,53 @@ export class FaceVerificationDialog extends Component {
                         this.state.isProcessing = true;
                         this.state.statusMessage = "Verifying location...";
 
-                        // Capture photo BEFORE stopping camera
                         this._capturedPhotoBase64 = this.capturePhotoBase64();
 
-                        // Await the geo-check that started in the background
-                        // when the popup opened.
                         const geoResult = await this.props.geoCheckPromise;
 
                         if (!geoResult || !geoResult.allowed) {
                             this.state.statusMessage = "❌ " + (geoResult?.message || "You are outside the allowed office location.");
                             console.warn('Geo check failed:', geoResult?.message);
                             this.stopCamera();
-                            // Release the lock here too — punch never happened.
                             if (this.props.releaseLock) this.props.releaseLock();
                             setTimeout(() => this.props.close(), 1500);
                             return;
                         }
 
-                        this.state.statusMessage = "✅ Identity Verified!";
+                        this.state.statusMessage = "✅ Identity Verified! Recording...";
                         this.stopCamera();
 
                         (async () => {
-                            // 1. Do the actual punch in Odoo core.
-                            // onSuccess returns { openIdBefore } captured
-                            // BEFORE this punch happened, so we can
-                            // deterministically figure out which record
-                            // this exact punch touched.
-                            const punchInfo = await this.props.onSuccess();
-                            const openIdBefore = punchInfo ? punchInfo.openIdBefore : false;
-
-                            // Small buffer for odoo.sh multi-worker replication lag.
-                            await new Promise(resolve => setTimeout(resolve, 400));
-
-                            // ---> DETERMINISTIC RECORD MATCH (no searching by
-                            // "latest"). If there WAS an open session before
-                            // this punch, this punch just closed it ->
-                            // checkout. If there was NONE, this punch just
-                            // created a new open session -> checkin. Safe
-                            // because only one punch cycle can be in flight
-                            // at a time (lock held until we finish here).
-                            let attendanceId, punchType;
-                            if (openIdBefore) {
-                                attendanceId = openIdBefore;
-                                punchType = 'checkout';
-                            } else {
-                                attendanceId = await this.orm.call(
-                                    'hr.attendance', 'get_open_attendance_id', []
-                                );
-                                punchType = 'checkin';
-                            }
-
                             const photoBase64 = this._capturedPhotoBase64;
 
-                            if (!photoBase64) {
-                                console.warn('❌ Photo capture returned empty — nothing to save.');
-                            } else if (!attendanceId) {
-                                console.warn('❌ Could not determine attendance record id — nothing to save.');
-                            } else {
-                                console.log("--- ATTEMPTING TO SAVE PHOTO ---");
-                                console.log("Attendance ID:", attendanceId, "Punch Type:", punchType);
-                                console.log("Geo Zone ID being sent:", geoResult.zone_id);
-
-                                let saveResult = null;
-                                let lastError = null;
-                                for (let attempt = 1; attempt <= 2; attempt++) {
+                            // 1. STAGE THE PHOTO ON THE SERVER FIRST (WITH 2-ATTEMPT RETRY LOOP)
+                            if (photoBase64) {
+                                let staged = false;
+                                for (let i = 0; i < 2 && !staged; i++) {
                                     try {
-                                        saveResult = await this.orm.call(
-                                            'hr.attendance',
-                                            'save_attendance_photo',
-                                            [attendanceId, photoBase64, punchType, geoResult.zone_id]
+                                        await this.orm.call(
+                                            'hr.employee',
+                                            'stage_attendance_data',
+                                            [photoBase64, geoResult.zone_id || false]
                                         );
-                                        if (saveResult && saveResult.success) {
-                                            console.log("✅ Photo saved successfully to attendance_id " + saveResult.attendance_id + " (attempt " + attempt + ")");
-                                            lastError = null;
-                                            break;
-                                        } else {
-                                            lastError = saveResult && saveResult.error;
-                                            console.warn('❌ Attendance photo save failed (attempt ' + attempt + '):', lastError);
-                                        }
+                                        staged = true;
                                     } catch (e) {
-                                        lastError = e;
-                                        console.error('❌ Attendance photo save threw (attempt ' + attempt + '):', e);
+                                        console.warn(`Stage attempt ${i + 1} failed:`, e);
                                     }
                                 }
 
-                                if (lastError) {
-                                    console.error('❌ Photo save gave up after retry. Employee attendance was still recorded successfully.');
+                                if (!staged) {
+                                    console.error("❌ Critical: Failed to stage photo after 2 attempts.");
                                 }
                             }
 
-                            // ---> Release the punch lock ONLY NOW, after the
-                            // photo save has fully finished (success or not).
-                            // This is the actual fix for rapid check-in/out
-                            // cycles crossing wires — no second punch can
-                            // start until this entire cycle is done.
-                            if (this.props.releaseLock) this.props.releaseLock();
+                            // 2. TRIGGER NATIVE ODOO PUNCH
+                            // This guarantees the UI updates natively, and the backend handles the photo saving!
+                            if (this.props.onSuccess) {
+                                await this.props.onSuccess();
+                            }
 
+                            if (this.props.releaseLock) this.props.releaseLock();
                             this.props.close();
                         })();
                     }
@@ -260,7 +200,6 @@ export class FaceVerificationDialog extends Component {
         }
     }
 
-    // ---> Capture current video frame as JPEG base64 (downscaled)
     capturePhotoBase64() {
         try {
             const video = this.videoRef.el;
@@ -315,20 +254,12 @@ if (ActualAttendanceMenu) {
         },
 
         async signInOut() {
-            // Hard stop re-entrancy. This lock now stays held for the
-            // ENTIRE punch-to-photo-saved lifecycle (released inside the
-            // dialog's releaseLock callback below) — not just until
-            // super.signInOut() resolves. This is the core fix: it
-            // guarantees only one punch cycle (punch + its photo save)
-            // can ever be in flight at a time, so rapid check-in/out/in
-            // clicks can never cross wires with each other.
             if (this._punchInProgress) {
                 return;
             }
             this._punchInProgress = true;
 
             let currentState = 'checked_out';
-
             if (this.employee && this.employee.attendance_state) {
                 currentState = this.employee.attendance_state;
             } else if (this.attendanceService && this.attendanceService.isCheckedIn) {
@@ -337,18 +268,17 @@ if (ActualAttendanceMenu) {
                 currentState = this.attendance.attendance_state;
             }
 
-            // ---> Snapshot the currently open session id BEFORE the punch.
-            // This is what lets us later determine EXACTLY which record
-            // this specific punch touched, deterministically — no search,
-            // no "latest record" guessing.
-            let openIdBefore = false;
-            try {
-                openIdBefore = await this.orm.call('hr.attendance', 'get_open_attendance_id', []);
-            } catch (e) {
-                openIdBefore = false;
-            }
-
             const geoCheckPromise = (async () => {
+                // FAST PATH: Check bypass first before turning on GPS
+                try {
+                    const isBypass = await this.orm.call('hr.attendance', 'is_geo_bypass_employee', []);
+                    if (isBypass) {
+                        return { allowed: true, zone_id: false };
+                    }
+                } catch (e) {
+                    console.warn("Could not fetch bypass status, proceeding with normal GPS check.");
+                }
+
                 let latitude = null;
                 let longitude = null;
 
@@ -391,7 +321,6 @@ if (ActualAttendanceMenu) {
                     }
 
                     return { allowed: true, zone_id: zoneId };
-
                 } catch (e) {
                     return {
                         allowed: false,
@@ -400,13 +329,10 @@ if (ActualAttendanceMenu) {
                 }
             })();
 
-            // Safety net: force-release the lock after 60s no matter what.
             const safetyUnlock = setTimeout(() => {
                 this._punchInProgress = false;
             }, 60000);
 
-            // releaseLock is called by the dialog itself, only after the
-            // photo save has fully completed — NOT right after signInOut.
             const releaseLock = () => {
                 clearTimeout(safetyUnlock);
                 this._punchInProgress = false;
@@ -418,18 +344,15 @@ if (ActualAttendanceMenu) {
                 notificationService: this.notificationService,
                 releaseLock: releaseLock,
                 onSuccess: async () => {
-                    // NOTE: lock is intentionally NOT released here anymore.
+                    // 1. Let Odoo handle the UI reactivity natively
                     await super.signInOut();
 
+                    // 2. Custom late checkout logic
                     if (currentState === 'checked_in') {
                         if (typeof window.checkLateCheckout === 'function') {
                             setTimeout(window.checkLateCheckout, 1000);
                         }
                     }
-
-                    // Hand back the pre-punch snapshot so the dialog can
-                    // deterministically identify its own record.
-                    return { openIdBefore };
                 },
             });
         }
