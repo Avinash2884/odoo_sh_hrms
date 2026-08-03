@@ -26,6 +26,78 @@ class HrEmployee(models.Model):
     has_registered_face = fields.Boolean(compute='_compute_has_registered_face')
     is_current_user = fields.Boolean(compute='_compute_is_current_user')
 
+    pending_attendance_photo = fields.Text(string="Pending Photo", groups="base.group_user")
+    pending_geo_zone_id = fields.Integer(string="Pending Geo Zone", groups="base.group_user")
+    pending_photo_timestamp = fields.Datetime(string="Pending Photo Time", groups="base.group_user")
+
+    last_photo_attach_status = fields.Boolean(string="Last Photo Attach Succeeded", default=True)
+    last_photo_attach_note = fields.Char(string="Last Photo Attach Note")
+
+    @api.model
+    def stage_attendance_data(self, photo_base64, geo_zone_id=False):
+        """Step 1: Stages the photo and exact time right before the punch."""
+        employee = self.env.user.employee_id
+        if employee:
+            employee.sudo().write({
+                'pending_attendance_photo': photo_base64,
+                'pending_geo_zone_id': geo_zone_id or False,
+                'pending_photo_timestamp': fields.Datetime.now(),
+            })
+        return True
+
+    def _attendance_action_change(self, geo_information=None):
+        """Step 2: Native punch + Atomic photo attach + UI status update."""
+        res = super(HrEmployee, self)._attendance_action_change(geo_information=geo_information)
+
+        for emp in self:
+            if emp.pending_attendance_photo and emp.pending_photo_timestamp:
+                time_diff = fields.Datetime.now() - emp.pending_photo_timestamp
+
+                if time_diff.total_seconds() < 60:
+                    att = emp.sudo().last_attendance_id
+
+                    if att:
+                        punch_type = 'checkin' if emp.attendance_state == 'checked_in' else 'checkout'
+
+                        self.env['attendance.photo'].sudo().create({
+                            'attendance_id': att.id,
+                            'photo': emp.pending_attendance_photo,
+                            'punch_type': punch_type,
+                        })
+
+                        if emp.pending_geo_zone_id:
+                            if punch_type == 'checkin':
+                                att.sudo().write({'geo_restriction_id': emp.pending_geo_zone_id})
+                            elif punch_type == 'checkout':
+                                att.sudo().write({'check_out_geo_restriction_id': emp.pending_geo_zone_id})
+
+                        # Success: Overwrite status
+                        emp.sudo().write({
+                            'last_photo_attach_status': True,
+                            'last_photo_attach_note': False,
+                        })
+                    else:
+                        # Failed: No record
+                        emp.sudo().write({
+                            'last_photo_attach_status': False,
+                            'last_photo_attach_note': 'No attendance record found to attach photo to.',
+                        })
+                else:
+                    # Failed: Expired
+                    emp.sudo().write({
+                        'last_photo_attach_status': False,
+                        'last_photo_attach_note': f'Staged photo expired ({int(time_diff.total_seconds())}s old) before attach.',
+                    })
+
+                # Always wipe staging fields clean
+                emp.sudo().write({
+                    'pending_attendance_photo': False,
+                    'pending_geo_zone_id': False,
+                    'pending_photo_timestamp': False,
+                })
+
+        return res
+
     def _compute_has_registered_face(self):
         for emp in self:
             emp.has_registered_face = bool(emp.sudo().face_descriptor)
