@@ -285,7 +285,7 @@ if (ActualAttendanceMenu) {
                 try {
                     const position = await new Promise((resolve, reject) => {
                         navigator.geolocation.getCurrentPosition(resolve, reject, {
-                            timeout: 5000,
+                            timeout: 15000,
                             enableHighAccuracy: false,
                             maximumAge: 30000,
                         });

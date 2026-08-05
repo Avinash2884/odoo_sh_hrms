@@ -148,8 +148,16 @@ class PlanningSlot(models.Model):
 
                 start_local = tz.localize(datetime.combine(import_date_val, time(int(first_shift.hour_from), int((
                                                                                                                          first_shift.hour_from % 1) * 60))))
-                end_local = tz.localize(datetime.combine(import_date_val, time(int(last_shift.hour_to),
-                                                                               int((last_shift.hour_to % 1) * 60))))
+
+                # ---- FIX: handle shift templates ending exactly at/after midnight (24:00) ----
+                if last_shift.hour_to >= 24.0:
+                    end_local = tz.localize(datetime.combine(import_date_val, time(23, 59, 59))) + timedelta(
+                        seconds=1)
+                else:
+                    end_local = tz.localize(datetime.combine(import_date_val, time(int(last_shift.hour_to),
+                                                                                   int((
+                                                                                                   last_shift.hour_to % 1) * 60))))
+                # -------------------------------------------------------------------------------
 
                 vals['start_datetime'] = start_local.astimezone(pytz.utc).replace(tzinfo=None)
                 vals['end_datetime'] = end_local.astimezone(pytz.utc).replace(tzinfo=None)
@@ -224,9 +232,17 @@ class PlanningSlot(models.Model):
                 tz = pytz.timezone(slot.calendar_id.tz or slot.employee_id.tz or self.env.user.tz or 'UTC')
 
                 start_local = tz.localize(datetime.combine(slot.shift_date, time(int(first_shift.hour_from), int((
-                                                                                                                             first_shift.hour_from % 1) * 60))))
-                end_local = tz.localize(datetime.combine(slot.shift_date, time(int(last_shift.hour_to),
-                                                                               int((last_shift.hour_to % 1) * 60))))
+                                                                                                                         first_shift.hour_from % 1) * 60))))
+
+                # ---- FIX: handle shift templates ending exactly at/after midnight (24:00) ----
+                if last_shift.hour_to >= 24.0:
+                    end_local = tz.localize(datetime.combine(slot.shift_date, time(23, 59, 59))) + timedelta(
+                        seconds=1)
+                else:
+                    end_local = tz.localize(datetime.combine(slot.shift_date, time(int(last_shift.hour_to),
+                                                                                   int((
+                                                                                                   last_shift.hour_to % 1) * 60))))
+                # -------------------------------------------------------------------------------
 
                 start_utc = start_local.astimezone(pytz.utc).replace(tzinfo=None)
                 end_utc = end_local.astimezone(pytz.utc).replace(tzinfo=None)
@@ -268,3 +284,44 @@ class PlanningSlot(models.Model):
             for res_id in result['working_periods'].keys():
                 result['working_periods'][res_id] = [["1970-01-01 00:00:00", "2099-12-31 23:59:59"]]
         return result
+
+    # ==========================================================
+    #  NO-EMAIL PUBLISH OVERRIDES (IN-APP & PUSH NOTIFICATIONS ONLY)
+    # ==========================================================
+    def action_send(self):
+        """Bypasses native mail-sending paths and triggers in-app push notifications instead."""
+        self.write({
+            'state': 'published',
+            'publication_warning': False,
+        })
+        self._notify_employee_on_publish()
+        return True
+
+    def action_planning_publish_and_send(self, *args, **kwargs):
+        """Bypasses native mail-sending paths and triggers in-app push notifications instead."""
+        self.write({
+            'state': 'published',
+            'publication_warning': False,
+        })
+        self._notify_employee_on_publish()
+        return True
+
+    def _notify_employee_on_publish(self):
+        """Sends an in-app & mobile push notification directly using message_notify."""
+        for slot in self:
+            if slot.state != 'published':
+                continue
+            employee = slot.employee_id
+            user = employee.user_id if employee else False
+
+            if user and user.partner_id:
+                shift_label = slot.shift_display or (slot.calendar_id.name if slot.calendar_id else 'Shift')
+                date_str = slot.shift_date.strftime('%d-%b-%Y') if slot.shift_date else ''
+
+                # FIX: Call message_notify on the 'employee', NOT the 'slot'
+                employee.message_notify(
+                    subject="Shift Published",
+                    body=f"Your shift on {date_str} ({shift_label}) has been published.",
+                    partner_ids=[user.partner_id.id],
+                )
+
