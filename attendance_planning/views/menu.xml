@@ -18,4 +18,5 @@
               action="hr_work_entry.hr_work_entry_action"
               sequence="10"/>
 
+
 </odoo>
