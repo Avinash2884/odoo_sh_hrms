@@ -1,3 +1,5 @@
+from num2words import num2words
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
@@ -94,6 +96,13 @@ class HrContractSalaryOffer(models.Model):
         compute="_compute_salary_breakup",
         store=True
     )
+    offer_letter_notice_period = fields.Integer(string="Notice Period",tracking=True)
+
+    def get_notice_period_words(self):
+        for rec in self:
+            if rec.offer_letter_notice_period:
+                return num2words(rec.offer_letter_notice_period).capitalize()
+            return '-'
 
     @api.depends('final_yearly_costs')
     def _compute_salary_breakup(self):
