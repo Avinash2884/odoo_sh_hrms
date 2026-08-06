@@ -33,6 +33,8 @@ class HrEmployee(models.Model):
     last_photo_attach_status = fields.Boolean(string="Last Photo Attach Succeeded", default=True)
     last_photo_attach_note = fields.Char(string="Last Photo Attach Note")
 
+    version_ids = fields.One2many(groups="base.group_user")
+
     @api.model
     def stage_attendance_data(self, photo_base64, geo_zone_id=False):
         """Step 1: Stages the photo and exact time right before the punch."""
@@ -171,6 +173,17 @@ class HrEmployee(models.Model):
 # ==========================================
 class HrEmployeePublic(models.Model):
     _inherit = 'hr.employee.public'
+
+    version_ids = fields.Boolean(
+        string="Version IDs Bypass",
+        readonly=True,
+        store=False,
+        compute='_compute_dummy_version'
+    )
+
+    def _compute_dummy_version(self):
+        for rec in self:
+            rec.version_ids = False
 
     has_registered_face = fields.Boolean(compute='_compute_has_registered_face')
     is_current_user = fields.Boolean(compute='_compute_is_current_user')
