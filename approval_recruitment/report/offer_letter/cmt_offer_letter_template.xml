@@ -109,10 +109,10 @@
                                 Notice period: During this period of internship, the Company may conduct evaluation(s) on functional and behavioral aspects of your role as deemed fit, to ascertain the suitability of the employment.
                             </p>
                             <p style="margin-bottom: 10px;">
-                                During this period, the engagement may be ended through a written notification, by giving 15 days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
+                                During this period, the engagement may be ended through a written notification, by giving <t t-esc="object.offer_letter_notice_period or '-'"/> days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
                             </p>
                             <p style="margin-bottom: 10px;">
-                                As a confirmed full-time employee, the employment can be terminated by giving 15 days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
+                                As a confirmed full-time employee, the employment can be terminated by giving <t t-esc="object.offer_letter_notice_period or '-'"/> days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
                             </p>
                             <p style="margin-bottom: 10px;">
                                A detailed Appointment Letter agreement outlining the terms and conditions of your association with the Company will be issued as part of your joining formalities.

@@ -110,10 +110,10 @@
                                 Your stipend details are personal and must be treated with absolute confidentiality and they are not to be shared with any person.
                             </li>
                             <li style="margin-bottom: 8px; list-style-position: inside;">
-                                You are required to provide a notice of 15 days if you wish to end the internship period with the Company.
+                                You are required to provide a notice of <t t-esc="object.offer_letter_notice_period or '-'"/> days if you wish to end the internship period with the Company.
                             </li>
                             <li style="margin-bottom: 8px; list-style-position: inside;">
-                                The Company reserves the right to terminate the internship at its discretion by providing a notice of Fifteen (15) days’ prior written notice.
+                                The Company reserves the right to terminate the internship at its discretion by providing a notice of <t t-esc="object.get_notice_period_words()"/>  (<t t-esc="object.offer_letter_notice_period or '-'"/>) days’ prior written notice.
                             </li>
                         </ol>
 
