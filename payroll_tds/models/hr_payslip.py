@@ -192,6 +192,19 @@ class HrPayslip(models.Model):
             special_line = slip.line_ids.filtered(lambda l: l.code == 'SPI')[:1]
             slip.special_allowance = special_line.total if special_line else 0.0
 
+    conveyance_allowance = fields.Monetary(
+        string="Conveyance Allowance",
+        compute="_compute_conveyance_allowance",
+        currency_field="currency_id",
+        store=True,
+    )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_conveyance_allowance(self):
+        for slip in self:
+            ca_line = slip.line_ids.filtered(lambda l: l.code == 'CA')[:1]
+            slip.conveyance_allowance = ca_line.total if ca_line else 0.0
+
     salary_arrear_amount = fields.Monetary(
         string="Salary Arrear",
         compute="_compute_salary_arrear",
@@ -828,6 +841,7 @@ class HrPayslip(models.Model):
                 employee.annual_tds_base = 0.0
 
             # -----------------------------
+
             # Get current month's TDS
             # -----------------------------
             tds_line = slip.line_ids.filtered(
