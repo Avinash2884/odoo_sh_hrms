@@ -1,25 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Standalone menu root under Attendance -->
-    <menuitem id="custom_attendance_work_entry_root"
-              name="Work Entries"
-              parent="hr_attendance.menu_hr_attendance_root"
-              sequence="50"/>
-
-    <!-- Standalone action — no view_id override, no native menu tampering.
-         Odoo will automatically pick up the model's existing gantt/list/form
-         views without us needing to guess their XML IDs. -->
-    <record id="action_attendance_work_entries" model="ir.actions.act_window">
-        <field name="name">Work Entries</field>
-        <field name="res_model">hr.work.entry</field>
-        <field name="view_mode">gantt,list,form</field>
-    </record>
-
-    <menuitem id="custom_attendance_work_entry_child"
-              name="Work Entries"
-              parent="custom_attendance_work_entry_root"
-              action="action_attendance_work_entries"
-              sequence="10"/>
+<!--    &lt;!&ndash; Standalone Attendance-side Work Entries menu, pointing at our own-->
+<!--         read-only proxy model/action. Native Payroll menu is left-->
+<!--         completely untouched. &ndash;&gt;-->
+<!--    <menuitem id="custom_attendance_work_entry_root"-->
+<!--              name="Work Entries"-->
+<!--              parent="hr_attendance.menu_hr_attendance_root"-->
+<!--              sequence="50"-->
+<!--              action="action_attendance_work_entries_view"-->
+<!--              groups="hr_attendance.group_hr_attendance_officer"/>-->
 
 </odoo>
