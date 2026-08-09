@@ -502,17 +502,17 @@ class HrPayslip(models.Model):
         store=True,
     )
 
-    state = fields.Selection(
-        selection_add=[
-            ('timeoff_balance', 'Time Off Balance')
-        ]
-    )
-
-    state_display = fields.Selection(
-        selection_add=[
-            ('timeoff_balance', 'Time Off Balance')
-        ]
-    )
+    # state = fields.Selection(
+    #     selection_add=[
+    #         ('timeoff_balance', 'Time Off Balance')
+    #     ]
+    # )
+    #
+    # state_display = fields.Selection(
+    #     selection_add=[
+    #         ('timeoff_balance', 'Time Off Balance')
+    #     ]
+    # )
 
     @api.depends('date_from', 'date_to')
     def _compute_total_period_days(self):
@@ -660,65 +660,68 @@ class HrPayslip(models.Model):
                 lambda l: l.code in ['TDS', 'TDS_NEW']
             )
 
-            if not tds_line:
-                slip.state = 'timeoff_balance'
-                continue
+            # Time Off Balance functionality disabled
+            valid_slips |= slip
 
-            pending_leave = self.env['hr.leave'].search([
-                ('employee_id', '=', slip.employee_id.id),
-                ('state', 'in', ['confirm']),
-                ('request_date_from', '<=', slip.date_to),
-                ('request_date_to', '>=', slip.date_from),
-            ], limit=1)
-
-            if pending_leave:
-
-                slip.state = 'timeoff_balance'
-
-                blocked_count += 1
-
-                # Employee Manager
-                manager = pending_leave.employee_id.parent_id
-
-                if manager and manager.user_id and manager.user_id.email:
-                    self.env['mail.mail'].sudo().create({
-                        'subject': 'Pending Leave Approval',
-                        'body_html': f"""
-                            <p>Dear {manager.name},</p>
-                                    <p>
-                                        Employee <b>{slip.employee_id.name}</b>
-                                        has a pending leave request.
-                                    </p>
-                                    <p>Kindly approve/reject before payroll validation.</p>
-                                    <p>Thanks</p>
-                                """,
-                        'email_to': manager.user_id.email,
-                    }).send()
-
-
-                # Employee Mail
-                employee_email = (
-                        slip.employee_id.work_email
-                        or slip.employee_id.user_id.email
-                )
-
-                if employee_email:
-
-                    print("EMPLOYEE MAIL SENDING")
-
-                    self.env['mail.mail'].sudo().create({
-                        'subject': 'Pending Time Off Request',
-                        'body_html': f"""
-                            <p>Dear {slip.employee_id.name},</p>
-                                    <p>Your Time Off request is still pending.</p>
-                                    <p>Payslip moved to <b>Time Off Balance</b>.</p>
-                                    <p>Thanks</p>
-                                """,
-                        'email_to': employee_email,
-                    }).send()
-
-            else:
-                valid_slips |= slip
+            # if not tds_line:
+            #     slip.state = 'timeoff_balance'
+            #     continue
+            #
+            # pending_leave = self.env['hr.leave'].search([
+            #     ('employee_id', '=', slip.employee_id.id),
+            #     ('state', 'in', ['confirm']),
+            #     ('request_date_from', '<=', slip.date_to),
+            #     ('request_date_to', '>=', slip.date_from),
+            # ], limit=1)
+            #
+            # if pending_leave:
+            #
+            #     slip.state = 'timeoff_balance'
+            #
+            #     blocked_count += 1
+            #
+            #     # Employee Manager
+            #     manager = pending_leave.employee_id.parent_id
+            #
+            #     if manager and manager.user_id and manager.user_id.email:
+            #         self.env['mail.mail'].sudo().create({
+            #             'subject': 'Pending Leave Approval',
+            #             'body_html': f"""
+            #                 <p>Dear {manager.name},</p>
+            #                         <p>
+            #                             Employee <b>{slip.employee_id.name}</b>
+            #                             has a pending leave request.
+            #                         </p>
+            #                         <p>Kindly approve/reject before payroll validation.</p>
+            #                         <p>Thanks</p>
+            #                     """,
+            #             'email_to': manager.user_id.email,
+            #         }).send()
+            #
+            #
+            #     # Employee Mail
+            #     employee_email = (
+            #             slip.employee_id.work_email
+            #             or slip.employee_id.user_id.email
+            #     )
+            #
+            #     if employee_email:
+            #
+            #         print("EMPLOYEE MAIL SENDING")
+            #
+            #         self.env['mail.mail'].sudo().create({
+            #             'subject': 'Pending Time Off Request',
+            #             'body_html': f"""
+            #                 <p>Dear {slip.employee_id.name},</p>
+            #                         <p>Your Time Off request is still pending.</p>
+            #                         <p>Payslip moved to <b>Time Off Balance</b>.</p>
+            #                         <p>Thanks</p>
+            #                     """,
+            #             'email_to': employee_email,
+            #         }).send()
+            #
+            # else:
+            #     valid_slips |= slip
 
         # Validate only valid payslips
         # if valid_slips:
@@ -800,17 +803,17 @@ class HrPayslip(models.Model):
             res = True
 
         # Notification only
-        if blocked_count:
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': 'Pending Time Off Leave Request',
-                    'message': f'Blocked Payslips: {blocked_count}',
-                    'sticky': True,
-                    'type': 'warning',
-                }
-            }
+        # if blocked_count:
+        #     return {
+        #         'type': 'ir.actions.client',
+        #         'tag': 'display_notification',
+        #         'params': {
+        #             'title': 'Pending Time Off Leave Request',
+        #             'message': f'Blocked Payslips: {blocked_count}',
+        #             'sticky': True,
+        #             'type': 'warning',
+        #         }
+        #     }
 
         return res
 
