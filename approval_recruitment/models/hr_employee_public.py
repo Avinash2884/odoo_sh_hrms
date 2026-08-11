@@ -3,7 +3,7 @@ import re
 from odoo import models, fields, api, _
 
 
-class HrEmployeeInherit(models.Model):
+class HrEmployeeInherits(models.Model):
     _inherit = 'hr.employee.public'
     _description = 'HR Employee Public'
 
@@ -138,6 +138,10 @@ class HrEmployeeInherit(models.Model):
         related='employee_id.appointment_letter_type',
         readonly=True
     )
+    last_working_date_employee = fields.Date(
+        related='employee_id.last_working_date_employee',
+        readonly=True
+    )
 
     employee_notice_period = fields.Integer(
         related='employee_id.employee_notice_period',
@@ -214,3 +218,234 @@ class HrEmployeeInherit(models.Model):
     employer_pf_annual = fields.Float(
         string="Employer PF (Annual)",
     )
+
+
+    # Private Contact
+
+    private_email = fields.Char(
+        related='employee_id.private_email',
+        readonly=True,
+    )
+
+    private_phone = fields.Char(
+        related='employee_id.private_phone',
+        readonly=True,
+    )
+
+    birthday = fields.Date(
+        related='employee_id.birthday',
+        readonly=True,
+    )
+    # legal_name = fields.Char(
+    #     related='employee_id.legal_name',
+    #     readonly=True,
+    # )
+    #
+    # birthday = fields.Date(
+    #     related='employee_id.birthday',
+    #     readonly=True,
+    # )
+    # birthday_public_display = fields.Boolean(
+    #     related="employee_id.birthday_public_display",
+    #     readonly=True,
+    # )
+    #
+    # place_of_birth = fields.Char(
+    #     related='employee_id.place_of_birth',
+    #     readonly=True,
+    # )
+    #
+    # country_of_birth = fields.Many2one(
+    #     related='employee_id.country_of_birth',
+    #     readonly=True,
+    # )
+    #
+    # sex = fields.Selection(
+    #     related='employee_id.sex',
+    #     readonly=True,
+    # )
+    #
+    # emergency_contact = fields.Char(
+    #     related='employee_id.emergency_contact',
+    #     readonly=True,
+    # )
+    #
+    # emergency_phone = fields.Char(
+    #     related='employee_id.emergency_phone',
+    #     readonly=True,
+    # )
+    #
+    # visa_no = fields.Char(
+    #     related='employee_id.visa_no',
+    #     readonly=True,
+    # )
+    #
+    # visa_expire = fields.Date(
+    #     related='employee_id.visa_expire',
+    #     readonly=True,
+    # )
+    #
+    # permit_no = fields.Char(
+    #     related='employee_id.permit_no',
+    #     readonly=True,
+    # )
+    #
+    # work_permit_expiration_date = fields.Date(
+    #     related='employee_id.work_permit_expiration_date',
+    #     readonly=True,
+    # )
+    #
+    # country_id = fields.Many2one(
+    #     related='employee_id.country_id',
+    #     readonly=True,
+    # )
+    #
+    # identification_id = fields.Char(
+    #     related='employee_id.identification_id',
+    #     readonly=True,
+    # )
+    #
+    # ssnid = fields.Char(
+    #     related='employee_id.ssnid',
+    #     readonly=True,
+    # )
+    #
+    # passport_id = fields.Char(
+    #     related='employee_id.passport_id',
+    #     readonly=True,
+    # )
+    #
+    # passport_expiration_date = fields.Date(
+    #     related='employee_id.passport_expiration_date',
+    #     readonly=True,
+    # )
+    #
+    # private_street = fields.Char(
+    #     related='employee_id.private_street',
+    #     readonly=True,
+    # )
+    #
+    # private_street2 = fields.Char(
+    #     related='employee_id.private_street2',
+    #     readonly=True,
+    # )
+    #
+    # private_city = fields.Char(
+    #     related='employee_id.private_city',
+    #     readonly=True,
+    # )
+    #
+    # private_state_id = fields.Many2one(
+    #     related='employee_id.private_state_id',
+    #     readonly=True,
+    # )
+    #
+    # private_zip = fields.Char(
+    #     related='employee_id.private_zip',
+    #     readonly=True,
+    # )
+    #
+    # private_country_id = fields.Many2one(
+    #     related='employee_id.private_country_id',
+    #     readonly=True,
+    # )
+    #
+    # distance_home_work = fields.Integer(
+    #     related='employee_id.distance_home_work',
+    #     readonly=True,
+    # )
+    #
+    # marital = fields.Selection(
+    #     related='employee_id.marital',
+    #     readonly=True,
+    # )
+    #
+    # spouse_complete_name = fields.Char(
+    #     related='employee_id.spouse_complete_name',
+    #     readonly=True,
+    # )
+    #
+    # spouse_birthdate = fields.Date(
+    #     related='employee_id.spouse_birthdate',
+    #     readonly=True,
+    # )
+    #
+    # children = fields.Integer(
+    #     related='employee_id.children',
+    #     readonly=True,
+    # )
+    #
+    # certificate = fields.Selection(
+    #     related='employee_id.certificate',
+    #     readonly=True,
+    # )
+    #
+    # study_field = fields.Char(
+    #     related='employee_id.study_field',
+    #     readonly=True,
+    # )
+    #
+    # geo_restriction_ids = fields.Many2many(
+    #     related='employee_id.geo_restriction_ids',
+    #     readonly=True,
+    # )
+    #
+    # birthday_public_display = fields.Boolean(
+    #     related="employee_id.birthday_public_display",
+    #     readonly=True,
+    # )
+    #
+    # legal_name = fields.Char(
+    #     related="employee_id.legal_name",
+    #     readonly=True,
+    # )
+    #
+    # place_of_birth = fields.Char(
+    #     related="employee_id.place_of_birth",
+    #     readonly=True,
+    # )
+    #
+    # sex = fields.Selection(
+    #     related="employee_id.sex",
+    #     readonly=True,
+    # )
+    #
+    # emergency_contact = fields.Char(
+    #     related="employee_id.emergency_contact",
+    #     readonly=True,
+    # )
+    #
+    # emergency_phone = fields.Char(
+    #     related="employee_id.emergency_phone",
+    #     readonly=True,
+    # )
+    # work_permit_name = fields.Char(
+    #     related="employee_id.work_permit_name",
+    #     readonly=True,
+    # )
+    #
+    # has_work_permit = fields.Binary(
+    #     related="employee_id.has_work_permit"
+    # )
+    #
+    # distance_home_work_unit = fields.Selection(
+    #     related='employee_id.distance_home_work_unit',
+    #     readonly=True,
+    # )
+    #
+    # id_card = fields.Binary(related='employee_id.id_card',
+    #     readonly=True,)
+    # driving_license = fields.Binary(related='employee_id.driving_license',
+    #     readonly=True,)
+    #
+    # allowed_country_state_ids = fields.Many2many(
+    #     'res.country.state',
+    #     related='employee_id.allowed_country_state_ids',
+    #     readonly=True,
+    # )
+    # private_state_id = fields.Many2one(
+    #     'res.country.state',
+    #     related='employee_id.private_state_id',
+    #     readonly=True,
+    # )
+    #

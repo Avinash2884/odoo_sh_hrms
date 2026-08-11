@@ -12,6 +12,7 @@
         "views/geo_restriction.xml",
         "views/hr_attendance_inherit.xml",
         "views/hr_employee.xml",
+        "views/hr_employee_public_views_inherit.xml",
     ],
     'installable': True,
     'application': True,

@@ -27,14 +27,6 @@
                 <attribute name="options">{'no_open': True, 'no_create': True}</attribute>
             </xpath>
 
-            <xpath expr="//field[@name='parent_id']" position="after">
-                <field name="account_office_name_ids" widget="many2many_tags"/>
-            </xpath>
-
-            <xpath expr="//field[@name='parent_id']" position="after">
-                <field name="ls_role_id" options='{"no_open": True, "no_create": True}'/>
-            </xpath>
-
             <xpath expr="//field[@name='address_id']" position="attributes">
                 <attribute name="string">Base Location</attribute>
                 <attribute name="options">{'no_open': True, 'no_create': True}</attribute>
@@ -52,6 +44,89 @@
             <xpath expr="//page[@name='certification']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+
+            <xpath expr="//field[@name='department_id']" position="before">
+                <field name="appointment_letter_type" />
+                <field name="employee_notice_period" />
+                <field name="last_working_date_employee" invisible="1"/>
+                <field name="entity_name_id" options='{"no_open": True, "no_create": True}'/>
+                <field name="ls_role_id" options='{"no_open": True, "no_create": True}'/>
+                <field name="band_id" options='{"no_open": True, "no_create": True}'/>
+                <field name="level_id" options='{"no_open": True, "no_create": True}'/>
+                <field name="vertical_id" options='{"no_open": True, "no_create": True}'/>
+                <field name="function_id" options='{"no_open": True, "no_create": True}'/>
+                <field name="parent_account_id" options='{"no_open": True, "no_create": True}'/>
+                <field name="account_office_name_ids" widget="many2many_tags" options='{"no_open": True, "no_create": True}'/>
+                <field name="region_id" options='{"no_open": True, "no_create": True}'/>
+                <field name="employee_status_id" options='{"no_open": True, "no_create": True}'/>
+                <field name="ls_designation_id" invisible="1"/>
+                <field name="ls_source_of_hire_id" options='{"no_open": True, "no_create": True}'/>
+            </xpath>
+            <xpath expr="//field[@name='parent_id']" position="after">
+                <field name="hr_id" widget="many2one_avatar_user" options='{"no_open": True, "no_create": True}'/>
+                <field name="hr_head_id" widget="many2one_avatar_user" options='{"no_open": True, "no_create": True}'/>
+                <field name="it_asset_head_id" widget="many2one_avatar_user" options='{"no_open": True, "no_create": True}'/>
+                <field name="admin_head_id" widget="many2one_avatar_user" options='{"no_open": True, "no_create": True}'/>
+                <field name="payroll_head_id" widget="many2one_avatar_user" options='{"no_open": True, "no_create": True}'/>
+                <field name="buddy_id" widget="many2one_avatar_user" options='{"no_open": True, "no_create": True}'/>
+                <field name="joining_date_recruit"/>
+                <field name="date_of_confirmation"/>
+            </xpath>
+
+
+            <xpath expr="//page[@name='resume']" position="after">
+                <page name="insurance_tab" string="Insurance">
+                    <group>
+                        <group string="Insurance Details">
+                            <field name="dependant_name_1" placeholder="Dependant Name 1"/>
+                            <field name="dependant_dob_1" placeholder="Dependant DOB"/>
+                            <field name="relationship_status_1" placeholder="Relationship status "/>
+
+                            <field name="dependant_name_2" placeholder="Dependant Name 2"/>
+                            <field name="dependant_dob_2" placeholder="Dependant DOB"/>
+                        </group>
+                        <group string="">
+                            <field name="relationship_status_2" placeholder="Relationship status "/>
+
+                            <field name="dependant_name_3" placeholder="Dependant Name 3"/>
+                            <field name="dependant_dob_3" placeholder="Dependant DOB"/>
+                            <field name="relationship_status_3" placeholder="Relationship status "/>
+                        </group>
+                    </group>
+                </page>
+                <page name="probation" string="Probation">
+                    <group string="Probation Details">
+                        <field name="probation_date_start" placeholder="Probation Start Date" />
+                        <field name="probation_date_end" placeholder="Probation End Date" />
+                        <field name="probation_status" />
+                        <field name="probation_reason"/>
+                    </group>
+                </page>
+
+            </xpath>
+<!--            <xpath expr="//page[@name='resume']" position="after">-->
+
+<!--                <page name="personal_information_public" string="Personal">-->
+
+<!--                    <group>-->
+<!--                        <group string="Private Contact">-->
+<!--                            <field name="private_email"-->
+<!--                                   string="Personal Email Address"/>-->
+
+<!--                            <field name="private_phone"-->
+<!--                                   string="Contact Number"-->
+<!--                                   widget="phone"/>-->
+<!--                        </group>-->
+
+<!--                        <group string="Personal Information">-->
+<!--                            <field name="birthday"-->
+<!--                                   string="Date of Birth"/>-->
+<!--                        </group>-->
+<!--                    </group>-->
+
+<!--                </page>-->
+
+<!--            </xpath>-->
         </field>
     </record>
     <record id="hr_kanban_view_employees_inherit_public" model="ir.ui.view">

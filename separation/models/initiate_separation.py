@@ -20,6 +20,11 @@ class InitiateSeparation(models.Model):
         tracking=True,
     )
 
+    def _default_last_working_date(self):
+        if self.employee_id and self.employee_id.employee_notice_period:
+            return fields.Date.today() + timedelta(days=self.employee_id.employee_notice_period)
+        return fields.Date.today()
+
     def _default_employee(self):
         user = self.env.user
         if user.has_group('separation.group_separation_hr'):
@@ -68,7 +73,13 @@ class InitiateSeparation(models.Model):
     admin_head_id = fields.Many2one('hr.employee', 'Admin Head',related='employee_id.admin_head_id',tracking=True)
     payroll_head_id = fields.Many2one('hr.employee', 'Payroll Head',related='employee_id.payroll_head_id',tracking=True)
     joining_date_recruit = fields.Date(string="Date of Joining", copy=False,related='employee_id.joining_date_recruit', tracking=True)
-    last_working_date = fields.Date(string="Last Working Date", copy=False, tracking=True,default=lambda self: fields.Date.today() + timedelta(days=30))
+    last_working_date = fields.Date(
+        string="Last Working Date",
+        related='employee_id.last_working_date_employee',
+        store=True,
+        readonly=True,
+        tracking=True
+    )
     reason_for_resignation = fields.Char(string="Reason For Resignation", copy=False, tracking=True)
     resignation_reason = fields.Selection([
         ('career', 'Better Career Opportunity'),

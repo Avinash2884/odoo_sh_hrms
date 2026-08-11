@@ -39,6 +39,22 @@ class HrEmployeeInherit(models.Model):
     full_time_hospital_city = fields.Char(string="Full Time Hospital City", tracking=True)
 
     employee_notice_period = fields.Integer(string="Notice Period",tracking=True)
+    last_working_date_employee = fields.Date(
+        string="Last Working Date",
+        compute="_compute_last_working_date",
+        store=True,
+        tracking=True
+    )
+
+    @api.depends('employee_notice_period')
+    def _compute_last_working_date(self):
+        for rec in self:
+            if rec.employee_notice_period:
+                rec.last_working_date_employee = fields.Date.today() + timedelta(
+                    days=rec.employee_notice_period
+                )
+            else:
+                rec.last_working_date_employee = False
 
     @api.depends('wage')
     def _compute_wage_appointment_letter(self):
