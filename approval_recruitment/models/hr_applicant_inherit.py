@@ -439,6 +439,12 @@ class HrApplicantInherit(models.Model):
                     state_id = state_record.id
             # -------------------------------------------
 
+            offer = self.env['hr.contract.salary.offer'].search([
+                ('applicant_id', '=', self.id)
+            ], limit=1)
+
+            notice_period = offer.offer_letter_notice_period if offer else False
+
             # 2. MAPPING: Put the data in the exact, separated Employee boxes
             employee.write({
                 'ls_employee_id': self.registration_no,
@@ -454,6 +460,7 @@ class HrApplicantInherit(models.Model):
                 'permanent_city': self.applicant_city,
                 'permanent_state_id': state_id,
                 'permanent_zip': self.pincode,
+                'employee_notice_period': notice_period,
             })
 
             # 3. Map the Education Table

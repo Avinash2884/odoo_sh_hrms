@@ -139,6 +139,11 @@ class HrEmployeeInherit(models.Model):
         readonly=True
     )
 
+    employee_notice_period = fields.Integer(
+        related='employee_id.employee_notice_period',
+        readonly=True
+    )
+
     cmt_hospital_name = fields.Char(
         related='employee_id.cmt_hospital_name',
         readonly=True

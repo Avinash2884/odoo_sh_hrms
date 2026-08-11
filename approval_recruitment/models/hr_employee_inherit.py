@@ -38,6 +38,8 @@ class HrEmployeeInherit(models.Model):
     full_time_hospital_name = fields.Char(string="Full Time Hospital Name", tracking=True)
     full_time_hospital_city = fields.Char(string="Full Time Hospital City", tracking=True)
 
+    employee_notice_period = fields.Integer(string="Notice Period",tracking=True)
+
     @api.depends('wage')
     def _compute_wage_appointment_letter(self):
         for rec in self:

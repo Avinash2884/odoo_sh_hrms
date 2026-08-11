@@ -135,7 +135,7 @@
                             </p>
 
                             <p style="margin-bottom: 12px;">
-                                b.	During probation period, the engagement may be ended through a written notification, by giving 15 days prior notice, on either side. During such period, The Company is further entitled to terminate your employment at any time by providing a notice period of 15 days, or by paying you salary in lieu of notice.
+                                b.	During probation period, the engagement may be ended through a written notification, by giving <t t-esc="object.employee_notice_period or '-'"/> days prior notice, on either side. During such period, The Company is further entitled to terminate your employment at any time by providing a notice period of <t t-esc="object.employee_notice_period or '-'"/> days, or by paying you salary in lieu of notice.
                             </p>
 
                             <p style="margin-bottom: 12px;">
@@ -174,11 +174,11 @@
                             </p>
 
                             <p style="margin-bottom: 12px;">
-                                b.	You are required to give a notice of a of 15 days after probation confirmation if you wish to resign from the service of the Company.
+                                b.	You are required to give a notice of a of <t t-esc="object.employee_notice_period or '-'"/> days after probation confirmation if you wish to resign from the service of the Company.
                             </p>
 
                             <p style="margin-bottom: 12px;">
-                                c.	The Company shall be entitled to terminate the engagement by giving 15 days prior notice to you after confirmation of employment. However, the Company shall have the option, in its sole discretion, to make your termination effective at any time prior to the end of such notice period as long as the Company pays you the full salary to which you are entitled up to the last day of such reduced notice period.
+                                c.	The Company shall be entitled to terminate the engagement by giving <t t-esc="object.employee_notice_period or '-'"/> days prior notice to you after confirmation of employment. However, the Company shall have the option, in its sole discretion, to make your termination effective at any time prior to the end of such notice period as long as the Company pays you the full salary to which you are entitled up to the last day of such reduced notice period.
                             </p>
 
                             <p style="margin-bottom: 12px;">
