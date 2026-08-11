@@ -68,16 +68,6 @@
                 <attribute name="string">Designation</attribute>
             </xpath>
 
-            <!-- Remove groups restriction from Personal tab -->
-            <xpath expr="//page[@name='personal_information']" position="attributes">
-                <attribute name="groups"/>
-            </xpath>
-            <!-- Remove groups restriction from the fields -->
-            <xpath expr="//page[@name='personal_information']//field" position="attributes">
-                <attribute name="groups"/>
-            </xpath>
-
-
             <xpath expr="//header" position="inside">
                 <button name="action_send_employee_email"
                         type="object"
