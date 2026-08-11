@@ -711,16 +711,7 @@ class Employee(models.Model):
 
             remaining_months = max(remaining_months, 1)
 
-            joining_date = emp.contract_date_start
-
-            if (
-                    joining_date
-                    and joining_date.day > 1
-                    and emp.annual_tds_base
-            ):
-                annual_tds = emp.annual_tds_base
-            else:
-                annual_tds = emp.tds_amount_new or 0.0
+            annual_tds = emp.tds_amount_new or 0.0
 
             remaining_tax = max(
                 annual_tds - (emp.tds_till_last_month or 0.0),

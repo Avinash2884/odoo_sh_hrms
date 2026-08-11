@@ -3,13 +3,13 @@
 
     <!--  CHANGED: Removed the '&' symbol and replaced it with 'and' -->
     <record id="module_category_attendance_planning" model="ir.module.category">
-        <field name="name">Attendance and Schedule </field>
+        <field name="name">Attendance and Schedule</field>
         <field name="sequence">20</field>
     </record>
 
     <!-- The rest remains exactly the same -->
     <record id="privilege_schedule_management" model="res.groups.privilege">
-        <field name="name">Schedule Tab </field>
+        <field name="name">Schedule Tab</field>
         <field name="category_id" ref="module_category_attendance_planning"/>
     </record>
 
@@ -18,5 +18,7 @@
         <field name="privilege_id" ref="privilege_schedule_management"/>
         <field name="comment">Allows the user to view and edit the Employee Schedule tab.</field>
     </record>
+
+
 
 </odoo>

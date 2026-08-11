@@ -1,0 +1,285 @@
+/* ══════════════════════════════════════════════════════════════════
+   Attendance Sheet — matrix grid
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Table layout ─────────────────────────────────────────────── */
+.o_attendance_matrix_table {
+    min-width: 100%;
+    white-space: nowrap;
+    border-collapse: collapse;
+}
+
+/* Sticky employee name column */
+.o_attendance_matrix_emp_col {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 3;
+    min-width: 160px;
+    max-width: 210px;
+    padding: 4px 8px !important;
+}
+
+/* Sticky header row */
+.o_attendance_matrix_head th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    min-width: 46px;
+    padding: 4px 3px !important;
+    text-align: center;
+    background: #f8f9fa;
+}
+
+/* The one cell that's BOTH the sticky column AND the sticky row —
+   needs an explicit, unambiguous rule so it always wins over both
+   the plain header cells (z-index 2) and the plain body emp-column
+   cells (z-index 3), in every scroll direction at once. */
+.o_attendance_matrix_head th.o_attendance_matrix_emp_col {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 4;
+    background: #f8f9fa;
+}
+
+/* Day column header */
+.o_amc_day_col { line-height: 1.1; }
+.o_amc_day_num { font-size: 13px; font-weight: 700; }
+.o_amc_day_dow {
+    font-size: 9px;
+    font-weight: 500;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+/* ── Today highlight ──────────────────────────────────────────── */
+.o_amc_today_header {
+    background-color: #dbeafe !important;
+    color: #1d4ed8 !important;
+}
+.o_amc_today_cell {
+    background-color: #eff6ff !important;
+}
+
+/* ── Week-off cell colouring ──────────────────────────────────── */
+/* NOTE: header is NOT coloured per-employee (headers are shared),
+   only the data cells are per-employee week-offs.                  */
+.o_amc_weekoff_cell {
+    background-color: #faf5ff !important;
+}
+
+/* "WO" text shown in a week-off cell with no punches */
+.o_amc_wo_label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #9333ea;
+    letter-spacing: 0.03em;
+}
+
+/* Legend swatch */
+.o_amc_legend_wo_swatch {
+    display: inline-block;
+    width: 18px;
+    height: 14px;
+    background-color: #faf5ff;
+    border: 1.5px solid #9333ea;
+    border-radius: 3px;
+    vertical-align: middle;
+}
+
+/* ── Data cells ───────────────────────────────────────────────── */
+.o_attendance_matrix_cell {
+    cursor: default;
+    min-width: 46px;
+    vertical-align: middle;
+    padding: 3px 2px !important;
+}
+.o_attendance_matrix_cell.o_amc_filled {
+    cursor: pointer;
+}
+.o_attendance_matrix_cell.o_amc_filled:hover {
+    background-color: #e0e7ff !important;
+}
+
+/* ── Shift-type pill on employee name ─────────────────────────── */
+.o_amc_shift_pill {
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 3px;
+    padding: 1px 4px;
+    vertical-align: middle;
+}
+.o_amc_shift_rot { background: #fde68a; color: #92400e; }   /* R = rotational, amber */
+.o_amc_shift_reg { background: #d1fae5; color: #065f46; }   /* F = fixed/regular, green */
+
+/* ── Badges (in grid) ─────────────────────────────────────────── */
+.o_amc_badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin: 1px 0;
+    letter-spacing: 0.02em;
+}
+
+/* Larger badges inside the popup dialog */
+.o_amc_badge_lg {
+    font-size: 14px !important;
+    padding: 3px 10px !important;
+    border-radius: 5px !important;
+}
+
+.o_amc_A   { background-color: #d1e7dd; color: #0f5132; }
+.o_amc_OT  { background-color: #fff3cd; color: #664d03; }
+.o_amc_EDP { background-color: #cfe2ff; color: #084298; }
+
+/* ── Summary cards in popup ───────────────────────────────────── */
+.o_amc_summary_row   { margin-top: 8px; }
+
+.o_amc_summary_card {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 8px 14px;
+    min-width: 120px;
+    background: #f8f9fa;
+}
+.o_amc_summary_label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+.o_amc_summary_value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #212529;
+}
+.o_amc_summary_ot { color: #856404; }
+
+.o_amc_summary_payable {
+    border-color: #0d6efd;
+    background: #e7f1ff;
+}
+.o_amc_summary_payable .o_amc_summary_value { color: #0d6efd; }
+
+/* ── Legend bar ───────────────────────────────────────────────── */
+.o_amc_legend { font-size: 12px; }
+
+/* ── Native-style unified search bar ─────────────────────────── */
+.o_amc_searchbar_wrap {
+    min-width: 260px;
+    max-width: 420px;
+    flex: 1 1 260px;
+}
+.o_amc_search_box {
+    position: relative;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background: #fff;
+    min-height: 32px;
+    cursor: text;
+    padding: 3px 26px 3px 0;
+}
+.o_amc_search_box:hover,
+.o_amc_search_box:focus-within {
+    border-color: #714B67;
+    box-shadow: 0 0 0 1px rgba(113, 75, 103, 0.15);
+}
+.o_amc_search_input {
+    border: none;
+    outline: none;
+    font-size: 13px;
+    padding: 3px 4px;
+    min-width: 100px;
+    background: transparent;
+}
+.o_amc_caret {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #868e96;
+    font-size: 11px;
+    pointer-events: none;
+}
+.o_amc_chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #714B67;
+    color: #fff;
+    font-size: 12px;
+    border-radius: 3px;
+    padding: 2px 6px;
+    margin: 2px 3px;
+}
+.o_amc_chip i.fa-search,
+.o_amc_chip i.fa-filter,
+.o_amc_chip i.fa-th-large {
+    font-size: 10px;
+    opacity: 0.85;
+}
+.o_amc_chip_x {
+    cursor: pointer;
+    font-size: 10px;
+    opacity: 0.8;
+    margin-left: 2px;
+}
+.o_amc_chip_x:hover { opacity: 1; }
+
+/* ── Filters dropdown panel ──────────────────────────────────── */
+.o_amc_filters_dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 50;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    display: flex;
+    min-width: 320px;
+    padding: 6px 0;
+}
+.o_amc_filters_col {
+    flex: 1;
+    padding: 0 4px;
+    border-right: 1px solid #eee;
+}
+.o_amc_filters_col:last-child { border-right: none; }
+.o_amc_filters_col_title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #adb5bd;
+    padding: 4px 10px;
+}
+.o_amc_filter_item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.o_amc_filter_item:hover { background: #f1f3f5; }
+.o_amc_filter_item i.fa-check {
+    width: 12px;
+    color: #714B67;
+    font-size: 11px;
+}
+.o_amc_filter_item i:not(.fa-check) { width: 12px; }
+
+/* ── Group header row ────────────────────────────────────────── */
+.o_amc_group_header_row td.o_amc_group_header {
+    background: #f1f3f5;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 10px !important;
+    position: sticky;
+    left: 0;
+}

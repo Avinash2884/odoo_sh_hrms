@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_attendance_matrix_report" model="ir.actions.client">
+        <field name="name">Attendance Sheet</field>
+        <field name="tag">attendance_matrix_report_action</field>
+    </record>
+
+    <menuitem id="menu_attendance_matrix_report_attendance"
+              name="Attendance Sheet"
+              parent="hr_attendance.menu_hr_attendance_root"
+              sequence="15"
+              action="action_attendance_matrix_report"
+              groups="hr_attendance.group_hr_attendance_officer"/>
+
+    <menuitem id="menu_attendance_matrix_report_planning"
+              name="Attendance Sheet"
+              parent="planning.planning_menu_root"
+              sequence="90"
+              action="action_attendance_matrix_report"
+              groups="hr_attendance.group_hr_attendance_officer"/>
+
+</odoo>

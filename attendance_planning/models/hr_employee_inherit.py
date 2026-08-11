@@ -7,6 +7,9 @@ from odoo import models, fields, api
 class HrEmployee(models.Model):
     _inherit = 'hr.employee'
 
+    # contract_date_start = fields.Date(related='contract_id.date_start', groups="base.group_user")
+    # contract_date_end = fields.Date(related='contract_id.date_end', groups="base.group_user")
+
     shift_type = fields.Selection([
         ('regular', 'Regular Shift (Fixed Weekends)'),
         ('rotational', 'Rotational Shift (Dynamic Week-Offs)')

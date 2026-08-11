@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="hr_work_entry_attendance_view_gantt" model="ir.ui.view">
+        <field name="name">hr.work.entry.attendance.view.gantt</field>
+        <field name="model">hr.work.entry.attendance.view</field>
+        <field name="arch" type="xml">
+            <gantt date_start="date_start"
+                   date_stop="date_stop"
+                   default_group_by="employee_id"
+                   string="Work Entries"
+                   create="0" edit="0" delete="0">
+                <field name="employee_id"/>
+                <field name="work_entry_type_id"/>
+                <field name="department_id"/>
+            </gantt>
+        </field>
+    </record>
+
+    <record id="hr_work_entry_attendance_view_list" model="ir.ui.view">
+        <field name="name">hr.work.entry.attendance.view.list</field>
+        <field name="model">hr.work.entry.attendance.view</field>
+        <field name="arch" type="xml">
+            <list string="Work Entries" create="0" edit="0" delete="0">
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="work_entry_type_id"/>
+                <field name="date_start"/>
+                <field name="date_stop"/>
+                <field name="duration"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_work_entry_attendance_view_search" model="ir.ui.view">
+        <field name="name">hr.work.entry.attendance.view.search</field>
+        <field name="model">hr.work.entry.attendance.view</field>
+        <field name="arch" type="xml">
+            <search string="Work Entries">
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="work_entry_type_id"/>
+                <filter string="Employee" name="group_employee" context="{'group_by': 'employee_id'}"/>
+                <filter string="Department" name="group_department" context="{'group_by': 'department_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_attendance_work_entries_view" model="ir.actions.act_window">
+        <field name="name">Work Entries</field>
+        <field name="res_model">hr.work.entry.attendance.view</field>
+        <field name="view_mode">gantt,list</field>
+    </record>
+
+</odoo>

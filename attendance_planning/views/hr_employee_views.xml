@@ -105,6 +105,37 @@
                 </div>
             </xpath>
 
+            <xpath expr="//notebook" position="inside">
+                <page name="schedule_tab_public" string="Schedule">
+                    <group>
+                        <group name="schedule_main_public" string="Schedule Configuration">
+                            <field name="shift_type" widget="radio" options="{'horizontal': true}" readonly="1"/>
+                            <field name="resource_calendar_id" string="Working Schedule" readonly="1"/>
+                        </group>
+                        <group name="schedule_geo_public" string="Location Rules">
+                            <field name="bypass_geo_restriction" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+
+                <page name="biometrics_face_id_public" string="Face ID">
+                    <group>
+                        <group string="My Face Registration" invisible="is_current_user == False">
+                            <button name="action_open_face_registration"
+                                    type="object"
+                                    string=" Register My Face "
+                                    class="btn-primary"
+                                    invisible="has_registered_face == True"/>
+
+                            <div invisible="has_registered_face == False" class="text-success fw-bold">
+                                <i class="fa fa-check-circle"/>
+                                Your face is successfully registered and secured.
+                            </div>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
         </field>
     </record>
 
