@@ -478,15 +478,22 @@ class HrLeave(models.Model):
     # ----------------------------------------
     # 🚫 BLOCK LEAVE ON PUBLISHED PLANNING
     # ----------------------------------------
-    @api.constrains(
-        'employee_id',
-        'request_date_from',
-        'request_date_to',
-    )
-    def _check_published_planning(self):
+    # ----------------------------------------
 
-        if self._is_hr_admin():
-            return
+    # 🚫 BLOCK LEAVE ON WEEK OFF
+
+    # ----------------------------------------
+
+    @api.constrains(
+
+        'employee_id',
+
+        'request_date_from',
+
+        'request_date_to',
+
+    )
+    def _check_week_off_leave(self):
 
         for leave in self:
 
@@ -497,33 +504,30 @@ class HrLeave(models.Model):
                 continue
 
             start_date = fields.Date.to_date(leave.request_date_from)
+
             end_date = fields.Date.to_date(leave.request_date_to)
 
-            published_planning = self.env['planning.slot'].search([
+            week_off_planning = self.env['planning.slot'].search([
+
                 ('employee_id', '=', leave.employee_id.id),
+
                 ('shift_date', '>=', start_date),
+
                 ('shift_date', '<=', end_date),
+
+                ('calendar_id', '=', False),
+
                 ('state', '=', 'published'),
+
             ], limit=1)
 
-            if published_planning:
-                planning = published_planning[0]
-
-                planning_name = (
-                    'Week Off'
-                    if planning.is_week_off
-                    else (
-                        planning.calendar_id.name
-                        if planning.calendar_id
-                        else 'Published Planning'
-                    )
-                )
+            if week_off_planning:
+                planning = week_off_planning[0]
 
                 raise ValidationError(
-                    "You cannot apply leave on %s because a "
-                    "published planning already exists for you (%s)."
-                    % (
-                        planning.shift_date.strftime('%d-%m-%Y'),
-                        planning_name,
-                    )
+
+                    "You cannot apply leave on %s because it is a Week Off."
+
+                    % planning.shift_date.strftime('%d-%m-%Y')
+
                 )
