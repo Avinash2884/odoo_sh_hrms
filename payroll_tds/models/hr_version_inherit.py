@@ -134,18 +134,46 @@ class HrVersion(models.Model):
 
     @api.depends('wage', 'l10n_in_hra_percentage')
     def _compute_l10n_in_hra(self):
-
-        # Remove old compute queue
         self.env.remove_to_compute(
             self._fields['l10n_in_hra_percentage'],
             self
         )
 
         for version in self:
-            # HRA = Gross Wage × HRA %
+            hra_percentage = version.l10n_in_hra_percentage or 0.0
+
+            # Convert percentage entered as 30/40/50
+            # into Odoo decimal format 0.30/0.40/0.50
+            if hra_percentage > 1.0:
+                hra_percentage = hra_percentage / 100.0
+
+            # Keep the actual field value within 0 to 1
+            version.l10n_in_hra_percentage = min(
+                max(hra_percentage, 0.0),
+                1.0
+            )
+
+            # HRA = Gross Wage × HRA Percentage
             version.l10n_in_hra = (
                     version.wage *
                     version.l10n_in_hra_percentage
+            )
+
+    @api.depends('l10n_in_hra', 'wage')
+    def _compute_l10n_in_hra_percentage(self):
+        for version in self:
+            if not version.wage:
+                version.l10n_in_hra_percentage = 0.0
+                continue
+
+            version.l10n_in_hra_percentage = (
+                    version.l10n_in_hra / version.wage
+            )
+
+            # Safety: database constraint requires 0 <= percentage <= 1
+            version.l10n_in_hra_percentage = min(
+                max(version.l10n_in_hra_percentage, 0.0),
+                1.0
             )
 
     @api.constrains(
