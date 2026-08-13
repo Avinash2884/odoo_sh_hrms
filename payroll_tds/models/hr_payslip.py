@@ -534,20 +534,12 @@ class HrPayslip(models.Model):
     #         )
 
     @api.depends(
-
         'date_from',
-
         'date_to',
-
         'employee_id.joining_date_recruit',
-
-        'employee_id.contract_date_end',
-
         'unpaid_days'
-
     )
     def _compute_attendance_days(self):
-
         for rec in self:
 
             rec.attendance_days = 0.0
@@ -556,96 +548,24 @@ class HrPayslip(models.Model):
                 continue
 
             total_days = (rec.date_to - rec.date_from).days + 1
-
             joining_date = rec.employee_id.joining_date_recruit
-
-            leaving_date = rec.employee_id.contract_date_end
-
-            # -------------------------------------------------
-
-            # Existing Joining Date Logic
-
-            # -------------------------------------------------
 
             if joining_date:
 
+                # Joined after payslip period
                 if joining_date > rec.date_to:
+                    eligible_days = 0
 
-                    eligible_start_date = None
-
+                # Joined during payslip period
                 elif rec.date_from <= joining_date <= rec.date_to:
+                    eligible_days = (rec.date_to - joining_date).days + 1
 
-                    eligible_start_date = joining_date
-
+                # Joined before payslip period
                 else:
-
-                    eligible_start_date = rec.date_from
-
-            else:
-
-                eligible_start_date = rec.date_from
-
-            # -------------------------------------------------
-
-            # NEW: Leaving Date Logic
-
-            # -------------------------------------------------
-
-            if leaving_date:
-
-                # Employee left before this payslip period
-
-                if leaving_date < rec.date_from:
-
-                    eligible_end_date = None
-
-                # Employee left during this payslip period
-
-                elif rec.date_from <= leaving_date <= rec.date_to:
-
-                    eligible_end_date = leaving_date
-
-                # Employee is leaving after this payslip period
-
-                else:
-
-                    eligible_end_date = rec.date_to
+                    eligible_days = total_days
 
             else:
-
-                eligible_end_date = rec.date_to
-
-            # -------------------------------------------------
-
-            # Calculate Eligible Days
-
-            # -------------------------------------------------
-
-            if (
-
-                    eligible_start_date is None
-
-                    or eligible_end_date is None
-
-                    or eligible_start_date > eligible_end_date
-
-            ):
-
-                eligible_days = 0
-
-            else:
-
-                eligible_days = (
-
-                                        eligible_end_date - eligible_start_date
-
-                                ).days + 1
-
-            # -------------------------------------------------
-
-            # Deduct LOP
-
-            # -------------------------------------------------
+                eligible_days = total_days
 
             paid_days = eligible_days - (rec.unpaid_days or 0)
 
