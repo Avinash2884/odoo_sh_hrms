@@ -110,7 +110,7 @@
                     <group>
                         <group name="schedule_main_public" string="Schedule Configuration">
                             <field name="shift_type" widget="radio" options="{'horizontal': true}" readonly="1"/>
-                            <field name="resource_calendar_id" string="Working Schedule" readonly="1"/>
+                            <field name="resource_calendar_id" string="Working Schedule" readonly="1" options='{"no_open": True, "no_create": True}'/>
                         </group>
                         <group name="schedule_geo_public" string="Location Rules">
                             <field name="bypass_geo_restriction" readonly="1"/>
