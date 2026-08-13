@@ -222,20 +222,11 @@ class HrEmployeeInherits(models.Model):
 
     # Private Contact
 
-    private_email = fields.Char(
-        related='employee_id.private_email',
-        readonly=True,
-    )
+    # personal_email_address = fields.Char(
+    #     related="employee_id.private_email",
+    #     string="Personal Email",
+    # )
 
-    private_phone = fields.Char(
-        related='employee_id.private_phone',
-        readonly=True,
-    )
-
-    birthday = fields.Date(
-        related='employee_id.birthday',
-        readonly=True,
-    )
     # legal_name = fields.Char(
     #     related='employee_id.legal_name',
     #     readonly=True,

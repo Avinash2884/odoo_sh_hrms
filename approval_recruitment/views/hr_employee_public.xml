@@ -100,6 +100,7 @@
                         <field name="probation_date_end" placeholder="Probation End Date" />
                         <field name="probation_status" />
                         <field name="probation_reason"/>
+<!--                        <field name="personal_email_address"/>-->
                     </group>
                 </page>
 
@@ -110,12 +111,8 @@
 
 <!--                    <group>-->
 <!--                        <group string="Private Contact">-->
-<!--                            <field name="private_email"-->
+<!--                            <field name="personal_email_address"-->
 <!--                                   string="Personal Email Address"/>-->
-
-<!--                            <field name="private_phone"-->
-<!--                                   string="Contact Number"-->
-<!--                                   widget="phone"/>-->
 <!--                        </group>-->
 
 <!--                        <group string="Personal Information">-->
