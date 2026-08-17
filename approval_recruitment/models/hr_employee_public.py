@@ -408,7 +408,7 @@ class HrEmployeeInherits(models.Model):
     )
 
     work_permit_expiration_date_public = fields.Date(
-        string="Expires on ",
+        string="Expires on  ",
         compute="_compute_visa_work_permit",
         compute_sudo=True,
     )
@@ -463,7 +463,7 @@ class HrEmployeeInherits(models.Model):
     )
 
     passport_expiration_public = fields.Date(
-        string="Expires on ",
+        string="Expires on  ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
@@ -509,37 +509,37 @@ class HrEmployeeInherits(models.Model):
     # Permanent Address
 
     permanent_street_public = fields.Char(
-        string="Street ",
+        string="Street  ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     permanent_street2_public = fields.Char(
-        string="Street 2 ",
+        string="Street 2  ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     permanent_city_public = fields.Char(
-        string="City ",
+        string="City  ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     permanent_state_public = fields.Char(
-        string="State ",
+        string="State  ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     permanent_zip_public = fields.Char(
-        string="ZIP ",
+        string="ZIP  ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     permanent_country_public = fields.Char(
-        string="Country ",
+        string="Country  ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
