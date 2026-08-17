@@ -323,49 +323,49 @@ class HrEmployeeInherits(models.Model):
             employee_public.gender_public = employee.sex
 
     guardian_type_public = fields.Char(
-        string="Guardian Type",
+        string="Guardian Type ",
         compute="_compute_emergency_contact",
         compute_sudo=True,
     )
 
     father_name_public = fields.Char(
-        string="Father Name",
+        string="Father Name ",
         compute="_compute_emergency_contact",
         compute_sudo=True,
     )
 
     father_mobile_public = fields.Char(
-        string="Father Mobile",
+        string="Father Mobile ",
         compute="_compute_emergency_contact",
         compute_sudo=True,
     )
 
     mother_name_public = fields.Char(
-        string="Mother Name",
+        string="Mother Name ",
         compute="_compute_emergency_contact",
         compute_sudo=True,
     )
 
     mother_mobile_public = fields.Char(
-        string="Mother Mobile",
+        string="Mother Mobile ",
         compute="_compute_emergency_contact",
         compute_sudo=True,
     )
 
     guardian_relationship_public = fields.Char(
-        string="Guardian Relationships",
+        string="Guardian Relationships ",
         compute="_compute_emergency_contact",
         compute_sudo=True,
     )
 
     guardian_name_public = fields.Char(
-        string="Guardian Name",
+        string="Guardian Name ",
         compute="_compute_emergency_contact",
         compute_sudo=True,
     )
 
     guardian_mobile_public = fields.Char(
-        string="Guardian Mobile",
+        string="Guardian Mobile ",
         compute="_compute_emergency_contact",
         compute_sudo=True,
     )
@@ -390,31 +390,31 @@ class HrEmployeeInherits(models.Model):
             employee_public.guardian_mobile_public = employee.guardian_mobile
 
     visa_no_public = fields.Char(
-        string="Visa No",
+        string="Visa No ",
         compute="_compute_visa_work_permit",
         compute_sudo=True,
     )
 
     visa_expire_public = fields.Date(
-        string="Expires on",
+        string="Expires on ",
         compute="_compute_visa_work_permit",
         compute_sudo=True,
     )
 
     work_permit_no_public = fields.Char(
-        string="Work Permit No",
+        string="Work Permit No ",
         compute="_compute_visa_work_permit",
         compute_sudo=True,
     )
 
     work_permit_expiration_date_public = fields.Date(
-        string="Expires on",
+        string="Expires on ",
         compute="_compute_visa_work_permit",
         compute_sudo=True,
     )
 
     has_work_permit_public = fields.Binary(
-        string="Document",
+        string="Document ",
         compute="_compute_visa_work_permit",
         compute_sudo=True,
     )
@@ -439,31 +439,31 @@ class HrEmployeeInherits(models.Model):
     # Citizenship
 
     nationality_public = fields.Char(
-        string="Nationality (Country)",
+        string="Nationality (Country) ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     non_resident_public = fields.Boolean(
-        string="Non-resident",
+        string="Non-resident ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     identification_no_public = fields.Char(
-        string="Identification No",
+        string="Identification No ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     passport_no_public = fields.Char(
-        string="Passport No",
+        string="Passport No ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     passport_expiration_public = fields.Date(
-        string="Expires on",
+        string="Expires on ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
@@ -471,37 +471,37 @@ class HrEmployeeInherits(models.Model):
     # Present Address
 
     present_street_public = fields.Char(
-        string="Street",
+        string="Street ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     present_street2_public = fields.Char(
-        string="Street 2",
+        string="Street 2 ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     present_city_public = fields.Char(
-        string="City",
+        string="City ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     present_state_public = fields.Char(
-        string="State",
+        string="State ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     present_zip_public = fields.Char(
-        string="ZIP",
+        string="ZIP ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     present_country_public = fields.Char(
-        string="Country",
+        string="Country ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
@@ -509,43 +509,43 @@ class HrEmployeeInherits(models.Model):
     # Permanent Address
 
     permanent_street_public = fields.Char(
-        string="Street",
+        string="Street ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     permanent_street2_public = fields.Char(
-        string="Street 2",
+        string="Street 2 ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     permanent_city_public = fields.Char(
-        string="City",
+        string="City ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     permanent_state_public = fields.Char(
-        string="State",
+        string="State ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     permanent_zip_public = fields.Char(
-        string="ZIP",
+        string="ZIP ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     permanent_country_public = fields.Char(
-        string="Country",
+        string="Country ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
 
     distance_home_work_public = fields.Char(
-        string="Distance",
+        string="Distance ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
@@ -632,25 +632,25 @@ class HrEmployeeInherits(models.Model):
             )
 
     pf_nominee_name_public = fields.Char(
-        string="Nominee Name",
+        string="Nominee Name ",
         compute="_compute_pf_details",
         compute_sudo=True,
     )
 
     pf_nominee_relationship_public = fields.Char(
-        string="Relationships",
+        string="Relationships ",
         compute="_compute_pf_details",
         compute_sudo=True,
     )
 
     pf_nominee_percentage_public = fields.Char(
-        string="Percentage",
+        string="Percentage ",
         compute="_compute_pf_details",
         compute_sudo=True,
     )
 
     pf_payment_mode_public = fields.Char(
-        string="Payment Mode",
+        string="Payment Mode ",
         compute="_compute_pf_details",
         compute_sudo=True,
     )
@@ -689,31 +689,31 @@ class HrEmployeeInherits(models.Model):
             )
 
     disabled_public = fields.Boolean(
-        string="Disabled",
+        string="Disabled ",
         compute="_compute_family_information",
         compute_sudo=True,
     )
 
     marital_status_public = fields.Char(
-        string="Marital Status",
+        string="Marital Status ",
         compute="_compute_family_information",
         compute_sudo=True,
     )
 
     spouse_legal_name_public = fields.Char(
-        string="Spouse Legal Name",
+        string="Spouse Legal Name ",
         compute="_compute_family_information",
         compute_sudo=True,
     )
 
     spouse_birthdate_public = fields.Date(
-        string="Spouse Birthdate",
+        string="Spouse Birthdate ",
         compute="_compute_family_information",
         compute_sudo=True,
     )
 
     dependent_children_public = fields.Char(
-        string="Dependent Children",
+        string="Dependent Children ",
         compute="_compute_family_information",
         compute_sudo=True,
     )
@@ -758,7 +758,7 @@ class HrEmployeeInherits(models.Model):
     education_public_ids = fields.One2many(
         "hr.employee.public.education",
         "employee_public_id",
-        string="Education",
+        string="Education ",
         readonly=True,
     )
 
