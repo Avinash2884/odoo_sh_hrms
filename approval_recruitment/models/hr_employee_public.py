@@ -231,7 +231,7 @@ class HrEmployeeInherits(models.Model):
     )
 
     aadhar = fields.Char(
-        string="AADHAR",
+        string="AADHAR ",
         compute="_compute_private_contact",
     )
 
@@ -271,7 +271,7 @@ class HrEmployeeInherits(models.Model):
     )
 
     age_public = fields.Integer(
-        string="Age",
+        string="Age ",
         compute="_compute_personal_information",
         compute_sudo=True,
     )
@@ -289,7 +289,7 @@ class HrEmployeeInherits(models.Model):
     )
 
     blood_group_public = fields.Char(
-        string="Blood Group",
+        string="Blood Group ",
         compute="_compute_personal_information",
         compute_sudo=True,
     )
