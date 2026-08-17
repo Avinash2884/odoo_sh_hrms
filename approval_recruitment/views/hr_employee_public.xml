@@ -121,7 +121,7 @@
                                    readonly="1"/>
 
                             <field name="aadhar"
-                                   string="AADHAR"
+                                   string="AADHAR "
                                    placeholder="Enter 12-digit AADHAR"
                                    readonly="1"/>
 
@@ -141,7 +141,7 @@
                                    readonly="1"/>
 
                             <field name="age_public"
-                                   string="Age"
+                                   string="Age "
                                    readonly="1"/>
 
                             <field name="place_of_birth_public"
@@ -153,7 +153,7 @@
                                    readonly="1"/>
 
                             <field name="blood_group_public"
-                                   string="Blood Group"
+                                   string="Blood Group "
                                    readonly="1"/>
 
                             <field name="gender_public"
