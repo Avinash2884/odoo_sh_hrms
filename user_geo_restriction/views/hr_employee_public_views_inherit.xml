@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
 
             <xpath expr="//page[@name='resume']" position="after">
-                <page name="office_location_tab" string="Office Locations">
+                <page name="office_location_tab" string="Office Locations" invisible="not is_my_employees">
                     <group>
                         <field name="geo_restriction_ids" widget="many2many_tags" string="Allowed Office Locations"/>
                     </group>
