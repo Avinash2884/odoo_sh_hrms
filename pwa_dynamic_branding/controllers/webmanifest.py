@@ -347,7 +347,7 @@ const PWA_CONFIG = {{
     # ========================================
     # PWA Info API
     # ========================================
-    @http.route('/pwa/config', type='json', auth='public', methods=['POST'])
+    @http.route('/pwa/config', type='jsonrpc', auth='public', methods=['POST'])
     def get_pwa_config_json(self, **kwargs):
         """
         JSON API to get current PWA configuration.

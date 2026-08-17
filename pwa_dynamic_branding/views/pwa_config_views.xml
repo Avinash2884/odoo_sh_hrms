@@ -265,7 +265,7 @@
             <field name="arch" type="xml">
                   <form string="🎨 AI PWA Branding Generator">
                         <sheet>
-                              <div class="alert alert-info text-center mb-4">
+                              <div class="alert alert-info text-center mb-4" role="alert">
                                     <h4>✨ AI-Powered PWA Branding</h4>
                                     <p class="mb-0">Tell us about your brand and we'll generate a
                                           beautiful color scheme for your PWA!</p>
