@@ -222,23 +222,22 @@ class HrEmployeeInherits(models.Model):
 
     personal_email = fields.Char(
         string="Personal Email",
-        compute="_compute_private_contact",
+        compute="_compute_private_contact",compute_sudo=True,
     )
 
     contact_number = fields.Char(
         string="Contact Number",
-        compute="_compute_private_contact",
+        compute="_compute_private_contact",compute_sudo=True,
     )
 
     aadhar = fields.Char(
         string="AADHAR ",
-        compute="_compute_private_contact",
+        compute="_compute_private_contact",compute_sudo=True,
     )
 
     bank_accounts_display = fields.Char(
         string="Bank Accounts",
-        compute="_compute_private_contact",
-        compute_sudo=True,
+        compute="_compute_private_contact",compute_sudo=True,
     )
 
     @api.depends()
@@ -463,7 +462,7 @@ class HrEmployeeInherits(models.Model):
     )
 
     passport_expiration_public = fields.Date(
-        string="Expires on  ",
+        string="Expires on   ",
         compute="_compute_citizenship_location",
         compute_sudo=True,
     )
@@ -765,6 +764,7 @@ class HrEmployeeInherits(models.Model):
     # self employee tab
     is_my_employee = fields.Boolean(
         compute="_compute_is_my_employee",
+        compute_sudo=True,
     )
 
     @api.depends("user_id")
