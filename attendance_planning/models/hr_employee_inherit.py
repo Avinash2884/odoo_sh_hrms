@@ -33,8 +33,15 @@ class HrEmployee(models.Model):
     pending_geo_zone_id = fields.Integer(string="Pending Geo Zone", groups="hr.group_hr_user")
     pending_photo_timestamp = fields.Datetime(string="Pending Photo Time", groups="hr.group_hr_user")
 
-    last_photo_attach_status = fields.Boolean(string="Last Photo Attach Succeeded", default=True)
-    last_photo_attach_note = fields.Char(string="Last Photo Attach Note")
+    last_photo_attach_status = fields.Boolean(
+        string="Last Photo Attach Succeeded",
+        default=True,
+        groups="hr.group_hr_user"
+    )
+    last_photo_attach_note = fields.Char(
+        string="Last Photo Attach Note",
+        groups="hr.group_hr_user"
+    )
 
     version_ids = fields.One2many(groups="base.group_user")
 

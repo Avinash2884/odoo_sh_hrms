@@ -65,6 +65,9 @@
             'attendance_planning/static/src/models/tiny_face_detector_model-weights_manifest.json',
             'attendance_planning/static/src/models/tiny_face_detector_model-shard1',
 
+            'attendance_planning/static/src/js/planning_holiday_highlight.js',
+            'attendance_planning/static/src/css/planning_holiday_highlight.css',
+
         ],
     },
     'installable': True,
