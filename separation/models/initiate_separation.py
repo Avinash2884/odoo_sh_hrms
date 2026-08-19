@@ -80,6 +80,15 @@ class InitiateSeparation(models.Model):
         readonly=True,
         tracking=True
     )
+    replace = fields.Selection(
+        [
+            ('yes', 'Yes'),
+            ('no', 'No'),
+        ],
+        string='Replacement needed or not',
+        default='no',
+        required=True,
+    )
     reason_for_resignation = fields.Char(string="Reason For Resignation", copy=False, tracking=True)
     resignation_reason = fields.Selection([
         ('career', 'Better Career Opportunity'),
@@ -338,8 +347,53 @@ class InitiateSeparation(models.Model):
         for record in self:
             record.action_by_manager = self.env.user.name
             record.action_performed_manager = "Approved"
+
+            # Replacement requested
+            if record.replace == 'yes':
+                employee = record.employee_id
+                department = employee.department_id
+
+                if not department:
+                    raise ValidationError(
+                        f"{employee.name} is not assigned to any department."
+                    )
+
+                if not department.manager_id:
+                    raise ValidationError(
+                        f"No Department Head is configured for "
+                        f"the department '{department.name}'."
+                    )
+
+                if not department.manager_id.work_email:
+                    raise ValidationError(
+                        f"The Department Head "
+                        f"'{department.manager_id.name}' "
+                        f"does not have a work email configured."
+                    )
+
+                record._send_replace_email()
+
+            # Existing code
             record.internal_state = 'manager_approved'
             record._send_manager_approval_mail()
+
+    def _send_replace_email(self):
+        template = self.env.ref(
+            'separation.separation_replace_email_template'
+        )
+
+        for record in self:
+            department_head = record.employee_id.department_id.manager_id
+            approver = self.env.user
+
+            template.send_mail(
+                record.id,
+                force_send=True,
+                email_values={
+                    'email_from': approver.partner_id.email_formatted,
+                    'email_to': department_head.work_email,
+                }
+            )
 
     def action_manager_reject(self):
         for record in self:

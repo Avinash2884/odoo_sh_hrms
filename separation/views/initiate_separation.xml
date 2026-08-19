@@ -81,6 +81,8 @@
                                    readonly="not is_hr_head or internal_state in (False,'submitted','hr_approved',
                                    'hr_rejected','handing_approved','handing_rejected','clearance_approved',
                                    'clearance_rejected','exit_approved','exit_rejected','revoked')"/>
+                            <field name="replace"
+                                    readonly="internal_state != 'submitted'" groups="separation.group_separation_reporting_manager"/>
                             <field name="reason_for_resignation" placeholder="Voluntary Resignation" invisible="1"/>
                             <field name="internal_state" readonly="1" invisible="1"/>
                             <field name="it_assets_clearance_ids" invisible="1"/>

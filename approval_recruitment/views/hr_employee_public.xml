@@ -75,7 +75,7 @@
 
 
             <xpath expr="//page[@name='resume']" position="after">
-                <page name="insurance_tab" string="Insurance">
+                <page name="insurance_tab" string="Insurance" invisible="not is_my_employee">
                     <group>
                         <group string="Insurance Details">
                             <field name="dependant_name_1" placeholder="Dependant Name 1"/>
@@ -94,36 +94,326 @@
                         </group>
                     </group>
                 </page>
-                <page name="probation" string="Probation">
+                <page name="probation" string="Probation" invisible="not is_my_employee">
                     <group string="Probation Details">
                         <field name="probation_date_start" placeholder="Probation Start Date" />
                         <field name="probation_date_end" placeholder="Probation End Date" />
                         <field name="probation_status" />
                         <field name="probation_reason"/>
-<!--                        <field name="personal_email_address"/>-->
+                        <field name="personal_email"/>
                     </group>
                 </page>
 
             </xpath>
-<!--            <xpath expr="//page[@name='resume']" position="after">-->
+            <xpath expr="//page[@name='resume']" position="after">
 
-<!--                <page name="personal_information_public" string="Personal">-->
+                <page name="personal_information_public" string="Personal" invisible="not is_my_employee">
 
-<!--                    <group>-->
-<!--                        <group string="Private Contact">-->
-<!--                            <field name="personal_email_address"-->
-<!--                                   string="Personal Email Address"/>-->
-<!--                        </group>-->
+                    <group>
+                        <group string="Private Contact">
 
-<!--                        <group string="Personal Information">-->
-<!--                            <field name="birthday"-->
-<!--                                   string="Date of Birth"/>-->
-<!--                        </group>-->
-<!--                    </group>-->
+                            <field name="personal_email"
+                                   string="Personal Email Address"
+                                   readonly="1"/>
 
-<!--                </page>-->
+                            <field name="contact_number"
+                                   string="Contact Number"
+                                   readonly="1"/>
 
-<!--            </xpath>-->
+                            <field name="aadhar"
+                                   string="AADHAR"
+                                   placeholder="Enter 12-digit AADHAR"
+                                   readonly="1"/>
+
+                            <field name="bank_accounts_display"
+                                   string="Bank Accounts"
+                                   readonly="1"/>
+
+                        </group>
+                        <group string="Personal Information">
+
+                            <field name="legal_name_public"
+                                   string="Legal Name"
+                                   readonly="1"/>
+
+                            <field name="birthday_public"
+                                   string="Date of Birth"
+                                   readonly="1"/>
+
+                            <field name="age_public"
+                                   string="Age"
+                                   readonly="1"/>
+
+                            <field name="place_of_birth_public"
+                                   string="Place of Birth"
+                                   readonly="1"/>
+
+                            <field name="country_of_birth_public"
+                                   string="Country"
+                                   readonly="1"/>
+
+                            <field name="blood_group_public"
+                                   string="Blood Group"
+                                   readonly="1"/>
+
+                            <field name="gender_public"
+                                   string="Gender"
+                                   readonly="1"/>
+
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Emergency Contact">
+
+                            <!-- Guardian Type -->
+                            <field name="guardian_type_public"
+                                   string="Guardian Type"
+                                   readonly="1"/>
+
+                            <!-- FATHER -->
+                            <field name="father_name_public"
+                                   string="Father Name"
+                                   readonly="1"
+                                   invisible="guardian_type_public != 'father'"/>
+
+                            <field name="father_mobile_public"
+                                   string="Father Mobile"
+                                   readonly="1"
+                                   invisible="guardian_type_public != 'father'"/>
+
+                            <!-- MOTHER -->
+                            <field name="mother_name_public"
+                                   string="Mother Name"
+                                   readonly="1"
+                                   invisible="guardian_type_public != 'mother'"/>
+
+                            <field name="mother_mobile_public"
+                                   string="Mother Mobile"
+                                   readonly="1"
+                                   invisible="guardian_type_public != 'mother'"/>
+
+                            <!-- GUARDIAN -->
+                            <field name="guardian_relationship_public"
+                                   string="Guardian Relationships"
+                                   readonly="1"
+                                   invisible="guardian_type_public != 'guardian'"/>
+
+                            <field name="guardian_name_public"
+                                   string="Guardian Name"
+                                   readonly="1"
+                                   invisible="guardian_type_public != 'guardian'"/>
+
+                            <field name="guardian_mobile_public"
+                                   string="Guardian Mobile"
+                                   readonly="1"
+                                   invisible="guardian_type_public != 'guardian'"/>
+
+                        </group>
+                        <group string="Visa &amp; Work Permit">
+
+
+                            <field name="visa_no_public"
+                                   string="Visa No"
+                                   readonly="1"/>
+
+                            <field name="visa_expire_public"
+                                   string="Visa Expires on"
+                                   readonly="1"/>
+
+                            <field name="work_permit_no_public"
+                                   string="Work Permit No"
+                                   readonly="1"/>
+
+                            <field name="work_permit_expiration_date_public"
+                                   string="Work Permit Expires on"
+                                   readonly="1"/>
+
+                            <field name="has_work_permit_public"
+                                   string="Document"
+                                   widget="work_permit_upload"
+                                   readonly="1"/>
+
+
+                        </group>
+                    </group>
+                    <group>
+
+                        <!-- LEFT SIDE : CITIZENSHIP -->
+                        <group string="Citizenship">
+
+                            <field name="nationality_public"
+                                   string="Nationality (Country)"
+                                   readonly="1"/>
+
+                            <field name="non_resident_public"
+                                   string="Non-resident"
+                                   readonly="1"/>
+
+                            <field name="identification_no_public"
+                                   string="Identification No"
+                                   readonly="1"/>
+
+                            <field name="passport_no_public"
+                                   string="Passport No"
+                                   readonly="1"/>
+
+                            <field name="passport_expiration_public"
+                                   string="Passport Expires on"
+                                   readonly="1"/>
+
+                        </group>
+
+
+                        <!-- RIGHT SIDE : LOCATION -->
+                        <group string="Location">
+
+                            <!-- PRESENT ADDRESS -->
+                            <label string="Present Address"
+                                   for="present_street_public"/>
+
+                            <div class="o_address_format">
+
+                                <field name="present_street_public"
+                                       placeholder="Street..."
+                                       readonly="1"
+                                       class="o_address_street"/>
+
+                                <field name="present_street2_public"
+                                       placeholder="Street 2..."
+                                       readonly="1"
+                                       class="o_address_street"/>
+
+                                <field name="present_city_public"
+                                       placeholder="City"
+                                       readonly="1"
+                                       class="o_address_city"/>
+
+                                <field name="present_state_public"
+                                       placeholder="State"
+                                       readonly="1"
+                                       class="o_address_state"/>
+
+                                <field name="present_zip_public"
+                                       placeholder="ZIP"
+                                       readonly="1"
+                                       class="o_address_zip"/>
+
+                                <field name="present_country_public"
+                                       placeholder="Country"
+                                       readonly="1"
+                                       class="o_address_country"/>
+
+                            </div>
+
+
+                            <!-- PERMANENT ADDRESS -->
+                            <label string="Permanent Address"
+                                   for="permanent_street_public"/>
+
+                            <div class="o_address_format">
+
+                                <field name="permanent_street_public"
+                                       placeholder="Street..."
+                                       readonly="1"
+                                       class="o_address_street"/>
+
+                                <field name="permanent_street2_public"
+                                       placeholder="Street 2..."
+                                       readonly="1"
+                                       class="o_address_street"/>
+
+                                <field name="permanent_city_public"
+                                       placeholder="City"
+                                       readonly="1"
+                                       class="o_address_city"/>
+
+                                <field name="permanent_state_public"
+                                       placeholder="State"
+                                       readonly="1"
+                                       class="o_address_state"/>
+
+                                <field name="permanent_zip_public"
+                                       placeholder="ZIP"
+                                       readonly="1"
+                                       class="o_address_zip"/>
+
+                                <field name="permanent_country_public"
+                                       placeholder="Country"
+                                       readonly="1"
+                                       class="o_address_country"/>
+
+                            </div>
+
+                        </group>
+
+                    </group>
+                    <group>
+                        <group string="PF Details">
+
+                            <field name="pf_nominee_name_public"
+                                   string="Nominee Name"
+                                   readonly="1"/>
+
+                            <field name="pf_nominee_relationship_public"
+                                   string="Relationships"
+                                   readonly="1"/>
+
+                            <field name="pf_nominee_percentage_public"
+                                   string="Percentage"
+                                   readonly="1"/>
+
+                            <field name="pf_payment_mode_public"
+                                   string="Payment Mode"
+                                   readonly="1"/>
+
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Family">
+
+                            <field name="disabled_public"
+                                   string="Disabled"
+                                   readonly="1"/>
+
+                            <field name="marital_status_public"
+                                   string="Marital Status"
+                                   readonly="1"/>
+
+                            <field name="spouse_legal_name_public"
+                                   string="Spouse Legal Name"
+                                   readonly="1"
+                                   invisible="marital_status_public not in ['Married', 'Legal Cohabitant']"/>
+
+                            <field name="spouse_birthdate_public"
+                                   string="Spouse Birthdate"
+                                   readonly="1"
+                                   invisible="marital_status_public not in ['Married', 'Legal Cohabitant']"/>
+
+                            <field name="dependent_children_public"
+                                   string="Dependent Children"
+                                   readonly="1"/>
+
+                        </group>
+
+                    </group>
+                    <group>
+                        <field name="education_public_ids"
+                                   nolabel="1"
+                                   readonly="1">
+
+                                <list editable="bottom">
+
+                                    <field name="degree"/>
+                                    <field name="specialisation"/>
+                                    <field name="college_university"/>
+
+                                </list>
+
+                            </field>
+                    </group>
+                </page>
+
+            </xpath>
         </field>
     </record>
     <record id="hr_kanban_view_employees_inherit_public" model="ir.ui.view">
