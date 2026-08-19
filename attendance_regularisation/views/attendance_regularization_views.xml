@@ -14,6 +14,10 @@
                 <field name="to_date"/>
                 <field name="state_select" widget="badge"
                        decoration-info="state_select == 'draft'" decoration-success="state_select == 'approved'" decoration-primary="state_select == 'requested'" decoration-warning="state_select == 'reject'"/>
+                <field name="create_uid"/>
+                <field name="create_date"/>
+                <field name="write_uid"/>
+                <field name="write_date"/>
             </list>
         </field>
     </record>
@@ -24,32 +28,47 @@
         <field name="arch" type="xml">
             <form string="Regularization" duplicate="0">
                 <header>
-                    <button name="action_submit_reg" string="Submit"
-                            type="object" class="btn-primary"
+                    <button name="action_submit_reg"
+                            string="Submit"
+                            type="object"
+                            class="btn-primary"
+                            groups="attendance_regularisation.group_attendance_regular_user"
                             invisible="state_select != 'draft'"/>
-                    <button name="action_regular_approval" type="object"
-                            string="Approve" class="oe_highlight"
-                            groups="hr_attendance.group_hr_attendance_manager"
-                            invisible="state_select != 'requested'"/>
-                    <button name="action_regular_rejection" type="object"
-                            string="Reject" class="oe_highlight"
-                            groups="hr_attendance.group_hr_attendance_manager"
+                    <button name="action_regular_approval"
+                                type="object"
+                                string="Approve"
+                                class="oe_highlight"
+                                groups="attendance_regularisation.group_attendance_regular_approver"
+                                invisible="state_select != 'requested'"/>
+                    <button name="action_regular_rejection"
+                            type="object"
+                            string="Reject"
+                            class="oe_highlight"
+                            groups="attendance_regularisation.group_attendance_regular_approver"
                             invisible="state_select != 'requested'"/>
                     <field name="state_select" widget="statusbar"
                            statusbar_visible="draft,requested,approved"/>
                 </header>
                 <sheet>
-                    <group col="4" colspan="4">
-                        <field name="reg_category"
-                               readonly="state_select == 'approved'"/>
-                        <field name="from_date"
-                               readonly="state_select == 'approved'"/>
-                        <field name="reg_reason"
-                               readonly="state_select == 'approved'"/>
-                        <field name="to_date"
-                               readonly="state_select == 'approved'"/>
-                        <field name="employee_id"
-                               readonly="state_select == 'approved'"/>
+                    <group>
+                        <group>
+                            <field name="employee_id"
+                                   readonly="1" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="reg_category"
+                                   readonly="state_select in ['requested', 'approved']" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="from_date"
+                                   readonly="state_select in ['requested', 'approved']"/>
+                            <field name="to_date"
+                                   readonly="state_select in ['requested', 'approved']"/>
+                            <field name="reg_reason"
+                                   readonly="state_select in ['requested', 'approved']"/>
+                        </group>
+                        <group>
+                            <field name="create_uid" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="create_date"/>
+                            <field name="write_uid" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="write_date"/>
+                        </group>
                     </group>
                 </sheet>
                 <chatter/>
@@ -57,59 +76,73 @@
         </field>
     </record>
     <!-- Action definition for navigating to the Attendance Regular records -->
-    <record id="attendance_regular_action" model="ir.actions.act_window">
-        <field name="name">Attendance Regularization</field>
+
+    <record id="attendance_regular_user_action" model="ir.actions.act_window">
+        <field name="name">Request Regularization</field>
         <field name="res_model">attendance.regular</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[]</field>
+        <field name="domain">[('employee_id.user_id', '=', uid)]</field>
         <field name="context">{'create': True}</field>
         <field name="help" type="html">
-            <p class="oe_view_no_content_create">Create new Request
+            <p class="oe_view_no_content_create">
+                Create new Request
             </p>
         </field>
     </record>
     <!-- Action definition for approving Attendance Regular records -->
-    <record id="attendance_regular_approve_action"
-            model="ir.actions.act_window">
+    <record id="attendance_regular_manager_action" model="ir.actions.act_window">
         <field name="name">Attendance Regularization Approve</field>
         <field name="res_model">attendance.regular</field>
         <field name="view_mode">list,form</field>
         <field name="domain">
-            [('state_select','!=','approved'),('state_select','!=','reject')]
+            [
+                ('employee_id.parent_id.user_id', '=', uid),
+                ('state_select', 'in', ['requested', 'approved'])
+            ]
         </field>
+        <field name="context">{'create': False}</field>
         <field name="help" type="html">
-            <p class="oe_view_no_content_create">Create new Record
+            <p class="oe_view_no_content_create">
+                No regularization records found.
+            </p>
+        </field>
+
+    </record>
+    <record id="attendance_regular_admin_action" model="ir.actions.act_window">
+        <field name="name">All Attendance Regularizations</field>
+        <field name="res_model">attendance.regular</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">
+            [
+                ('state_select', 'in', ['requested', 'approved'])
+            ]
+        </field>
+        <field name="context">{'create': False}</field>
+        <field name="help" type="html">
+            <p class="oe_view_no_content_create">
+                No regularization records found.
             </p>
         </field>
     </record>
-    <!-- Menu item for Attendance Regularization in the HR Attendance menu -->
-    <menuitem id="attendance_regular_menu_root"
-              name="Attendance Regularization"
-              parent="approvals.approvals_menu_root"
-              groups="base.group_user"
-              sequence="12"/>
-    <!-- Submenu item for Attendance Regularization -->
-    <menuitem id="attendance_regular_menu_regularization"
-              name="Attendance Regularization"
-              parent="attendance_regular_menu_root"
-              sequence="15" groups="base.group_user"
-              action="attendance_regular_action"/>
+
     <!-- Menu item for approving Attendance Regularization records -->
     <menuitem id="attendance_regular_menu_approval"
               name="Regularization Approval"
-              parent="attendance_regular_menu_root"
-              sequence="10"
-              action="attendance_regular_approve_action"
-              groups="hr_attendance.group_hr_attendance_manager"/>
-    <menuitem id="attendance_regular_employee_root"
-              name="My Regularization"
-              sequence="5"
-              groups="group_attendance_regular_employees"/>
-
+              parent="approvals.approvals_menu_root"
+              sequence="11"
+              action="attendance_regular_manager_action"
+              groups="attendance_regularisation.group_attendance_regular_approver"/>
     <menuitem id="attendance_regular_employee_menu"
               name="Request Regularization"
-              parent="attendance_regular_employee_root"
-              action="attendance_regular_action"
-              groups="group_attendance_regular_employees"/>
+              sequence="10"
+              action="attendance_regular_user_action"
+              parent="approvals.approvals_menu_root"
+              groups="attendance_regularisation.group_attendance_regular_user"/>
+    <menuitem id="attendance_regular_admin_menu"
+              name="All Regularizations"
+              parent="approvals.approvals_menu_root"
+              sequence="12"
+              action="attendance_regular_admin_action"
+              groups="attendance_regularisation.group_attendance_regular_admin"/>
 
 </odoo>

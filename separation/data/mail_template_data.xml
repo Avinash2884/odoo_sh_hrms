@@ -488,5 +488,70 @@
                 </div>
             </field>
         </record>
+<record id="separation_replace_email_template" model="mail.template">
+    <field name="name">Separation Replacement Request</field>
+
+    <field name="model_id"
+           ref="separation.model_initiate_separation"/>
+
+    <field name="subject">
+        Replacement Request - {{ object.employee_id.name }}
+    </field>
+
+<field name="body_html" type="html">
+    <div style="font-family: Arial; font-size:13px; line-height:1.6;">
+
+        <p>
+            Dear
+            <strong>
+                <t t-out="object.employee_id.department_id.manager_id.name"/>
+            </strong>,
+        </p>
+
+        <p>
+            This is to inform you that a replacement has been requested
+            for the employee
+            <strong>
+                <t t-out="object.employee_id.name"/>
+            </strong>
+            as part of the separation process.
+        </p>
+
+        <p>
+            The replacement request has been reviewed and approved by the
+            Reporting Manager
+            <strong>
+                <t t-out="user.name"/>
+            </strong>.
+        </p>
+
+        <p>
+            <strong>Employee Details:</strong>
+        </p>
+
+        <p>
+            <strong>Employee:</strong>
+            <t t-out="object.employee_id.name"/>
+            <br/>
+            <strong>Department:</strong>
+            <t t-out="object.employee_id.department_id.name"/>
+            <br/>
+        </p>
+
+        <p>
+            Kindly review the requirement and proceed with the necessary
+            replacement arrangements for the above employee.
+        </p>
+
+        <p>
+            Regards,<br/>
+            <strong>
+                <t t-out="user.name"/>
+            </strong><br/>
+        </p>
+
+    </div>
+</field>
+</record>
     </data>
 </odoo>

@@ -9,8 +9,8 @@
     'depends': ['hr','hr_attendance', 'hr_holidays',
                 'oh_employee_creation_from_user','planning','approvals'],
     'data': [
-        'security/ir.model.access.csv',
         'security/attendance_regularization_security.xml',
+        'security/ir.model.access.csv',
         # 'security/attendance_security.xml',
         'views/reg_categories_views.xml',
         'views/attendance_regularization_views.xml',
