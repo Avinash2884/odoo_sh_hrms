@@ -29,9 +29,9 @@ class HrEmployee(models.Model):
     has_registered_face = fields.Boolean(compute='_compute_has_registered_face')
     is_current_user = fields.Boolean(compute='_compute_is_current_user')
 
-    pending_attendance_photo = fields.Text(string="Pending Photo", groups="base.group_user")
-    pending_geo_zone_id = fields.Integer(string="Pending Geo Zone", groups="base.group_user")
-    pending_photo_timestamp = fields.Datetime(string="Pending Photo Time", groups="base.group_user")
+    pending_attendance_photo = fields.Text(string="Pending Photo", groups="hr.group_hr_user")
+    pending_geo_zone_id = fields.Integer(string="Pending Geo Zone", groups="hr.group_hr_user")
+    pending_photo_timestamp = fields.Datetime(string="Pending Photo Time", groups="hr.group_hr_user")
 
     last_photo_attach_status = fields.Boolean(string="Last Photo Attach Succeeded", default=True)
     last_photo_attach_note = fields.Char(string="Last Photo Attach Note")

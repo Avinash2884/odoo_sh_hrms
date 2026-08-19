@@ -1,5 +1,7 @@
 from odoo import models, fields
 import logging
+import pytz
+from datetime import datetime, time
 
 _logger = logging.getLogger(__name__)
 
@@ -32,37 +34,118 @@ class HrAttendance(models.Model):
 
         for holiday in holidays:
 
-            holiday_date = fields.Date.to_date(holiday.date_from)
+            # ---------------------------------------------------------
+            # IMPORTANT:
+            # Odoo stores datetime values in UTC.
+            # Convert holiday datetime to the user's/local timezone
+            # before extracting the actual calendar date.
+            # ---------------------------------------------------------
 
-            # Day range (IMPORTANT FIX for timezone issue)
-            start = f"{holiday_date} 00:00:00"
-            end = f"{holiday_date} 23:59:59"
+            if not holiday.date_from:
+                continue
 
-            _logger.info("Processing Holiday: %s", holiday_date)
+            holiday_dt_utc = fields.Datetime.to_datetime(holiday.date_from)
+
+            # Use employee/company/user timezone.
+            # For your India setup, Asia/Kolkata is used.
+            timezone_name = self.env.user.tz or 'Asia/Kolkata'
+
+            try:
+                local_tz = pytz.timezone(timezone_name)
+            except Exception:
+                local_tz = pytz.timezone('Asia/Kolkata')
+
+            # Odoo datetime is naive UTC
+            holiday_dt_utc = pytz.UTC.localize(holiday_dt_utc)
+
+            # Convert UTC -> Local timezone
+            holiday_dt_local = holiday_dt_utc.astimezone(local_tz)
+
+            # Actual local Public Holiday date
+            holiday_date = holiday_dt_local.date()
+
+            _logger.info(
+                "Holiday: %s | UTC: %s | Local: %s | Local Date: %s",
+                holiday.name,
+                holiday_dt_utc,
+                holiday_dt_local,
+                holiday_date,
+            )
+
+            # ---------------------------------------------------------
+            # Local day boundaries
+            # ---------------------------------------------------------
+
+            local_start = local_tz.localize(
+                datetime.combine(holiday_date, time.min)
+            )
+
+            local_end = local_tz.localize(
+                datetime.combine(holiday_date, time.max)
+            )
+
+            # Convert local boundaries back to UTC
+            utc_start = local_start.astimezone(pytz.UTC).replace(tzinfo=None)
+            utc_end = local_end.astimezone(pytz.UTC).replace(tzinfo=None)
+
+            _logger.info(
+                "Holiday %s | Local Range: %s -> %s | UTC Range: %s -> %s",
+                holiday_date,
+                local_start,
+                local_end,
+                utc_start,
+                utc_end,
+            )
 
             for employee in employees:
 
-                # IMPORTANT FIX: proper time range search
+                # ---------------------------------------------------------
+                # Attendance search using CORRECT UTC range
+                # corresponding to the employee's local holiday date
+                # ---------------------------------------------------------
+
                 attendances = self.env['hr.attendance'].sudo().search([
                     ('employee_id', '=', employee.id),
-                    ('check_in', '>=', start),
-                    ('check_in', '<=', end),
-                ], limit=1)
+                    ('check_in', '>=', utc_start),
+                    ('check_in', '<=', utc_end),
+                ], order='check_in asc', limit=1)
 
                 if not attendances:
                     continue
 
                 attendance = attendances[0]
 
+                _logger.info(
+                    "Attendance found | Employee: %s | Check In UTC: %s | "
+                    "Check Out UTC: %s | Holiday Local Date: %s",
+                    employee.name,
+                    attendance.check_in,
+                    attendance.check_out,
+                    holiday_date,
+                )
+
                 # Validation checks
                 if not attendance.check_out:
+                    _logger.info(
+                        "Skipping %s - Check Out not found",
+                        employee.name
+                    )
                     continue
 
                 if attendance.worked_hours <= 0:
+                    _logger.info(
+                        "Skipping %s - Worked hours <= 0",
+                        employee.name
+                    )
                     continue
 
-                # Unique key (no duplicates)
-                unique_name = f"Comp Off - {holiday_date.strftime('%d/%m/%Y')}"
+                # ---------------------------------------------------------
+                # Unique key
+                # ---------------------------------------------------------
+
+                unique_name = (
+                    f"Comp Off - {holiday_date.strftime('%d/%m/%Y')}"
+                )
 
                 # Prevent duplicates
                 existing = self.env['hr.leave.allocation'].sudo().search([
@@ -72,11 +155,19 @@ class HrAttendance(models.Model):
                 ], limit=1)
 
                 if existing:
-                    _logger.info("Already exists for %s", employee.name)
+                    _logger.info(
+                        "Already exists for %s | %s",
+                        employee.name,
+                        unique_name
+                    )
                     continue
 
                 try:
+
+                    # -----------------------------------------------------
                     # Create allocation
+                    # -----------------------------------------------------
+
                     allocation = self.env['hr.leave.allocation'].sudo().create({
                         'name': unique_name,
                         'employee_id': employee.id,
@@ -85,19 +176,24 @@ class HrAttendance(models.Model):
                     })
 
                     _logger.info(
-                        "Comp Off Created for %s | ID: %s",
+                        "Comp Off Created for %s | ID: %s | Holiday: %s",
                         employee.name,
-                        allocation.id
+                        allocation.id,
+                        holiday_date,
                     )
 
                     # Odoo 19 safe validation
                     if hasattr(allocation, "action_validate"):
                         allocation.action_validate()
 
-                    # ---------------- Employee Mail ----------------
+                    # -----------------------------------------------------
+                    # Employee Mail
+                    # -----------------------------------------------------
+
                     if employee.work_email:
+
                         self.env['mail.mail'].sudo().create({
-                            'subject': 'Compensatory Off Credited',
+                            'subject': 'Compensatory Off Eligibility',
                             'email_to': employee.work_email,
                             'body_html': f"""
                                 <div>
@@ -108,22 +204,30 @@ class HrAttendance(models.Model):
                                         <b>{holiday_date.strftime('%d/%m/%Y')}</b>.
                                     </p>
 
-                                    <p>
-                                        <b>1 Compensatory Off</b> has been credited.
-                                    </p>
+                <p>
+                    You are eligible for
+                    <b>Compensatory Off</b>.
+                </p>
 
-                                    <p>Regards,
-HR Team</p>
+                                    <p>
+                                        Regards,
+
+                                        HR Team
+                                    </p>
                                 </div>
                             """
                         }).send()
 
-                    # ---------------- Manager Mail ----------------
+                    # -----------------------------------------------------
+                    # Manager Mail
+                    # -----------------------------------------------------
+
                     manager = employee.parent_id
 
                     if manager and manager.work_email:
+
                         self.env['mail.mail'].sudo().create({
-                            'subject': 'Employee Comp Off Credited',
+                            'subject': 'Compensatory Off Approval Required',
                             'email_to': manager.work_email,
                             'body_html': f"""
                                 <div>
@@ -135,17 +239,27 @@ HR Team</p>
                                         <b>{holiday_date.strftime('%d/%m/%Y')}</b>.
                                     </p>
 
-                                    <p>
-                                        Comp Off has been credited.
-                                    </p>
+<p>
+                    A <b>Compensatory Off</b> has been created against
+                    the employee.
+                </p>
 
-                                    <p>Regards,
-HR Team</p>
+                <p>
+                    Kindly review and approve the Compensatory Off.
+                </p>
+
+
+                                    <p>
+                                        Regards,
+
+                                        HR Team
+                                    </p>
                                 </div>
                             """
                         }).send()
 
                 except Exception as e:
+
                     _logger.exception(
                         "Comp Off failed for %s : %s",
                         employee.name,
