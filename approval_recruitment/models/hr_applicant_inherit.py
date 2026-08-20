@@ -444,6 +444,7 @@ class HrApplicantInherit(models.Model):
             ], limit=1)
 
             notice_period = offer.offer_letter_notice_period if offer else False
+            confirmed_notice_period = offer.confirmed_notice_period if offer else False
 
             # 2. MAPPING: Put the data in the exact, separated Employee boxes
             employee.write({
@@ -461,6 +462,7 @@ class HrApplicantInherit(models.Model):
                 'permanent_state_id': state_id,
                 'permanent_zip': self.pincode,
                 'employee_notice_period': notice_period,
+                'confirmed_employee_notice_period': confirmed_notice_period,
             })
 
             # 3. Map the Education Table

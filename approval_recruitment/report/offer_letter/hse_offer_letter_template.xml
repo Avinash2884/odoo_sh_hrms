@@ -111,7 +111,7 @@
                                 During this period, the engagement may be ended through a written notification, by giving <t t-esc="object.offer_letter_notice_period or '-'"/> days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
                             </p>
                             <p>
-                                As a confirmed full-time employee, the employment can be terminated by giving <t t-esc="object.offer_letter_notice_period or '-'"/> days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
+                                As a confirmed full-time employee, the employment can be terminated by giving <t t-esc="object.confirmed_notice_period or '-'"/> days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
                             </p>
                             <p>
                                A detailed agreement outlining the terms and conditions of your association with the Company will be issued as part of your joining formalities. During the course of employment with the company, you shall not enter the service or employment, consultancy, full or part time, for any other person or organization, nor shall you carry on or be interested in any business.

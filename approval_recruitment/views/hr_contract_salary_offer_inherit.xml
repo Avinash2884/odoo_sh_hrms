@@ -36,6 +36,7 @@
             <xpath expr="//field[@name='contract_type_id']" position="after">
                 <field name="offer_letter_type"/>
                 <field name="offer_letter_notice_period"/>
+                <field name="confirmed_notice_period"/>
             </xpath>
             <xpath expr="//sheet" position="inside">
                 <notebook>

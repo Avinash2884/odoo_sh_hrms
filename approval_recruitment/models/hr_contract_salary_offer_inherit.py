@@ -96,7 +96,8 @@ class HrContractSalaryOffer(models.Model):
         compute="_compute_salary_breakup",
         store=True
     )
-    offer_letter_notice_period = fields.Integer(string="Notice Period",tracking=True)
+    offer_letter_notice_period = fields.Integer(string="Probation Notice Period",tracking=True)
+    confirmed_notice_period = fields.Integer(string="Confirmed Notice Period",tracking=True)
 
     def get_notice_period_words(self):
         for rec in self:
@@ -163,19 +164,304 @@ class HrContractSalaryOffer(models.Model):
                 ) % (rec.offer_letter_type))
 
     def action_print_cmt_offer_letter(self):
-        self._check_offer_template('approval_recruitment.action_report_cmt_offer_letter_template')
-        return self.env.ref('approval_recruitment.action_report_cmt_offer_letter_template').report_action(self)
+        for record in self:
+            missing_fields = []
+
+            if not record.cmt_designation:
+                missing_fields.append("CMT Designation")
+
+            if not record.band_id:
+                missing_fields.append("CMT Band")
+
+            if not record.level_id:
+                missing_fields.append("CMT Level")
+
+            if not record.final_yearly_costs:
+                missing_fields.append("Salary")
+
+            # Applicant / Job / HR Details
+            if not record.applicant_id:
+                missing_fields.append("Applicant")
+
+            elif not record.applicant_id.job_id:
+                missing_fields.append("Job Position")
+
+            else:
+                if not record.applicant_id.ls_date_of_joining:
+                    missing_fields.append("Date of Joining")
+
+                if not record.applicant_id.job_id.hr_head_name:
+                    missing_fields.append("HR Head Name")
+
+                if not record.applicant_id.job_id.hr_description:
+                    missing_fields.append("HR Description")
+
+            # Company Details
+            if not record.company_id:
+                missing_fields.append("Company")
+
+            else:
+                if not record.company_id.name:
+                    missing_fields.append("Company Name")
+
+                if not record.company_id.street:
+                    missing_fields.append("Company Street")
+
+                if not record.company_id.street2:
+                    missing_fields.append("Company Street 2")
+
+                if not record.company_id.city:
+                    missing_fields.append("Company City")
+
+                if not record.company_id.state_id:
+                    missing_fields.append("Company State")
+
+                if not record.company_id.zip:
+                    missing_fields.append("Company ZIP")
+
+            if missing_fields:
+                raise UserError(
+                    _("Please fill in the following fields before printing the CMT Offer Letter:\n\n- %s")
+                    % "\n- ".join(missing_fields)
+                )
+
+            record._check_offer_template(
+                'approval_recruitment.action_report_cmt_offer_letter_template'
+            )
+
+            return self.env.ref(
+                'approval_recruitment.action_report_cmt_offer_letter_template'
+            ).report_action(record)
 
     def action_print_hse_offer_letter(self):
-        self._check_offer_template('approval_recruitment.action_report_hse_offer_letter_template')
-        return self.env.ref('approval_recruitment.action_report_hse_offer_letter_template').report_action(self)
+        for record in self:
+            missing_fields = []
+
+            if not record.hse_designation:
+                missing_fields.append("HSE Designation")
+
+            if not record.hse_intern_hospital_name:
+                missing_fields.append("HSE Intern (Hospital Name)")
+
+            if not record.hse_intern_hospital_city:
+                missing_fields.append("HSE Intern (Hospital City)")
+
+            if not record.hse_band_id:
+                missing_fields.append("HSE Band")
+
+            if not record.hse_level_id:
+                missing_fields.append("HSE Level")
+
+            if not record.final_yearly_costs:
+                missing_fields.append("Salary")
+
+            # Applicant / Job / HR Details
+            if not record.applicant_id:
+                missing_fields.append("Applicant")
+
+            elif not record.applicant_id.job_id:
+                missing_fields.append("Job Position")
+
+            else:
+                if not record.applicant_id.ls_date_of_joining:
+                    missing_fields.append("Date of Joining")
+
+                if not record.applicant_id.job_id.hr_head_name:
+                    missing_fields.append("HR Head Name")
+
+                if not record.applicant_id.job_id.hr_description:
+                    missing_fields.append("HR Description")
+
+            # Company Details
+            if not record.company_id:
+                missing_fields.append("Company")
+
+            else:
+                if not record.company_id.name:
+                    missing_fields.append("Company Name")
+
+                if not record.company_id.street:
+                    missing_fields.append("Company Street")
+
+                if not record.company_id.street2:
+                    missing_fields.append("Company Street 2")
+
+                if not record.company_id.city:
+                    missing_fields.append("Company City")
+
+                if not record.company_id.state_id:
+                    missing_fields.append("Company State")
+
+                if not record.company_id.zip:
+                    missing_fields.append("Company ZIP")
+
+            if missing_fields:
+                raise UserError(
+                    _(
+                        "Please fill in the following fields before printing "
+                        "the HSE Offer Letter:\n\n- %s"
+                    )
+                    % "\n- ".join(missing_fields)
+                )
+
+            record._check_offer_template(
+                'approval_recruitment.action_report_hse_offer_letter_template'
+            )
+
+            return self.env.ref(
+                'approval_recruitment.action_report_hse_offer_letter_template'
+            ).report_action(record)
 
     def action_print_offer(self):
-        self._check_offer_template('approval_recruitment.action_report_offer_of_appointment')
-        return self.env.ref('approval_recruitment.action_report_offer_of_appointment').report_action(self)
+        for record in self:
+            missing_fields = []
+
+            if not record.designation:
+                missing_fields.append("Offer Designation")
+
+            if not record.variable_pay_ctc:
+                missing_fields.append("Variable Pay CTC")
+
+            if not record.offer_hospital_name:
+                missing_fields.append("Offer of Appointment (Hospital Name)")
+
+            if not record.offer_hospital_city:
+                missing_fields.append("Offer of Appointment (Hospital City)")
+
+            if not record.offer_band_id:
+                missing_fields.append("Offer Band")
+
+            if not record.offer_level_id:
+                missing_fields.append("Offer Level")
+
+            if not record.final_yearly_costs:
+                missing_fields.append("Salary")
+
+            # Applicant / Job / HR Details
+            if not record.applicant_id:
+                missing_fields.append("Applicant")
+
+            elif not record.applicant_id.job_id:
+                missing_fields.append("Job Position")
+
+            else:
+                if not record.applicant_id.ls_date_of_joining:
+                    missing_fields.append("Date of Joining")
+
+                if not record.applicant_id.job_id.hr_head_name:
+                    missing_fields.append("HR Head Name")
+
+                if not record.applicant_id.job_id.hr_description:
+                    missing_fields.append("HR Description")
+
+            if not record.company_id:
+                missing_fields.append("Company")
+
+            else:
+                if not record.company_id.name:
+                    missing_fields.append("Company Name")
+
+                if not record.company_id.street:
+                    missing_fields.append("Company Street")
+
+                if not record.company_id.street2:
+                    missing_fields.append("Company Street 2")
+
+                if not record.company_id.city:
+                    missing_fields.append("Company City")
+
+                if not record.company_id.state_id:
+                    missing_fields.append("Company State")
+
+                if not record.company_id.zip:
+                    missing_fields.append("Company ZIP")
+
+            if missing_fields:
+                raise UserError(
+                    _("Please fill in the following fields before printing the Full Time Employee Offer Letter:\n\n- %s")
+                    % "\n- ".join(missing_fields)
+                )
+
+            record._check_offer_template(
+                'approval_recruitment.action_report_offer_of_appointment'
+            )
+
+            return self.env.ref(
+                'approval_recruitment.action_report_offer_of_appointment'
+            ).report_action(record)
 
     def action_print_internship(self):
-        self._check_offer_template('approval_recruitment.action_report_internship_letter')
-        return self.env.ref('approval_recruitment.action_report_internship_letter').report_action(self)
+        for record in self:
+            missing_fields = []
+
+            # Internship Details
+            if not record.start_date:
+                missing_fields.append("Start Date")
+
+            if not record.end_date:
+                missing_fields.append("End Date")
+
+            if not record.department_id:
+                missing_fields.append("Department")
+
+            if not record.final_yearly_costs:
+                missing_fields.append("Salary")
+
+            # Applicant / Job / HR Details
+            if not record.applicant_id:
+                missing_fields.append("Applicant")
+
+            elif not record.applicant_id.job_id:
+                missing_fields.append("Job Position")
+
+            else:
+                if not record.applicant_id.job_id.hr_head_name:
+                    missing_fields.append("HR Head Name")
+
+                if not record.applicant_id.job_id.hr_description:
+                    missing_fields.append("HR Description")
+
+            # Company Details
+            if not record.company_id:
+                missing_fields.append("Company")
+
+            else:
+                if not record.company_id.name:
+                    missing_fields.append("Company Name")
+
+                if not record.company_id.street:
+                    missing_fields.append("Company Street")
+
+                if not record.company_id.street2:
+                    missing_fields.append("Company Street 2")
+
+                if not record.company_id.city:
+                    missing_fields.append("Company City")
+
+                if not record.company_id.state_id:
+                    missing_fields.append("Company State")
+
+                if not record.company_id.zip:
+                    missing_fields.append("Company ZIP")
+
+            # Validation Error
+            if missing_fields:
+                raise UserError(
+                    _(
+                        "Please fill in the following fields before printing "
+                        "the Internship Letter:\n\n- %s"
+                    )
+                    % "\n- ".join(missing_fields)
+                )
+
+            # Check Template
+            record._check_offer_template(
+                'approval_recruitment.action_report_internship_letter'
+            )
+
+            # Print Report
+            return self.env.ref(
+                'approval_recruitment.action_report_internship_letter'
+            ).report_action(record)
 
 
