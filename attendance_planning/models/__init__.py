@@ -7,3 +7,4 @@ from . import res_config_settings
 from . import attendance_photo
 # from . import hr_work_entry_readonly
 from . import attendance_matrix
+from . import planning_public_holiday
