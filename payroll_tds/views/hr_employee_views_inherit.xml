@@ -7,6 +7,39 @@
     <field name="inherit_id" ref="hr.view_employee_form"/>
     <field name="arch" type="xml">
 
+
+        <!-- ================================================= -->
+<!-- NPS CONTRIBUTION - BESIDE LWF -->
+<!-- ================================================= -->
+
+<xpath expr="//group[.//field[@name='l10n_in_lwf_employer_contribution']]/parent::group"
+       position="inside">
+
+    <group string="NPS Contribution">
+
+        <label for="l10n_in_nps_employer_amount"
+               string="Employer"/>
+
+        <div class="o_row">
+
+            <field name="l10n_in_nps_employer_amount"
+                   class="o_hr_narrow_field"
+                   readonly="1"/>
+
+            <span>/ month</span>
+
+            <field name="l10n_in_nps_employer_type"
+                   nolabel="1"
+                   class="o_hr_narrow_field"/>
+
+            <span>%</span>
+
+        </div>
+
+    </group>
+
+</xpath>
+
         <xpath expr="//group[.//field[@name='l10n_in_lwf_employer_contribution']]" position="after">
 
             <group col="2">
