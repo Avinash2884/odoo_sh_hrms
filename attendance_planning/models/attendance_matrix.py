@@ -7,54 +7,46 @@ INDIA_TZ = pytz.timezone('Asia/Kolkata')
 
 
 def _to_ist(utc_naive_dt):
-    """Convert naive UTC datetime → IST aware datetime."""
     if not utc_naive_dt:
         return None
     return pytz.utc.localize(utc_naive_dt).astimezone(INDIA_TZ)
 
 
 def _ist_date(utc_naive_dt):
-    """Return the IST calendar date for a naive UTC datetime."""
     aware = _to_ist(utc_naive_dt)
     return aware.date() if aware else None
 
 
 def _ist_hhmm(utc_naive_dt):
-    """Return 'HH:MM' string in IST for a naive UTC datetime."""
     aware = _to_ist(utc_naive_dt)
     return aware.strftime('%H:%M') if aware else ''
 
 
 class AttendanceMatrixReport(models.AbstractModel):
     """
-    Pure data-service model — no stored table, no ORM records.
+    Attendance Sheet grid — one cell per (employee, day).
 
-    Week-off logic (two separate sources):
-    ─────────────────────────────────────
-    ROTATIONAL employees  →  planning.slot rows for the employee in the
-                             requested month where is_week_off = True
-                             (calendar_id is False).  These are uploaded
-                             month-by-month by HR so we ONLY look at the
-                             current month — no future/past bleed.
+    Badge logic
+    ────────────────────────────────────────────────────────────────
+    ROTATIONAL employee:
+      planning.slot with calendar_id exists (real shift):
+        • No check-in yet          → shift name  e.g. "G1"  (planned)
+        • Checked in, no checkout  → "P"                     (in-progress)
+        • Checked out              → "A"  (+ "OT" if approved OT > 0)
+      planning.slot with no calendar_id → week-off (WO)
+      No planning slot at all          → empty cell
 
-    REGULAR employees     →  EDP config params (same keys the EDP bouncer
-                             reads):
-                               attendance.edp_restrict_sunday
-                               attendance.edp_restrict_sat_1 … _sat_5
+    REGULAR employee:
+      Any hr.attendance that day → "A"  (+ "OT")
+      No attendance              → week-off if config says so, else empty
 
-    EDP badge rule        →  Only shown when the hr.edp.request is
-                             'approved' AND the employee already has a
-                             check_out on the matching hr.attendance record
-                             for that day (i.e. the duty is DONE).
+    EDP badge:  approved hr.edp.request AND check_out exists that day.
     """
     _name = 'attendance.matrix.report'
     _description = 'Attendance Sheet (A / OT / EDP grid)'
 
-    # ──────────────────────────────────────────────────────────────────
-    # REGULAR-SHIFT week-off helpers  (config-param based)
-    # ──────────────────────────────────────────────────────────────────
+    # ── Regular week-off (config params) ─────────────────────────────────────
     def _get_regular_weekoff_config(self):
-        """Returns (restrict_sunday: bool, restricted_sat_weeks: set[int])."""
         get_param = self.env['ir.config_parameter'].sudo().get_param
 
         def is_active(key):
@@ -68,58 +60,51 @@ class AttendanceMatrixReport(models.AbstractModel):
 
     def _regular_weekoff_days_for_month(self, year, month,
                                         restrict_sunday, restricted_sats):
-        """Return set of 'YYYY-MM-DD' strings that are week-offs for
-        regular-shift employees in the given month."""
         days_in_month = cal_module.monthrange(year, month)[1]
         weekoffs = set()
         for day_num in range(1, days_in_month + 1):
             d = date(year, month, day_num)
-            weekday = d.weekday()          # Mon=0 … Sun=6
+            weekday = d.weekday()
             if weekday == 6 and restrict_sunday:
                 weekoffs.add(str(d))
-            elif weekday == 5:             # Saturday
+            elif weekday == 5:
                 week_of_month = (d.day - 1) // 7 + 1
                 if week_of_month in restricted_sats:
                     weekoffs.add(str(d))
         return weekoffs
 
-    # ──────────────────────────────────────────────────────────────────
-    # ROTATIONAL-SHIFT week-off helpers  (planning.slot based)
-    # ──────────────────────────────────────────────────────────────────
+    # ── Rotational week-off (planning slots with no calendar) ────────────────
     def _rotational_weekoff_days_for_employee(self, emp_id, year, month):
-        """Return set of 'YYYY-MM-DD' strings that are week-offs for
-        ONE rotational employee, sourced from planning.slot rows where
-        is_week_off=True in the given month ONLY."""
         first_day = date(year, month, 1)
         last_day = date(year, month, cal_module.monthrange(year, month)[1])
-
-        # planning.slot stores shift_date as a plain Date field.
-        # We filter by that date range + this specific employee + no calendar
-        # (is_week_off computed = True when calendar_id is False).
         slots = self.env['planning.slot'].sudo().search([
             ('employee_id', '=', emp_id),
             ('shift_date', '>=', first_day),
             ('shift_date', '<=', last_day),
-            ('calendar_id', '=', False),   # is_week_off == True
+            ('calendar_id', '=', False),
         ])
         return {str(s.shift_date) for s in slots if s.shift_date}
 
-    # ──────────────────────────────────────────────────────────────────
-    # MAIN GRID BUILDER
-    # ──────────────────────────────────────────────────────────────────
+    # ── Rotational real shifts (with calendar_id) ─────────────────────────────
+    def _rotational_shift_slots_for_employee(self, emp_id, year, month):
+        """Returns { 'YYYY-MM-DD': shift_name } for real (non-WO) planning slots."""
+        first_day = date(year, month, 1)
+        last_day = date(year, month, cal_module.monthrange(year, month)[1])
+        slots = self.env['planning.slot'].sudo().search([
+            ('employee_id', '=', emp_id),
+            ('shift_date', '>=', first_day),
+            ('shift_date', '<=', last_day),
+            ('calendar_id', '!=', False),
+        ])
+        result = {}
+        for s in slots:
+            if s.shift_date:
+                result[str(s.shift_date)] = s.calendar_id.name or 'SHIFT'
+        return result
+
+    # ── Main grid builder ─────────────────────────────────────────────────────
     @api.model
     def get_matrix_data(self, year, month, employee_ids=None, department_id=None):
-        """Build and return the full month grid.
-
-        Returns
-        -------
-        {
-          'employees': [{'id': int, 'name': str, 'shift_type': str}, …],
-          'days':      ['YYYY-MM-DD', …],          # all days in month
-          'matrix':    {emp_id: {day_key: {'codes': […], 'detail': {…}}}, …},
-          'weekoff_days_by_emp': {emp_id: ['YYYY-MM-DD', …], …},
-        }
-        """
         Employee = self.env['hr.employee']
         domain = []
         if employee_ids:
@@ -144,22 +129,26 @@ class AttendanceMatrixReport(models.AbstractModel):
 
         emp_ids = employees.ids
 
-        # ── Regular-shift week-off config (computed once) ──
+        # Regular week-off config (once for all regular employees)
         restrict_sunday, restricted_sats = self._get_regular_weekoff_config()
         regular_weekoffs = self._regular_weekoff_days_for_month(
             year, month, restrict_sunday, restricted_sats)
 
-        # ── Per-employee week-off sets ──
+        # Per-employee data
         weekoff_days_by_emp = {}
+        shift_slots_by_emp = {}   # rotational only: day_key → shift_name
+
         for emp in employees:
             if emp.shift_type == 'rotational':
                 weekoff_days_by_emp[emp.id] = \
                     self._rotational_weekoff_days_for_employee(emp.id, year, month)
+                shift_slots_by_emp[emp.id] = \
+                    self._rotational_shift_slots_for_employee(emp.id, year, month)
             else:
-                # regular (or unset) — use config-param rules
                 weekoff_days_by_emp[emp.id] = set(regular_weekoffs)
+                shift_slots_by_emp[emp.id] = {}
 
-        # ── Attendance records: widen UTC window ±1 day for IST safety ──
+        # Attendance records — widen UTC window ±1 day for IST safety
         utc_window_start = datetime(year, month, 1) - timedelta(days=1)
         utc_window_end = datetime(year, month, days_in_month) + timedelta(days=2)
 
@@ -169,7 +158,7 @@ class AttendanceMatrixReport(models.AbstractModel):
             ('check_in', '<', utc_window_end),
         ])
 
-        # ── Approved EDP requests for this month ──
+        # Approved EDP requests
         edp_requests = self.env['hr.edp.request'].search([
             ('employee_id', 'in', emp_ids),
             ('date', '>=', first_day),
@@ -177,7 +166,7 @@ class AttendanceMatrixReport(models.AbstractModel):
             ('state', '=', 'approved'),
         ])
 
-        # ── att_lookup: (emp_id, 'YYYY-MM-DD' IST) → [hr.attendance, …] ──
+        # att_lookup: (emp_id, IST-date-str) → [hr.attendance, …]
         att_lookup = {}
         for att in attendances:
             if not att.check_in:
@@ -190,65 +179,88 @@ class AttendanceMatrixReport(models.AbstractModel):
                 continue
             att_lookup.setdefault((att.employee_id.id, day_key), []).append(att)
 
-        # ── edp_lookup: (emp_id, 'YYYY-MM-DD') → hr.edp.request ──
-        # RULE: EDP badge only when employee has checked OUT that day.
-        #       We check this inside the matrix loop below.
+        # edp_lookup: (emp_id, date-str) → hr.edp.request
         edp_lookup = {}
         for edp in edp_requests:
             edp_lookup[(edp.employee_id.id, str(edp.date))] = edp
 
-        # ── Build matrix ──
+        # Build matrix
         matrix = {}
         for emp in employees:
             emp_row = {}
-            emp_weekoffs = weekoff_days_by_emp[emp.id]
+            is_rotational = (emp.shift_type == 'rotational')
+            emp_shifts = shift_slots_by_emp.get(emp.id, {})
 
             for day_key in day_list:
                 codes = []
                 detail = {}
 
                 day_atts = att_lookup.get((emp.id, day_key), [])
+                has_checkin  = bool(day_atts)
                 has_checkout = any(a.check_out for a in day_atts)
 
-                if day_atts:
-                    codes.append('A')
-                    punches = []
-                    total_ot = 0.0
-                    total_worked = 0.0
+                if is_rotational:
+                    shift_name = emp_shifts.get(day_key)  # None if no slot
 
+                    if shift_name:
+                        if not has_checkin:
+                            # Shift assigned, employee not arrived yet
+                            codes.append(shift_name)
+                            detail['shift_name'] = shift_name
+                            detail['shift_status'] = 'planned'
+                        elif has_checkin and not has_checkout:
+                            # Currently working
+                            codes.append('P')
+                            detail['shift_name'] = shift_name
+                            detail['shift_status'] = 'in_progress'
+                        else:
+                            # Shift completed
+                            codes.append('A')
+                            detail['shift_name'] = shift_name
+                            detail['shift_status'] = 'done'
+                else:
+                    # Regular employee
+                    if has_checkin:
+                        codes.append('A')
+
+                # OT — only when checked out, both shift types
+                if has_checkout:
+                    total_ot = sum(a.approved_extra_hours or 0.0 for a in day_atts)
+                    if total_ot > 0:
+                        codes.append('OT')
+
+                # Punch details for popup
+                if day_atts:
+                    punches = []
+                    total_worked = 0.0
+                    total_ot = 0.0
                     for a in day_atts:
                         approved_ot = a.approved_extra_hours or 0.0
                         worked = a.worked_hours_custom or 0.0
                         punches.append({
-                            'check_in': _ist_hhmm(a.check_in),
-                            # Show '-' if employee hasn't checked out yet
+                            'check_in':  _ist_hhmm(a.check_in),
                             'check_out': _ist_hhmm(a.check_out) if a.check_out else '-',
                             'worked_hours': round(worked, 2),
                             'extra_hours': round(a.extra_hours or 0.0, 2),
                             'approved_extra_hours': round(approved_ot, 2),
                             'late_checkout_state': a.late_checkout_state,
                         })
-                        total_ot += approved_ot
                         total_worked += worked
-
-                    if total_ot > 0:
-                        codes.append('OT')
+                        total_ot += approved_ot
 
                     detail['punches'] = punches
                     detail['total_worked_hours'] = round(total_worked, 2)
                     detail['total_ot_hours'] = round(total_ot, 2)
-                    # Total payable = worked hours + approved OT
                     detail['total_payable_hours'] = round(total_worked + total_ot, 2)
 
+                # EDP — only after checkout
                 edp = edp_lookup.get((emp.id, day_key))
-                if edp:
-                    # ── KEY RULE: EDP badge only if checkout has happened ──
-                    if has_checkout:
-                        codes.append('EDP')
-                        detail['edp'] = {
-                            'shift_template': edp.calendar_id.name if edp.calendar_id else '',
-                            'state': edp.state,
-                        }
+                if edp and has_checkout:
+                    codes.append('EDP')
+                    detail['edp'] = {
+                        'shift_template': edp.calendar_id.name if edp.calendar_id else '',
+                        'state': edp.state,
+                    }
 
                 emp_row[day_key] = {'codes': codes, 'detail': detail}
 
@@ -261,7 +273,6 @@ class AttendanceMatrixReport(models.AbstractModel):
             ],
             'days': day_list,
             'matrix': matrix,
-            # Convert sets → lists for JSON serialisation
             'weekoff_days_by_emp': {
                 str(emp_id): list(wo_set)
                 for emp_id, wo_set in weekoff_days_by_emp.items()

@@ -172,7 +172,7 @@ class HrEmployee(models.Model):
         return False
 
 # ==========================================
-# 2. THE PUBLIC EMPLOYEE MODEL 
+# 2. THE PUBLIC EMPLOYEE MODEL
 # ==========================================
 class HrEmployeePublic(models.Model):
     _inherit = 'hr.employee.public'

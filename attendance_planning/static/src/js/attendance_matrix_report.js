@@ -5,6 +5,9 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { Dialog } from "@web/core/dialog/dialog";
 
+// Fixed badge codes — anything else is a dynamic shift name (G1, Night, etc.)
+const FIXED_CODES = new Set(['A', 'OT', 'EDP', 'P']);
+
 // ─── Day-detail popup ─────────────────────────────────────────────────────────
 class AttendanceDayDetailDialog extends Component {
     static template = "attendance_planning.AttendanceDayDetailDialog";
@@ -22,18 +25,18 @@ export class AttendanceMatrixReport extends Component {
 
         const today = new Date();
         this.state = useState({
-            year:             today.getFullYear(),
-            month:            today.getMonth() + 1,   // 1-12
-            employees:        [],
-            days:             [],
-            matrix:           {},
-            weekoffByEmp:     {},   // { empId(str) : Set<'YYYY-MM-DD'> }
-            loading:          true,
-            shiftFilter:      'all',   // 'all' | 'regular' | 'rotational'
-            codeFilter:       'all',   // 'all' | 'A' | 'OT' | 'EDP'
-            searchText:       '',      // employee name search
-            filtersOpen:      false,   // dropdown panel toggle
-            groupBy:          null,    // null | 'shift_type'
+            year:          today.getFullYear(),
+            month:         today.getMonth() + 1,
+            employees:     [],
+            days:          [],
+            matrix:        {},
+            weekoffByEmp:  {},
+            loading:       true,
+            shiftFilter:   'all',
+            codeFilter:    'all',
+            searchText:    '',
+            filtersOpen:   false,
+            groupBy:       null,
         });
 
         onWillStart(() => this.loadData());
@@ -55,32 +58,29 @@ export class AttendanceMatrixReport extends Component {
             "get_matrix_data",
             [this.state.year, this.state.month],
         );
+        this.state.employees = result.employees;
+        this.state.days      = result.days;
+        this.state.matrix    = result.matrix;
 
-        this.state.employees    = result.employees;
-        this.state.days         = result.days;
-        this.state.matrix       = result.matrix;
-
-        // Convert lists → Sets for O(1) lookup
         const byEmp = {};
-        for (const [empIdStr, days] of Object.entries(result.weekoff_days_by_emp || {})) {
-            byEmp[empIdStr] = new Set(days);
+        for (const [idStr, days] of Object.entries(result.weekoff_days_by_emp || {})) {
+            byEmp[idStr] = new Set(days);
         }
         this.state.weekoffByEmp = byEmp;
-        this.state.loading      = false;
+        this.state.loading = false;
     }
 
     // ── Navigation ────────────────────────────────────────────────────────────
     get monthLabel() {
-        const d = new Date(this.state.year, this.state.month - 1, 1);
-        return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+        return new Date(this.state.year, this.state.month - 1, 1)
+            .toLocaleDateString(undefined, { month: "long", year: "numeric" });
     }
-
     prevMonth() {
-        if (--this.state.month < 1) { this.state.month = 12; this.state.year--; }
+        if (--this.state.month < 1)  { this.state.month = 12; this.state.year--; }
         this.loadData();
     }
     nextMonth() {
-        if (++this.state.month > 12) { this.state.month = 1; this.state.year++; }
+        if (++this.state.month > 12) { this.state.month = 1;  this.state.year++; }
         this.loadData();
     }
     goToday() {
@@ -90,11 +90,62 @@ export class AttendanceMatrixReport extends Component {
         this.loadData();
     }
 
+    // ── Filters ───────────────────────────────────────────────────────────────
+    setShiftFilter(value) { this.state.shiftFilter = value; }
+    setCodeFilter(value)  { this.state.codeFilter  = value; }
+    setSearchText(ev)     { this.state.searchText  = ev.target.value; }
+    toggleFilters()       { this.state.filtersOpen = !this.state.filtersOpen; }
+    setGroupBy(value) {
+        this.state.groupBy = (this.state.groupBy === value) ? null : value;
+    }
+
+    get chips() {
+        const chips = [];
+        if (this.state.searchText.trim())
+            chips.push({ key: 'search', icon: 'fa-search', label: this.state.searchText });
+        if (this.state.shiftFilter !== 'all')
+            chips.push({ key: 'shift', icon: 'fa-filter',
+                label: this.state.shiftFilter === 'regular' ? 'Regular' : 'Rotational' });
+        if (this.state.codeFilter !== 'all')
+            chips.push({ key: 'code', icon: 'fa-filter', label: this.state.codeFilter });
+        if (this.state.groupBy === 'shift_type')
+            chips.push({ key: 'group', icon: 'fa-th-large', label: 'Group By: Shift Type' });
+        return chips;
+    }
+
+    removeChip(key) {
+        if (key === 'search') this.state.searchText  = '';
+        if (key === 'shift')  this.state.shiftFilter = 'all';
+        if (key === 'code')   this.state.codeFilter  = 'all';
+        if (key === 'group')  this.state.groupBy     = null;
+    }
+
+    get baseFilteredEmployees() {
+        let list = this.state.employees;
+        if (this.state.shiftFilter !== 'all')
+            list = list.filter(e => (e.shift_type || 'regular') === this.state.shiftFilter);
+        const q = this.state.searchText.trim().toLowerCase();
+        if (q) list = list.filter(e => e.name.toLowerCase().includes(q));
+        return list;
+    }
+
+    get filteredEmployees() { return this.baseFilteredEmployees; }
+
+    get groupedEmployees() {
+        if (this.state.groupBy !== 'shift_type') return null;
+        const list = this.baseFilteredEmployees;
+        const regular    = list.filter(e => (e.shift_type || 'regular') === 'regular');
+        const rotational = list.filter(e => e.shift_type === 'rotational');
+        const groups = [];
+        if (regular.length)    groups.push({ key: 'regular',    label: 'Regular',    employees: regular });
+        if (rotational.length) groups.push({ key: 'rotational', label: 'Rotational', employees: rotational });
+        return groups;
+    }
+
     // ── Cell helpers ──────────────────────────────────────────────────────────
     dayNumber(dayKey) { return parseInt(dayKey.split("-")[2], 10); }
 
     dayLabel(dayKey) {
-        // New Date with explicit time avoids off-by-one from timezone
         return new Date(dayKey + "T00:00:00")
             .toLocaleDateString("en-IN", { weekday: "short" });
     }
@@ -103,84 +154,6 @@ export class AttendanceMatrixReport extends Component {
         return dayKey === new Date().toISOString().slice(0, 10);
     }
 
-    // ── Filters ────────────────────────────────────────────────────────────────
-    setShiftFilter(value) {
-        this.state.shiftFilter = value;
-    }
-    setCodeFilter(value) {
-        this.state.codeFilter = value;
-    }
-    setSearchText(ev) {
-        this.state.searchText = ev.target.value;
-    }
-    toggleFilters() {
-        this.state.filtersOpen = !this.state.filtersOpen;
-    }
-    setGroupBy(value) {
-        // clicking the already-active option turns grouping off again
-        this.state.groupBy = (this.state.groupBy === value) ? null : value;
-    }
-
-    /** Chips shown inside the search bar — each one removable */
-    get chips() {
-        const chips = [];
-        if (this.state.searchText.trim()) {
-            chips.push({ key: 'search', icon: 'fa-search', label: this.state.searchText });
-        }
-        if (this.state.shiftFilter !== 'all') {
-            chips.push({
-                key: 'shift', icon: 'fa-filter',
-                label: this.state.shiftFilter === 'regular' ? 'Regular' : 'Rotational',
-            });
-        }
-        if (this.state.codeFilter !== 'all') {
-            chips.push({ key: 'code', icon: 'fa-filter', label: this.state.codeFilter });
-        }
-        if (this.state.groupBy === 'shift_type') {
-            chips.push({ key: 'group', icon: 'fa-th-large', label: 'Group By: Shift Type' });
-        }
-        return chips;
-    }
-
-    removeChip(key) {
-        if (key === 'search') this.state.searchText = '';
-        if (key === 'shift') this.state.shiftFilter = 'all';
-        if (key === 'code') this.state.codeFilter = 'all';
-        if (key === 'group') this.state.groupBy = null;
-    }
-
-    /** Employees after shift-type + name-search filters (flat list, pre-grouping) */
-    get baseFilteredEmployees() {
-        let list = this.state.employees;
-        if (this.state.shiftFilter !== 'all') {
-            list = list.filter((e) => (e.shift_type || 'regular') === this.state.shiftFilter);
-        }
-        const q = this.state.searchText.trim().toLowerCase();
-        if (q) {
-            list = list.filter((e) => e.name.toLowerCase().includes(q));
-        }
-        return list;
-    }
-
-    /** Flat list, used when no Group By is active */
-    get filteredEmployees() {
-        return this.baseFilteredEmployees;
-    }
-
-    /** [{ key, label, employees: [...] }] used when Group By is active */
-    get groupedEmployees() {
-        const list = this.baseFilteredEmployees;
-        if (this.state.groupBy !== 'shift_type') return null;
-
-        const regular = list.filter((e) => (e.shift_type || 'regular') === 'regular');
-        const rotational = list.filter((e) => e.shift_type === 'rotational');
-        const groups = [];
-        if (regular.length) groups.push({ key: 'regular', label: 'Regular', employees: regular });
-        if (rotational.length) groups.push({ key: 'rotational', label: 'Rotational', employees: rotational });
-        return groups;
-    }
-
-    /** Is this day a week-off for this specific employee? */
     isWeekoff(empId, dayKey) {
         const s = this.state.weekoffByEmp[String(empId)];
         return s ? s.has(dayKey) : false;
@@ -190,17 +163,26 @@ export class AttendanceMatrixReport extends Component {
         const row = this.state.matrix[empId];
         const codes = (row && row[dayKey]) ? row[dayKey].codes : [];
         if (this.state.codeFilter === 'all') return codes;
-        return codes.filter((c) => c === this.state.codeFilter);
+        return codes.filter(c => c === this.state.codeFilter);
     }
 
-    /** CSS classes for a header <th> */
+    /**
+     * CSS class for a badge.
+     * Fixed codes A/OT/EDP/P  → o_amc_A / o_amc_OT etc.
+     * Shift names (G1, Night…) → o_amc_shift_name  (shared style, blue-italic)
+     */
+    badgeClass(code) {
+        return FIXED_CODES.has(code)
+            ? `o_amc_badge o_amc_${code}`
+            : 'o_amc_badge o_amc_shift_name';
+    }
+
     headerCellClass(dayKey) {
         const cls = ["text-center", "o_amc_day_col"];
         if (this.isToday(dayKey)) cls.push("o_amc_today_header");
         return cls.join(" ");
     }
 
-    /** CSS classes for a data <td> — weekoff is per employee */
     dataCellClass(empId, dayKey) {
         const codes = this.cellCodes(empId, dayKey);
         const cls   = ["text-center", "o_attendance_matrix_cell"];
@@ -210,13 +192,12 @@ export class AttendanceMatrixReport extends Component {
         return cls.join(" ");
     }
 
-    // ── Click handler ─────────────────────────────────────────────────────────
+    // ── Click ──────────────────────────────────────────────────────────────────
     onCellClick(empId, empName, dayKey) {
         const row   = this.state.matrix[empId];
         const cell  = row ? row[dayKey] : null;
         const codes = cell ? cell.codes : [];
         if (!codes.length) return;
-
         this.dialog.add(AttendanceDayDetailDialog, {
             employeeName: empName,
             day:          dayKey,
