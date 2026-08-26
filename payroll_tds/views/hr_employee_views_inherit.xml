@@ -1,142 +1,207 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-  <record id="hr_employee_view_form_in_inherit" model="ir.ui.view">
-    <field name="name">hr.employee.form.in.inherit</field>
-    <field name="model">hr.employee</field>
-    <field name="inherit_id" ref="hr.view_employee_form"/>
-    <field name="arch" type="xml">
 
-        <xpath expr="//group[.//field[@name='l10n_in_lwf_employer_contribution']]" position="after">
+        <record id="hr_employee_view_form_in_inherit" model="ir.ui.view">
+            <field name="name">hr.employee.form.in.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
 
-            <group col="2">
-            <group string="Employee Earnings">
+            <field name="arch" type="xml">
 
-            <label for="variable_pay"/>
-                <div class="o_row">
-                    <field name="variable_pay" class="o_hr_narrow_field"/>
-                    <span>/ month</span>
-                </div>
+                <!-- ================================================= -->
+                <!-- NPS CONTRIBUTION - BESIDE LWF -->
+                <!-- ================================================= -->
 
-            <label for="variable_bonus"/>
-                <div class="o_row">
-                    <field name="variable_bonus" class="o_hr_narrow_field"/>
-                    <span>/ month</span>
-                </div>
+                <xpath expr="//group[.//field[@name='l10n_in_lwf_employer_contribution']]/parent::group"
+                       position="inside">
 
-            <label for="basic_arrear"/>
-    <div class="o_row">
-        <field name="basic_arrear" class="o_hr_narrow_field"/>
-        <span>/ month</span>
-    </div>
+                    <group string="NPS Contribution">
 
-<label for="hra_arrear"/>
-    <div class="o_row">
-        <field name="hra_arrear" class="o_hr_narrow_field"/>
-        <span>/ month</span>
-    </div>
+                        <label for="l10n_in_nps_employer_amount"
+                               string="Employer"/>
 
-<label for="special_allowance_arrear"/>
-    <div class="o_row">
-        <field name="special_allowance_arrear" class="o_hr_narrow_field"/>
-        <span>/ month</span>
-    </div>
+                        <div class="o_row">
 
-<label for="fixed_stipend"/>
-    <div class="o_row">
-        <field name="fixed_stipend" class="o_hr_narrow_field"/>
-        <span>/ month</span>
-    </div>
-            <label for="stipend"/>
-                <div class="o_row">
-                    <field name="stipend" class="o_hr_narrow_field"/>
-                    <span>/ month</span>
-                </div>
-            <label for="stipend_arrear"/>
-               <div class="o_row">
-                   <field name="stipend_arrear" class="o_hr_narrow_field"/>
-                   <span>/ month</span>
-               </div>
+                            <field name="l10n_in_nps_employer_amount"
+                                   class="o_hr_narrow_field"
+                                   readonly="1"/>
+
+                            <span>/ month</span>
+
+                            <field name="l10n_in_nps_employer_type"
+                                   nolabel="1"
+                                   class="o_hr_narrow_field"/>
+
+                            <span>%</span>
+
+                        </div>
+
+                    </group>
+
+                </xpath>
 
 
-            <label for="employee_incentive"/>
-                <div class="o_row">
-                    <field name="employee_incentive" class="o_hr_narrow_field"/>
-                    <span>/ month</span>
-                </div>
+                <!-- ================================================= -->
+                <!-- EXISTING EMPLOYEE EARNINGS / DEDUCTIONS -->
+                <!-- DO NOT CHANGE -->
+                <!-- ================================================= -->
 
-            <label for="referral_incentive"/>
-                <div class="o_row">
-                    <field name="referral_incentive" class="o_hr_narrow_field"/>
-                    <span>/ month</span>
-                </div>
+                <xpath expr="//group[.//field[@name='l10n_in_lwf_employer_contribution']]"
+                       position="after">
 
-            <label for="notice_period"/>
-                <div class="o_row">
-                    <field name="notice_period" class="o_hr_narrow_field"/>
-                    <span>/ month</span>
-                </div>
+                    <group col="2">
 
-            <label for="salary_arrear"/>
-                <div class="o_row">
-                    <field name="salary_arrear" class="o_hr_narrow_field"/>
-                    <span>/ month</span>
-                </div>
+                        <group string="Employee Earnings">
 
-          <label for="leave_encashment"/>-->
-                <div class="o_row">-->
-                    <field name="leave_encashment" class="o_hr_narrow_field"/>-->
-                    <span>/ month</span>-->
-            </div>
+                            <label for="variable_pay"/>
+                            <div class="o_row">
+                                <field name="variable_pay"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
 
-            <label for="hold_salary"/>
-                <div class="o_row">
-                    <field name="hold_salary" class="o_hr_narrow_field"/>
-                     <span>/ month</span>
-                </div>
+                            <label for="variable_bonus"/>
+                            <div class="o_row">
+                                <field name="variable_bonus"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
 
-            <label for="other_earnings"/>
-                <div class="o_row">
-                    <field name="other_earnings" class="o_hr_narrow_field"/>
-                    <span>/ month</span>
-                </div>
+                            <label for="basic_arrear"/>
+                            <div class="o_row">
+                                <field name="basic_arrear"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="hra_arrear"/>
+                            <div class="o_row">
+                                <field name="hra_arrear"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="special_allowance_arrear"/>
+                            <div class="o_row">
+                                <field name="special_allowance_arrear"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="fixed_stipend"/>
+                            <div class="o_row">
+                                <field name="fixed_stipend"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="stipend"/>
+                            <div class="o_row">
+                                <field name="stipend"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="stipend_arrear"/>
+                            <div class="o_row">
+                                <field name="stipend_arrear"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="employee_incentive"/>
+                            <div class="o_row">
+                                <field name="employee_incentive"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="referral_incentive"/>
+                            <div class="o_row">
+                                <field name="referral_incentive"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="notice_period"/>
+                            <div class="o_row">
+                                <field name="notice_period"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="salary_arrear"/>
+                            <div class="o_row">
+                                <field name="salary_arrear"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="leave_encashment"/>
+                            <div class="o_row">
+                                <field name="leave_encashment"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="hold_salary"/>
+                            <div class="o_row">
+                                <field name="hold_salary"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                            <label for="other_earnings"/>
+                            <div class="o_row">
+                                <field name="other_earnings"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
+
+                        </group>
 
 
+                        <!-- Employee Deductions -->
 
-</group>
+                        <group string="Employee Deductions">
 
-             <!-- Employee Deductions -->
-                <group string="Employee Deductions">
-                    <label for="notice_pay_deduction"/>
-                    <div class="o_row">
-                       <field name="notice_pay_deduction" class="o_hr_narrow_field"/>
-                        <span>/ month</span>
-                    </div>
+                            <label for="notice_pay_deduction"/>
+                            <div class="o_row">
+                                <field name="notice_pay_deduction"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
 
-                    <label for="loan_deduction"/>
-                    <div class="o_row">
-                        <field name="loan_deduction" class="o_hr_narrow_field"/>
-                        <span>/ month</span>
-                    </div>
+                            <label for="loan_deduction"/>
+                            <div class="o_row">
+                                <field name="loan_deduction"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
 
-                    <label for="pf_arrear"/>
-                    <div class="o_row">
-                        <field name="pf_arrear" class="o_hr_narrow_field"/>
-                        <span>/ month</span>
-                    </div>
+                            <label for="pf_arrear"/>
+                            <div class="o_row">
+                                <field name="pf_arrear"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
 
-                    <label for="other_deductions"/>
-                    <div class="o_row">
-                        <field name="other_deductions" class="o_hr_narrow_field"/>
-                        <span>/ month</span>
-                    </div>
-                </group>
+                            <label for="other_deductions"/>
+                            <div class="o_row">
+                                <field name="other_deductions"
+                                       class="o_hr_narrow_field"/>
+                                <span>/ month</span>
+                            </div>
 
-            </group>
+                        </group>
 
-        </xpath>
+                    </group>
 
-    </field>
-</record>
+                </xpath>
+
+            </field>
+        </record>
+
     </data>
 </odoo>
