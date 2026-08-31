@@ -107,10 +107,24 @@ export class FaceVerificationDialog extends Component {
             if (this.state.isProcessing) return;
 
             const videoEl = this.videoRef.el;
-            const detection = await faceapi.detectSingleFace(
-                videoEl,
-                new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
-            ).withFaceLandmarks().withFaceDescriptor();
+            // Guard: skip this tick if the video frame isn't ready yet (0 dimensions,
+            // camera still warming up, tab backgrounded, etc). face-api throws a
+            // "Box.constructor" error on invalid/NaN geometry, which otherwise
+            // becomes an unhandled promise rejection and crashes the whole page.
+            if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) {
+                return;
+            }
+
+            let detection;
+            try {
+                detection = await faceapi.detectSingleFace(
+                    videoEl,
+                    new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
+                ).withFaceLandmarks().withFaceDescriptor();
+            } catch (e) {
+                console.warn("Face detection skipped this frame:", e);
+                return;
+            }
 
             if (detection) {
                 this.state.isProcessing = true;
@@ -182,7 +196,6 @@ export class FaceVerificationDialog extends Component {
             }
         }, 200);
     }
-
     async verifyWithDatabase(liveDescriptor) {
         try {
             const myDescriptor = await this.orm.call("hr.employee", "get_my_face_descriptor", []);

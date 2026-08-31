@@ -113,9 +113,18 @@ export class SelfieKiosk extends Component {
             if (this.state.isProcessing) return;
 
             const videoEl = this.videoRef.el;
+            if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) {
+                return;
+            }
 
             // ---> ADDITION 5: Added .withFaceLandmarks() here
-            const detection = await faceapi.detectSingleFace(videoEl).withFaceLandmarks().withFaceDescriptor();
+            let detection;
+            try {
+                detection = await faceapi.detectSingleFace(videoEl).withFaceLandmarks().withFaceDescriptor();
+            } catch (e) {
+                console.warn("Face detection skipped this frame:", e);
+                return;
+            }
 
             if (detection) {
                 // ---> ADDITION 6: The core Blink Detection Logic
