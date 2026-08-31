@@ -318,10 +318,10 @@ class Employee(models.Model):
     standard_deduction = fields.Monetary(string='Standard Deduction')
 
     section_80c = fields.Monetary(string='Section 123 (80C)', help="Available only under Old Regime")
-    section_123_80c = fields.Monetary(
-        string='Section 123 (80C)',
-        help="Available only under Old Regime"
-    )
+    # section_123_80c = fields.Monetary(
+    #     string='Section 123 (80C)',
+    #     help="Available only under Old Regime"
+    # )
 
     section_123_80ccc = fields.Monetary(
         string='Section 123 (80CCC)',
