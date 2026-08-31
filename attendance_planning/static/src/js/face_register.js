@@ -101,7 +101,17 @@ export class FaceRegister extends Component {
             if (!this.state.needsBlink) return; // Stop scanning once they blink
 
             const videoEl = this.videoRef.el;
-            const detection = await faceapi.detectSingleFace(videoEl).withFaceLandmarks();
+            if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) {
+                return;
+            }
+
+            let detection;
+            try {
+                detection = await faceapi.detectSingleFace(videoEl).withFaceLandmarks();
+            } catch (e) {
+                console.warn("Face detection skipped this frame:", e);
+                return;
+            }
 
             if (detection) {
                 const leftEye = detection.landmarks.getLeftEye();
@@ -143,9 +153,17 @@ export class FaceRegister extends Component {
         const videoEl = this.videoRef.el;
 
         // 1. Tell the AI to find the face and extract the math (descriptor)
-        const detection = await faceapi.detectSingleFace(videoEl)
+        let detection;
+        try {
+            detection = await faceapi.detectSingleFace(videoEl)
                                        .withFaceLandmarks()
                                        .withFaceDescriptor();
+        } catch (e) {
+            console.warn("Face capture failed:", e);
+            this.state.statusMessage = "Couldn't read the camera frame. Please try again.";
+            this.state.isReady = true;
+            return;
+        }
 
         if (!detection) {
             this.state.statusMessage = "No face detected! Make sure your face is clearly visible.";

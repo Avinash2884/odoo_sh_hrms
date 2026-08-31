@@ -1,22 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- 1. UNDO THE STUCK MENU: Force the native menu back to Payroll -->
-    <record id="hr_work_entry_enterprise.menu_hr_payroll_work_entries_root" model="ir.ui.menu">
-        <field name="parent_id" ref="hr_work_entry_enterprise.menu_hr_payroll_root"/>
-    </record>
-
-    <!-- 2. YOUR CLEAN CUSTOM MENU: The one that stays in Attendance -->
-    <menuitem id="custom_attendance_work_entry_root"
-              name="Work Entries"
-              parent="hr_attendance.menu_hr_attendance_root"
-              sequence="50"/>
-
-    <menuitem id="custom_attendance_work_entry_child"
-              name="Work Entries"
-              parent="custom_attendance_work_entry_root"
-              action="hr_work_entry.hr_work_entry_action"
-              sequence="10"/>
-
+<!--    &lt;!&ndash; Standalone Attendance-side Work Entries menu, pointing at our own-->
+<!--         read-only proxy model/action. Native Payroll menu is left-->
+<!--         completely untouched. &ndash;&gt;-->
+<!--    <menuitem id="custom_attendance_work_entry_root"-->
+<!--              name="Work Entries"-->
+<!--              parent="hr_attendance.menu_hr_attendance_root"-->
+<!--              sequence="50"-->
+<!--              action="action_attendance_work_entries_view"-->
+<!--              groups="hr_attendance.group_hr_attendance_officer"/>-->
 
 </odoo>

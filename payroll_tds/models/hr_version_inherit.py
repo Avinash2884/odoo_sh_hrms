@@ -24,7 +24,6 @@ class HrVersion(models.Model):
         groups="hr_payroll.group_hr_payroll_user"
     )
 
-
     dearness_allowance = fields.Monetary(
         string="Dearness Allowance",
         store=True,
@@ -133,10 +132,6 @@ class HrVersion(models.Model):
     # HRA Calculation Based On Gross Wage
     # ---------------------------------------
 
-    # ---------------------------------------
-    # HRA Calculation Based On Gross Wage
-    # ---------------------------------------
-
     @api.depends('wage', 'l10n_in_hra_percentage')
     def _compute_l10n_in_hra(self):
         self.env.remove_to_compute(
@@ -145,7 +140,18 @@ class HrVersion(models.Model):
         )
 
         for version in self:
+            hra_percentage = version.l10n_in_hra_percentage or 0.0
 
+            # Convert percentage entered as 30/40/50
+            # into Odoo decimal format 0.30/0.40/0.50
+            if hra_percentage > 1.0:
+                hra_percentage = hra_percentage / 100.0
+
+            # Keep the actual field value within 0 to 1
+            version.l10n_in_hra_percentage = min(
+                max(hra_percentage, 0.0),
+                1.0
+            )
 
             # HRA = Gross Wage × HRA Percentage
             version.l10n_in_hra = (
@@ -153,7 +159,22 @@ class HrVersion(models.Model):
                     version.l10n_in_hra_percentage
             )
 
+    @api.depends('l10n_in_hra', 'wage')
+    def _compute_l10n_in_hra_percentage(self):
+        for version in self:
+            if not version.wage:
+                version.l10n_in_hra_percentage = 0.0
+                continue
 
+            version.l10n_in_hra_percentage = (
+                    version.l10n_in_hra / version.wage
+            )
+
+            # Safety: database constraint requires 0 <= percentage <= 1
+            version.l10n_in_hra_percentage = min(
+                max(version.l10n_in_hra_percentage, 0.0),
+                1.0
+            )
 
     @api.constrains(
         'l10n_in_basic_salary_amount',
@@ -167,4 +188,8 @@ class HrVersion(models.Model):
     def _check_l10n_in_total_allowance_below_wage(self):
         # Skip enterprise validation
         return
+
+
+
+
 

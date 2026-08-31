@@ -38,7 +38,25 @@ class HrEmployeeInherit(models.Model):
     full_time_hospital_name = fields.Char(string="Full Time Hospital Name", tracking=True)
     full_time_hospital_city = fields.Char(string="Full Time Hospital City", tracking=True)
 
-    employee_notice_period = fields.Integer(string="Notice Period",tracking=True)
+    employee_notice_period = fields.Integer(string="Probation Notice Period",tracking=True)
+    confirmed_employee_notice_period = fields.Integer(string="Confirmed Notice Period",tracking=True)
+    probation_in_months = fields.Integer(string="Probation in Months",tracking=True)
+    last_working_date_employee = fields.Date(
+        string="Last Working Date",
+        compute="_compute_last_working_date",
+        store=True,
+        tracking=True
+    )
+
+    @api.depends('employee_notice_period')
+    def _compute_last_working_date(self):
+        for rec in self:
+            if rec.employee_notice_period:
+                rec.last_working_date_employee = fields.Date.today() + timedelta(
+                    days=rec.employee_notice_period
+                )
+            else:
+                rec.last_working_date_employee = False
 
     @api.depends('wage')
     def _compute_wage_appointment_letter(self):
@@ -379,16 +397,223 @@ class HrEmployeeInherit(models.Model):
                 ) % (rec.appointment_letter_type))
 
     def action_print_cmt_appointment_letter(self):
-        self._check_appointment_template('approval_recruitment.template_cmt_full_time_appointment_letter')
-        return self.env.ref('approval_recruitment.action_report_cmt_full_time_appointment_letter').report_action(self)
+        for record in self:
+            missing_fields = []
+
+            if not record.cmt_hospital_name:
+                missing_fields.append("CMT Hospital Name")
+
+            if not record.cmt_hospital_city:
+                missing_fields.append("CMT Hospital City")
+
+            if not record.joining_date_recruit:
+                missing_fields.append("Date of Joining")
+
+            if not record.band_id:
+                missing_fields.append("Band")
+
+            if not record.level_id:
+                missing_fields.append("Level")
+
+            if not record.wage:
+                missing_fields.append("Salary")
+
+            # Employee / HR Details
+            if not record.job_id:
+                missing_fields.append("Job Position")
+
+            else:
+                if not record.job_id.hr_head_name:
+                    missing_fields.append("HR Head Name")
+
+                if not record.job_id.hr_description:
+                    missing_fields.append("HR Description")
+
+            if not record.company_id:
+                missing_fields.append("Company")
+
+            else:
+                if not record.company_id.name:
+                    missing_fields.append("Company Name")
+
+                if not record.company_id.street:
+                    missing_fields.append("Company Street")
+
+                if not record.company_id.street2:
+                    missing_fields.append("Company Street 2")
+
+                if not record.company_id.city:
+                    missing_fields.append("Company City")
+
+                if not record.company_id.state_id:
+                    missing_fields.append("Company State")
+
+                if not record.company_id.zip:
+                    missing_fields.append("Company ZIP")
+
+            if missing_fields:
+                raise UserError(
+                    _(
+                        "Please fill in the following fields before printing "
+                        "the CMT Appointment Letter:\n\n- %s"
+                    )
+                    % "\n- ".join(missing_fields)
+                )
+
+            record._check_appointment_template(
+                'approval_recruitment.template_cmt_full_time_appointment_letter'
+            )
+
+            return self.env.ref(
+                'approval_recruitment.action_report_cmt_full_time_appointment_letter'
+            ).report_action(record)
 
     def action_print_hse_appointment_letter(self):
-        self._check_appointment_template('approval_recruitment.template_hse_appointment_letter')
-        return self.env.ref('approval_recruitment.action_report_hse_appointment_letter').report_action(self)
+        for record in self:
+            missing_fields = []
+
+            if not record.hse_hospital_name:
+                missing_fields.append("HSE Hospital Name")
+
+            if not record.hse_hospital_city:
+                missing_fields.append("HSE Hospital City")
+
+            if not record.joining_date_recruit:
+                missing_fields.append("Date of Joining")
+
+            if not record.band_id:
+                missing_fields.append("Band")
+
+            if not record.level_id:
+                missing_fields.append("Level")
+
+            if not record.wage:
+                missing_fields.append("Salary")
+
+            # Employee / HR Details
+            if not record.job_id:
+                missing_fields.append("Job Position")
+
+            else:
+                if not record.job_id.hr_head_name:
+                    missing_fields.append("HR Head Name")
+
+                if not record.job_id.hr_description:
+                    missing_fields.append("HR Description")
+
+            if not record.company_id:
+                missing_fields.append("Company")
+
+            else:
+                if not record.company_id.name:
+                    missing_fields.append("Company Name")
+
+                if not record.company_id.street:
+                    missing_fields.append("Company Street")
+
+                if not record.company_id.street2:
+                    missing_fields.append("Company Street 2")
+
+                if not record.company_id.city:
+                    missing_fields.append("Company City")
+
+                if not record.company_id.state_id:
+                    missing_fields.append("Company State")
+
+                if not record.company_id.zip:
+                    missing_fields.append("Company ZIP")
+
+            if missing_fields:
+                raise UserError(
+                    _(
+                        "Please fill in the following fields before printing "
+                        "the HSE Appointment Letter:\n\n- %s"
+                    )
+                    % "\n- ".join(missing_fields)
+                )
+
+            record._check_appointment_template(
+                'approval_recruitment.template_hse_appointment_letter'
+            )
+
+            return self.env.ref(
+                'approval_recruitment.action_report_hse_appointment_letter'
+            ).report_action(record)
 
     def action_print_full_time_appointment_letter(self):
-        self._check_appointment_template('approval_recruitment.template_full_time_appointment_letter')
-        return self.env.ref('approval_recruitment.action_report_full_time_appointment_letter').report_action(self)
+        for record in self:
+            missing_fields = []
+
+            if not record.full_time_hospital_name:
+                missing_fields.append("Full Time Hospital Name")
+
+            if not record.full_time_hospital_city:
+                missing_fields.append("Full Time Hospital City")
+
+            if not record.joining_date_recruit:
+                missing_fields.append("Joining Date Recruit")
+
+            if not record.joining_date_recruit:
+                missing_fields.append("Date of Joining")
+
+            if not record.band_id:
+                missing_fields.append("Band")
+
+            if not record.level_id:
+                missing_fields.append("Level")
+
+            if not record.wage:
+                missing_fields.append("Salary")
+
+            # Employee / HR Details
+            if not record.job_id:
+                missing_fields.append("Job Position")
+
+            else:
+                if not record.job_id.hr_head_name:
+                    missing_fields.append("HR Head Name")
+
+                if not record.job_id.hr_description:
+                    missing_fields.append("HR Description")
+
+            if not record.company_id:
+                missing_fields.append("Company")
+
+            else:
+                if not record.company_id.name:
+                    missing_fields.append("Company Name")
+
+                if not record.company_id.street:
+                    missing_fields.append("Company Street")
+
+                if not record.company_id.street2:
+                    missing_fields.append("Company Street 2")
+
+                if not record.company_id.city:
+                    missing_fields.append("Company City")
+
+                if not record.company_id.state_id:
+                    missing_fields.append("Company State")
+
+                if not record.company_id.zip:
+                    missing_fields.append("Company ZIP")
+
+            if missing_fields:
+                raise UserError(
+                    _(
+                        "Please fill in the following fields before printing "
+                        "the Full Time Appointment Letter:\n\n- %s"
+                    )
+                    % "\n- ".join(missing_fields)
+                )
+
+            record._check_appointment_template(
+                'approval_recruitment.template_full_time_appointment_letter'
+            )
+
+            return self.env.ref(
+                'approval_recruitment.action_report_full_time_appointment_letter'
+            ).report_action(record)
 
     basic_pay = fields.Float(
         string="Basic Pay",

@@ -30,11 +30,11 @@ class AttendanceRegular(models.Model):
     _description = 'Attendance Regular'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    def _get_employee_id(self):
-        """Get the ID of the currently logged-in employee"""
-        employee_rec = self.env['hr.employee'].search([
-            ('user_id', '=', self.env.uid)], limit=1)
-        return employee_rec.id
+    # def _get_employee_id(self):
+    #     """Get the ID of the currently logged-in employee"""
+    #     employee_rec = self.env['hr.employee'].search([
+    #         ('user_id', '=', self.env.uid)], limit=1)
+    #     return employee_rec.id,employee_rec.ls_employee_id
 
     reg_category = fields.Many2one('reg.categories',
                                    string='Regularization Category',
@@ -47,9 +47,16 @@ class AttendanceRegular(models.Model):
                               help='End Date')
     reg_reason = fields.Text(string='Reason', required=True,
                              help='Reason for the attendance regularization')
-    employee_id = fields.Many2one('hr.employee', string="Employee",
-                                  default=_get_employee_id, readonly=True,
-                                  required=True, help='Employee')
+    employee_id = fields.Many2one(
+        'hr.employee',
+        string='Employee',
+        default=lambda self: self.env['hr.employee'].search(
+            [('user_id', '=', self.env.user.id)],
+            limit=1
+        ),
+        readonly=True,
+        required=True
+    )
     state_select = fields.Selection([('draft', 'Draft'),
                                      ('requested', 'Requested'),
                                      ('reject', 'Rejected'),
@@ -67,21 +74,29 @@ class AttendanceRegular(models.Model):
 
     def action_regular_approval(self):
         """Approve the attendance regularization"""
-        self.write({
+        self.ensure_one()
+
+        self.sudo().write({
             'state_select': 'approved'
         })
+
         vals = {
             'check_in': self.from_date,
             'check_out': self.to_date,
             'employee_id': self.employee_id.id,
             'regularization': True
         }
+
         self.env['hr.attendance'].sudo().create(vals)
+
         return
 
     def action_regular_rejection(self):
         """Reject the attendance regularization"""
-        self.write({
+        self.ensure_one()
+
+        self.sudo().write({
             'state_select': 'reject'
         })
+
         return

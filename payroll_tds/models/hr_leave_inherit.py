@@ -475,6 +475,62 @@ class HrLeave(models.Model):
     #                         ).send()
     #
     #     return res
+    # ----------------------------------------
+    # 🚫 BLOCK LEAVE ON PUBLISHED PLANNING
+    # ----------------------------------------
+    # ----------------------------------------
+
+    # 🚫 BLOCK LEAVE ON WEEK OFF
+
+    # ----------------------------------------
+
+    @api.constrains(
+
+        'employee_id',
+
+        'request_date_from',
+
+        'request_date_to',
+
+    )
+    def _check_week_off_leave(self):
+
+        for leave in self:
+
+            if not leave.employee_id:
+                continue
+
+            if not leave.request_date_from or not leave.request_date_to:
+                continue
+
+            start_date = fields.Date.to_date(leave.request_date_from)
+
+            end_date = fields.Date.to_date(leave.request_date_to)
+
+            week_off_planning = self.env['planning.slot'].search([
+
+                ('employee_id', '=', leave.employee_id.id),
+
+                ('shift_date', '>=', start_date),
+
+                ('shift_date', '<=', end_date),
+
+                ('calendar_id', '=', False),
+
+                ('state', '=', 'published'),
+
+            ], limit=1)
+
+            if week_off_planning:
+                planning = week_off_planning[0]
+
+                raise ValidationError(
+
+                    "You cannot apply leave on %s because it is a Week Off."
+
+                    % planning.shift_date.strftime('%d-%m-%Y')
+
+                )
 
 class HrLeaveType(models.Model):
     _inherit = "hr.leave.type"

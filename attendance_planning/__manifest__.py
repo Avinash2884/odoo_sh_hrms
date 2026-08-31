@@ -14,7 +14,8 @@
         'approval_recruitment',
         'user_geo_restriction',
         'hr_work_entry',
-        'hr_work_entry_enterprise'
+        'hr_work_entry_enterprise',
+        'hr_payroll'
     ],
     'data': [
         'data/cron.xml',
@@ -31,6 +32,7 @@
         'views/hr_employee_views.xml',
         'views/edp_approval_views.xml',
         'views/res_config_settings_views.xml',
+        'views/attendance_matrix_report_action.xml',
         'views/menu.xml',
 
         # 'views/selfie_kiosk_action.xml',
@@ -55,8 +57,16 @@
             'attendance_planning/static/src/js/systray_face_patch.js',
             'attendance_planning/static/src/xml/systray_face_popup.xml',
 
+            # Attendance Matrix Report (custom OWL grid)
+            'attendance_planning/static/src/js/attendance_matrix_report.js',
+            'attendance_planning/static/src/xml/attendance_matrix_report.xml',
+            'attendance_planning/static/src/css/attendance_matrix_report.css',
+
             'attendance_planning/static/src/models/tiny_face_detector_model-weights_manifest.json',
             'attendance_planning/static/src/models/tiny_face_detector_model-shard1',
+
+            'attendance_planning/static/src/js/planning_holiday_highlight.js',
+            'attendance_planning/static/src/css/planning_holiday_highlight.css',
 
         ],
     },

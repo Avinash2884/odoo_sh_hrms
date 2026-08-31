@@ -23,3 +23,4 @@ access_hr_applicant_experience_user,hr.applicant.experience.user,model_hr_applic
 access_hr_applicant_education_public,hr.applicant.education.public,model_hr_applicant_education,base.group_public,1,1,1,0
 access_hr_applicant_experience_public,hr.applicant.experience.public,model_hr_applicant_experience,base.group_public,1,1,1,0
 access_account_sync,account.sync,model_account_sync,base.group_user,1,1,1,1
+access_hr_employee_public_education_user,hr.employee.public.education user,model_hr_employee_public_education,base.group_user,1,0,0,0

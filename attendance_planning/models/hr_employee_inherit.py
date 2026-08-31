@@ -7,6 +7,9 @@ from odoo import models, fields, api
 class HrEmployee(models.Model):
     _inherit = 'hr.employee'
 
+    # contract_date_start = fields.Date(related='contract_id.date_start', groups="base.group_user")
+    # contract_date_end = fields.Date(related='contract_id.date_end', groups="base.group_user")
+
     shift_type = fields.Selection([
         ('regular', 'Regular Shift (Fixed Weekends)'),
         ('rotational', 'Rotational Shift (Dynamic Week-Offs)')
@@ -26,9 +29,9 @@ class HrEmployee(models.Model):
     has_registered_face = fields.Boolean(compute='_compute_has_registered_face')
     is_current_user = fields.Boolean(compute='_compute_is_current_user')
 
-    pending_attendance_photo = fields.Text(string="Pending Photo", groups="base.group_user")
-    pending_geo_zone_id = fields.Integer(string="Pending Geo Zone", groups="base.group_user")
-    pending_photo_timestamp = fields.Datetime(string="Pending Photo Time", groups="base.group_user")
+    pending_attendance_photo = fields.Text(string="Pending Photo")
+    pending_geo_zone_id = fields.Integer(string="Pending Geo Zone")
+    pending_photo_timestamp = fields.Datetime(string="Pending Photo Time")
 
     last_photo_attach_status = fields.Boolean(string="Last Photo Attach Succeeded", default=True)
     last_photo_attach_note = fields.Char(string="Last Photo Attach Note")
@@ -169,7 +172,7 @@ class HrEmployee(models.Model):
         return False
 
 # ==========================================
-# 2. THE PUBLIC EMPLOYEE MODEL 
+# 2. THE PUBLIC EMPLOYEE MODEL
 # ==========================================
 class HrEmployeePublic(models.Model):
     _inherit = 'hr.employee.public'
@@ -180,6 +183,32 @@ class HrEmployeePublic(models.Model):
         store=False,
         compute='_compute_dummy_version'
     )
+
+    pending_attendance_photo = fields.Text(string="Pending Photo", compute='_compute_public_attendance_fields')
+    pending_geo_zone_id = fields.Integer(string="Pending Geo Zone", compute='_compute_public_attendance_fields')
+    pending_photo_timestamp = fields.Datetime(string="Pending Photo Time", compute='_compute_public_attendance_fields')
+
+    last_photo_attach_status = fields.Boolean(string="Last Photo Attach Succeeded",
+                                              compute='_compute_public_attendance_fields')
+    last_photo_attach_note = fields.Char(string="Last Photo Attach Note", compute='_compute_public_attendance_fields')
+
+    def _compute_public_attendance_fields(self):
+        """Safely fetches the actual data from the core employee model"""
+        for emp in self:
+            real_emp = self.env['hr.employee'].sudo().search([('id', '=', emp.id)], limit=1)
+            if real_emp:
+                emp.pending_attendance_photo = real_emp.pending_attendance_photo
+                emp.pending_geo_zone_id = real_emp.pending_geo_zone_id
+                emp.pending_photo_timestamp = real_emp.pending_photo_timestamp
+                emp.last_photo_attach_status = real_emp.last_photo_attach_status
+                emp.last_photo_attach_note = real_emp.last_photo_attach_note
+            else:
+                emp.pending_attendance_photo = False
+                emp.pending_geo_zone_id = False
+                emp.pending_photo_timestamp = False
+                emp.last_photo_attach_status = False
+                emp.last_photo_attach_note = False
+
 
     def _compute_dummy_version(self):
         for rec in self:

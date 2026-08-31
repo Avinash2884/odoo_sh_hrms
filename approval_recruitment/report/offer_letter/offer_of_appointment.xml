@@ -50,7 +50,7 @@
                             in its <t t-esc="object.company_id.street or '-'"/>
                             <t t-esc="object.company_id.street2 or '-'"/>
                             <t t-esc="object.company_id.city or '-'"/>
-                            <t t-esc="object.company_id.state_id.name or '-'"/> -
+                            <t t-esc="object.company_id.state_id.name or '-'"/>
                             <t t-esc="object.company_id.zip or '-'"/>
                             on the following terms and conditions:
                         </p>
@@ -106,7 +106,7 @@
                             During probation, the employment may be ended through a written notification, by giving <t t-esc="object.offer_letter_notice_period or '-'"/> days’ notice, on either side. The  Company shall be entitled to terminate your employment at any time by paying you a salary in lieu of notice.
                         </p>
                         <p>
-                            As a confirmed employee, the employment can be terminated by giving <t t-esc="object.offer_letter_notice_period or '-'"/> days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
+                            As a confirmed employee, the employment can be terminated by giving <t t-esc="object.confirmed_notice_period or '-'"/> days’ notice, on either side. The  Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
                         </p>
                     </div>
                     <div style="page-break-before: always; font-family: 'DM Sans'; font-weight:normal;">
