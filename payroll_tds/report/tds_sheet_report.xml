@@ -1,0 +1,1011 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ========================================================= -->
+    <!-- TDS SHEET REPORT ACTION -->
+    <!-- ========================================================= -->
+
+    <record id="action_report_tds_sheet" model="ir.actions.report">
+        <field name="name">TDS Sheet</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">payroll_tds.report_tds_sheet</field>
+        <field name="report_file">payroll_tds.report_tds_sheet</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip"/>
+        <field name="binding_type">report</field>
+    </record>
+
+
+    <!-- ========================================================= -->
+    <!-- TDS SHEET TEMPLATE -->
+    <!-- ========================================================= -->
+
+    <template id="report_tds_sheet">
+
+        <t t-call="web.html_container">
+
+            <t t-foreach="docs" t-as="payslip">
+
+                <t t-call="web.external_layout">
+
+                    <div class="page">
+
+                        <!-- ================================================= -->
+                        <!-- TITLE -->
+                        <!-- ================================================= -->
+
+                        <div style="
+                            text-align:center;
+                            margin-bottom:18px;
+                            padding-bottom:8px;
+                            border-bottom:2px solid #000;
+                        ">
+
+                            <h2 style="
+                                margin:0;
+                                font-size:20px;
+                                font-weight:bold;
+                            ">
+                                TDS COMPUTATION SHEET
+                            </h2>
+
+                            <div style="
+                                margin-top:5px;
+                                font-size:11px;
+                                font-weight:bold;
+                            ">
+                                Financial Year:
+                                <span t-esc="payslip.date_from.strftime('%Y-%m') if payslip.date_from else ''"/>
+                                -
+                                <span t-esc="payslip.date_to.strftime('%Y-%m') if payslip.date_to else ''"/>
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- EMPLOYEE DETAILS -->
+                        <!-- ================================================= -->
+
+                        <table style="
+                            width:100%;
+                            border-collapse:collapse;
+                            margin-bottom:15px;
+                            font-size:11px;
+                        ">
+
+                            <tr>
+
+                                <td style="
+                                    width:18%;
+                                    padding:6px;
+                                    border:1px solid #999;
+                                    background:#eeeeee;
+                                    font-weight:bold;
+                                ">
+                                    Employee Name
+                                </td>
+
+                                <td style="
+                                    width:32%;
+                                    padding:6px;
+                                    border:1px solid #999;
+                                ">
+                                    <span t-esc="payslip.employee_id.name or ''"/>
+                                </td>
+
+                                <td style="
+                                    width:18%;
+                                    padding:6px;
+                                    border:1px solid #999;
+                                    background:#eeeeee;
+                                    font-weight:bold;
+                                ">
+                                    PAN
+                                </td>
+
+                                <td style="
+                                    width:32%;
+                                    padding:6px;
+                                    border:1px solid #999;
+                                ">
+                                    <!-- FIXED: PAN IS ON PAYSLIP -->
+                                    <span t-esc="payslip.pan or ''"/>
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                    background:#eeeeee;
+                                    font-weight:bold;
+                                ">
+                                    Employee ID
+                                </td>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                ">
+                                    <span t-esc="payslip.employee_id.employee_id or payslip.employee_id.name or ''"/>
+                                </td>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                    background:#eeeeee;
+                                    font-weight:bold;
+                                ">
+                                    Tax Regime
+                                </td>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                ">
+                                    <span t-if="payslip.employee_id.tax_regime == 'old'">
+                                        Old Regime
+                                    </span>
+
+                                    <span t-elif="payslip.employee_id.tax_regime == 'new'">
+                                        New Regime
+                                    </span>
+
+                                    <span t-else="">
+                                        -
+                                    </span>
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                    background:#eeeeee;
+                                    font-weight:bold;
+                                ">
+                                    Date of Joining
+                                </td>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                ">
+                                    <span t-esc="
+                                        payslip.employee_id.contract_date_start.strftime('%d/%m/%Y')
+                                        if payslip.employee_id.contract_date_start
+                                        else ''
+                                    "/>
+                                </td>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                    background:#eeeeee;
+                                    font-weight:bold;
+                                ">
+                                    Pay Period
+                                </td>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                ">
+                                    <span t-esc="
+                                        payslip.date_from.strftime('%d/%m/%Y')
+                                        if payslip.date_from
+                                        else ''
+                                    "/>
+
+                                    -
+
+                                    <span t-esc="
+                                        payslip.date_to.strftime('%d/%m/%Y')
+                                        if payslip.date_to
+                                        else ''
+                                    "/>
+                                </td>
+
+                            </tr>
+
+                        </table>
+
+
+                        <!-- ================================================= -->
+                        <!-- INCOME DETAILS -->
+                        <!-- ================================================= -->
+
+                        <div style="
+                            background:#eeeeee;
+                            border:1px solid #888;
+                            padding:6px 8px;
+                            font-size:12px;
+                            font-weight:bold;
+                            margin-bottom:0;
+                        ">
+                            INCOME DETAILS
+                        </div>
+
+                        <table style="
+                            width:100%;
+                            border-collapse:collapse;
+                            font-size:11px;
+                            margin-bottom:15px;
+                        ">
+
+                            <tr>
+
+                                <th style="
+                                    width:55%;
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    text-align:left;
+                                    background:#f5f5f5;
+                                ">
+                                    Particulars
+                                </th>
+
+                                <th style="
+                                    width:45%;
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                    background:#f5f5f5;
+                                ">
+                                    Amount (₹)
+                                </th>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                ">
+                                    Monthly Fixed Wage
+                                </td>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                ">
+                                    <span t-esc="'{:,.2f}'.format(payslip.employee_id.wage or 0.0)"/>
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                ">
+                                    Payslip Gross Wage
+                                </td>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                ">
+                                    <span t-esc="'{:,.2f}'.format(payslip.employee_id.payslip_gross_wage or payslip.gross_wage or 0.0)"/>
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                ">
+                                    Annual Fixed Income
+                                </td>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                ">
+                                    <span t-esc="'{:,.2f}'.format(payslip.employee_id.final_yearly_costs or 0.0)"/>
+                                </td>
+
+                            </tr>
+
+
+                            <tr style="font-weight:bold;">
+
+                                <td style="
+                                    padding:7px;
+                                    border:1px solid #999;
+                                ">
+                                    Total Income Considered for TDS
+                                </td>
+
+                                <td style="
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                ">
+                                    <span t-esc="'{:,.2f}'.format(payslip.employee_id.total_income or payslip.employee_id.final_yearly_costs or 0.0)"/>
+                                </td>
+
+                            </tr>
+
+                        </table>
+
+
+                        <!-- ================================================= -->
+                        <!-- DEDUCTIONS -->
+                        <!-- ================================================= -->
+
+                        <div style="
+                            background:#eeeeee;
+                            border:1px solid #888;
+                            padding:6px 8px;
+                            font-size:12px;
+                            font-weight:bold;
+                            margin-bottom:0;
+                        ">
+                            DEDUCTIONS
+                        </div>
+
+                        <table style="
+                            width:100%;
+                            border-collapse:collapse;
+                            font-size:11px;
+                            margin-bottom:15px;
+                        ">
+
+                            <tr>
+
+                                <th style="
+                                    width:55%;
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    text-align:left;
+                                    background:#f5f5f5;
+                                ">
+                                    Deduction
+                                </th>
+
+                                <th style="
+                                    width:45%;
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                    background:#f5f5f5;
+                                ">
+                                    Amount (₹)
+                                </th>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                ">
+                                    Standard Deduction
+                                </td>
+
+                                <td style="
+                                    padding:6px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                ">
+                                    <span t-esc="'{:,.2f}'.format(payslip.employee_id.standard_deduction or 0.0)"/>
+                                </td>
+
+                            </tr>
+
+
+                            <!-- OLD REGIME DEDUCTIONS -->
+
+                            <t t-if="payslip.employee_id.tax_regime == 'old'">
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        Section 80C
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.section_80c or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        Section 80D
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.section_80d or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        Section 80G
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.section_80g or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        NPS (80CCD(1B))
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.nps or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        Home Loan Interest
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.home_loan_interest or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+                            </t>
+
+
+                            <tr style="font-weight:bold;">
+
+                                <td style="
+                                    padding:7px;
+                                    border:1px solid #999;
+                                ">
+                                    Net Taxable Income
+                                </td>
+
+                                <td style="
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                ">
+                                    <span t-esc="'{:,.2f}'.format(payslip.employee_id.net_taxable_income or 0.0)"/>
+                                </td>
+
+                            </tr>
+
+                        </table>
+
+
+                        <!-- ================================================= -->
+                        <!-- TAX COMPUTATION -->
+                        <!-- ================================================= -->
+
+                        <div style="
+                            background:#eeeeee;
+                            border:1px solid #888;
+                            padding:6px 8px;
+                            font-size:12px;
+                            font-weight:bold;
+                            margin-bottom:0;
+                        ">
+                            TAX COMPUTATION
+                        </div>
+
+                        <table style="
+                            width:100%;
+                            border-collapse:collapse;
+                            font-size:11px;
+                            margin-bottom:15px;
+                        ">
+
+                            <tr>
+
+                                <th style="
+                                    width:55%;
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    text-align:left;
+                                    background:#f5f5f5;
+                                ">
+                                    Particulars
+                                </th>
+
+                                <th style="
+                                    width:45%;
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                    background:#f5f5f5;
+                                ">
+                                    Amount (₹)
+                                </th>
+
+                            </tr>
+
+
+                            <!-- OLD REGIME -->
+
+                            <t t-if="payslip.employee_id.tax_regime == 'old'">
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        Tax Before Cess
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format((payslip.employee_id.tds_amount or 0.0) / 1.04)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        Health &amp; Education Cess @ 4%
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format((payslip.employee_id.tds_amount or 0.0) - ((payslip.employee_id.tds_amount or 0.0) / 1.04))"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr style="font-weight:bold;">
+
+                                    <td style="
+                                        padding:7px;
+                                        border:1px solid #999;
+                                    ">
+                                        Annual TDS
+                                    </td>
+
+                                    <td style="
+                                        padding:7px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.tds_amount or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        TDS Till Last Month
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.tds_till_last_month or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr style="font-weight:bold;">
+
+                                    <td style="
+                                        padding:7px;
+                                        border:1px solid #999;
+                                    ">
+                                        Current Month TDS
+                                    </td>
+
+                                    <td style="
+                                        padding:7px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.tds_amount_month or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+                            </t>
+
+
+                            <!-- NEW REGIME -->
+
+                            <t t-if="payslip.employee_id.tax_regime == 'new'">
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        Tax Before Cess
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format((payslip.employee_id.tds_amount_new or 0.0) / 1.04)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        Surcharge
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.surcharge_amount or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        Rebate / Marginal Relief
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.relief_amount or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        Health &amp; Education Cess @ 4%
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format((payslip.employee_id.tds_amount_new or 0.0) - ((payslip.employee_id.tds_amount_new or 0.0) / 1.04))"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr style="font-weight:bold;">
+
+                                    <td style="
+                                        padding:7px;
+                                        border:1px solid #999;
+                                    ">
+                                        Annual TDS
+                                    </td>
+
+                                    <td style="
+                                        padding:7px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.tds_amount_new or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                    ">
+                                        TDS Till Last Month
+                                    </td>
+
+                                    <td style="
+                                        padding:6px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.tds_till_last_month or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+
+                                <tr style="font-weight:bold;">
+
+                                    <td style="
+                                        padding:7px;
+                                        border:1px solid #999;
+                                    ">
+                                        Current Month TDS
+                                    </td>
+
+                                    <td style="
+                                        padding:7px;
+                                        border:1px solid #999;
+                                        text-align:right;
+                                    ">
+                                        <span t-esc="'{:,.2f}'.format(payslip.employee_id.tds_amount_new_month or 0.0)"/>
+                                    </td>
+
+                                </tr>
+
+                            </t>
+
+                        </table>
+
+
+                        <!-- ================================================= -->
+                        <!-- TDS SUMMARY -->
+                        <!-- ================================================= -->
+
+                        <div style="
+                            background:#eeeeee;
+                            border:1px solid #888;
+                            padding:6px 8px;
+                            font-size:12px;
+                            font-weight:bold;
+                            margin-bottom:0;
+                        ">
+                            TDS SUMMARY
+                        </div>
+
+                        <table style="
+                            width:100%;
+                            border-collapse:collapse;
+                            font-size:11px;
+                            margin-bottom:20px;
+                        ">
+
+                            <tr>
+
+                                <td style="
+                                    width:55%;
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    font-weight:bold;
+                                ">
+                                    Annual Taxable Income
+                                </td>
+
+                                <td style="
+                                    width:45%;
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                    font-weight:bold;
+                                ">
+                                    <span t-esc="'{:,.2f}'.format(payslip.employee_id.net_taxable_income or 0.0)"/>
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td style="
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    font-weight:bold;
+                                ">
+                                    Annual TDS Deductible
+                                </td>
+
+                                <td style="
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                    font-weight:bold;
+                                ">
+
+                                    <span t-if="payslip.employee_id.tax_regime == 'old'"
+                                          t-esc="'{:,.2f}'.format(payslip.employee_id.tds_amount or 0.0)"/>
+
+                                    <span t-elif="payslip.employee_id.tax_regime == 'new'"
+                                          t-esc="'{:,.2f}'.format(payslip.employee_id.tds_amount_new or 0.0)"/>
+
+                                    <span t-else="">
+                                        0.00
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td style="
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    font-weight:bold;
+                                ">
+                                    TDS Already Deducted
+                                </td>
+
+                                <td style="
+                                    padding:7px;
+                                    border:1px solid #999;
+                                    text-align:right;
+                                    font-weight:bold;
+                                ">
+                                    <span t-esc="'{:,.2f}'.format(payslip.employee_id.tds_till_last_month or 0.0)"/>
+                                </td>
+
+                            </tr>
+
+
+                            <tr style="
+                                background:#eeeeee;
+                                font-size:12px;
+                            ">
+
+                                <td style="
+                                    padding:8px;
+                                    border:1px solid #777;
+                                    font-weight:bold;
+                                ">
+                                    TDS TO BE DEDUCTED THIS MONTH
+                                </td>
+
+                                <td style="
+                                    padding:8px;
+                                    border:1px solid #777;
+                                    text-align:right;
+                                    font-weight:bold;
+                                ">
+
+                                    <span t-if="payslip.employee_id.tax_regime == 'old'"
+                                          t-esc="'{:,.2f}'.format(payslip.employee_id.tds_amount_month or 0.0)"/>
+
+                                    <span t-elif="payslip.employee_id.tax_regime == 'new'"
+                                          t-esc="'{:,.2f}'.format(payslip.employee_id.tds_amount_new_month or 0.0)"/>
+
+                                    <span t-else="">
+                                        0.00
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+                        </table>
+
+
+                        <!-- ================================================= -->
+                        <!-- FOOTER NOTE -->
+                        <!-- ================================================= -->
+
+                        <div style="
+                            margin-top:15px;
+                            font-size:9px;
+                            color:#555;
+                            border-top:1px solid #aaa;
+                            padding-top:6px;
+                        ">
+
+                            <strong>Note:</strong>
+                            TDS is calculated based on the employee's selected
+                            tax regime, annual income, applicable deductions,
+                            applicable tax slabs, surcharge/relief and
+                            applicable cess as configured in the payroll system.
+
+                        </div>
+
+                    </div>
+
+                </t>
+
+            </t>
+
+        </t>
+
+    </template>
+
+</odoo>

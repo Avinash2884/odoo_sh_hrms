@@ -24,6 +24,7 @@ class HrVersion(models.Model):
         groups="hr_payroll.group_hr_payroll_user"
     )
 
+
     dearness_allowance = fields.Monetary(
         string="Dearness Allowance",
         store=True,
@@ -132,21 +133,27 @@ class HrVersion(models.Model):
     # HRA Calculation Based On Gross Wage
     # ---------------------------------------
 
+    # ---------------------------------------
+    # HRA Calculation Based On Gross Wage
+    # ---------------------------------------
+
     @api.depends('wage', 'l10n_in_hra_percentage')
     def _compute_l10n_in_hra(self):
-
-        # Remove old compute queue
         self.env.remove_to_compute(
             self._fields['l10n_in_hra_percentage'],
             self
         )
 
         for version in self:
-            # HRA = Gross Wage × HRA %
+
+
+            # HRA = Gross Wage × HRA Percentage
             version.l10n_in_hra = (
                     version.wage *
                     version.l10n_in_hra_percentage
             )
+
+
 
     @api.constrains(
         'l10n_in_basic_salary_amount',
@@ -160,8 +167,4 @@ class HrVersion(models.Model):
     def _check_l10n_in_total_allowance_below_wage(self):
         # Skip enterprise validation
         return
-
-
-
-
 

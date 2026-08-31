@@ -6,4 +6,7 @@ from . import hr_approval_requests
 from . import hr_attendance_inherit
 from . import hr_leave_allocation
 from . import employee_salary_revision
+from . import hr_employee_rented_house
+# from . import hr_employee_home_loan
+from . import hr_employee_investment
 from . import hr_employee_public

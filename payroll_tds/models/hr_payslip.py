@@ -28,7 +28,6 @@ class HrPayslip(models.Model):
             else:
                 rec.pay_period = ''
 
-
     dob_display = fields.Char(
         string='DOB',
         compute='_compute_display_dates'
@@ -309,7 +308,8 @@ class HrPayslip(models.Model):
             )[:1]
             slip.pt = abs(pt_line.total) if pt_line else 0.0
 
-    # pt = fields.Float(
+            # pt = fields.Float(
+
     #     string="PT",
     # )
 
@@ -343,7 +343,7 @@ class HrPayslip(models.Model):
                     f"{year}-04-01"
                 )
 
-            # October - March half year
+                # October - March half year
             else:
 
                 if month >= 10:
@@ -434,7 +434,8 @@ class HrPayslip(models.Model):
                     or 0.0
             )
 
-    # @api.onchange(
+            # @api.onchange(
+
     #     'epf_contribution',
     #     'pt',
     #     'income_tax',
@@ -524,7 +525,8 @@ class HrPayslip(models.Model):
             else:
                 rec.total_period_days = 0
 
-    # @api.depends('worked_days_line_ids.number_of_days', 'worked_days_line_ids.code')
+                # @api.depends('worked_days_line_ids.number_of_days', 'worked_days_line_ids.code')
+
     # def _compute_attendance_days(self):
     #     for rec in self:
     #         rec.attendance_days = sum(
@@ -556,11 +558,11 @@ class HrPayslip(models.Model):
                 if joining_date > rec.date_to:
                     eligible_days = 0
 
-                # Joined during payslip period
+                    # Joined during payslip period
                 elif rec.date_from <= joining_date <= rec.date_to:
                     eligible_days = (rec.date_to - joining_date).days + 1
 
-                # Joined before payslip period
+                    # Joined before payslip period
                 else:
                     eligible_days = total_days
 
@@ -585,7 +587,7 @@ class HrPayslip(models.Model):
         if self.env.context.get('install_demo'):
             return super().action_payslip_done()
 
-        #
+            #
         # for slip in valid_slips:
         #
         #     fy_start = slip.date_from
@@ -631,15 +633,13 @@ class HrPayslip(models.Model):
             if slip.date_from:
                 month = slip.date_from.month
 
-
-            # 2. GROSS WAGE FROM EMPLOYEE (NO contract_id)
+                # 2. GROSS WAGE FROM EMPLOYEE (NO contract_id)
             gross = slip.employee_id.payslip_gross_wage or 0.0
             slip.employee_id.write({
                 'payslip_month': str(month),
                 'payslip_gross_wage': gross,
                 'payslip_paid_days': slip.attendance_days,
             })
-
 
             # 3. GET ANNUAL SALARY (IMPORTANT CHECK FIRST)
 
@@ -650,7 +650,7 @@ class HrPayslip(models.Model):
                 valid_slips |= slip
                 continue
 
-            # 3. COMPUTE SHEET FIRST
+                # 3. COMPUTE SHEET FIRST
             # Calculate previous PT first
 
             slip.compute_sheet()
@@ -755,13 +755,16 @@ class HrPayslip(models.Model):
                 ):
                     employee.annual_tds_base = employee.tds_amount_new
 
-                # Compute Monthly TDS
+                    # Compute Monthly TDS
                 employee._compute_tds_amount_month()
 
             res = super(HrPayslip, valid_slips).action_payslip_done()
 
-
             for slip in valid_slips:
+
+                slip.employee_id._update_financial_year_incentive(
+                    slip
+                )
 
                 fy_start = slip.date_from
 
@@ -802,7 +805,7 @@ class HrPayslip(models.Model):
         else:
             res = True
 
-        # Notification only
+            # Notification only
         # if blocked_count:
         #     return {
         #         'type': 'ir.actions.client',
@@ -843,7 +846,7 @@ class HrPayslip(models.Model):
             if slip.date_from.month == 4:
                 employee.annual_tds_base = 0.0
 
-            # -----------------------------
+                # -----------------------------
 
             # Get current month's TDS
             # -----------------------------
@@ -871,3 +874,4 @@ class HrPayslip(models.Model):
                 slip.employee_id.paid_installments += 1
 
         return res
+

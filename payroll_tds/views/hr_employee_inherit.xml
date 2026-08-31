@@ -101,6 +101,7 @@
                 <field name="payslip_yearly_cost"
        widget="monetary"
        options="{'currency_field': 'currency_id'}"/>
+<field name="financial_year_incentive" string="Financial Year Incentive" readonly="0"/>
                 <field name="total_income" readonly="1"/>
                 <label name="tax_regime_label" for="tax_regime">Tax Regime</label>
                 <div name="tax_regime" class="o_row">
@@ -126,7 +127,38 @@
                  <field name="tds_amount_new_month" invisible="tax_regime != 'new'" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 </div>
 
-                <label for="section_80c" invisible="tax_regime != 'old'">Section 80C</label>
+                 <field name="hra_exemption_amount"
+           string="House Rent Allowance"
+                        invisible="tax_regime != 'old'"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"
+           readonly="0"/>
+                <field name="tax_on_employment"
+           string="Under Section 19 Tax on Employment"
+                       invisible="tax_regime != 'old'"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"
+                       readonly="0"/>
+                <field name="entertainment_allowance"
+       string="Under Section 19 Entertainment Allowance"
+                        invisible="tax_regime != 'old'"
+       widget="monetary"
+       options="{'currency_field': 'currency_id'}"
+       readonly="0"/>
+
+                 <field name="previous_employment_income"
+           string="i) Income After Exemptions"
+           invisible="tax_regime != 'old'" widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+
+    <field name="previous_employment_professional_tax"
+           string="ii) Less: Professional Tax"
+           invisible="tax_regime != 'old'"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+
+
+                <label for="section_80c" invisible="tax_regime != 'old'">Section 123 (80C)</label>
                 <div class="o_row">
                     <field name="section_80c"
                         invisible="tax_regime != 'old'"
@@ -159,8 +191,115 @@
                     <field name="home_loan_interest"
                         invisible="tax_regime != 'old'"
                         widget="monetary"
-                        options="{'currency_field': 'currency_id'}"/>
+                        options="{'currency_field': 'currency_id'}"
+                       help="Maximum allowable deduction: ₹2,00,000"/>
                 </div>
+                <label for="section_123_80ccc" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_123_80ccc"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_124_1_80ccd_1" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_124_1_80ccd_1"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_124_1b_80ccd_1b" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_124_1b_80ccd_1b"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_126_80d" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_126_80d"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_127_80dd" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_127_80dd"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_128_80ddb" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_128_80ddb"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_129_80e" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_129_80e"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_130_80ee" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_130_80ee"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_131_80eea" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_131_80eea"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_132_80eeb" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_132_80eeb"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_133_80g" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_133_80g"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_134_80gg" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_134_80gg"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_137_80ggc" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_137_80ggc"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_153_80tta" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_153_80tta"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_154_80u" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_154_80u"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+
                 <label name="tds_amount_label" for="tds_amount" invisible="tax_regime != 'old'">TDS Amount</label>
                 <div name="tds_amount" class="o_row">
                     <field name="tds_amount" invisible="tax_regime != 'old'" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
@@ -195,5 +334,19 @@
 
         </field>
     </record>
+        <record id="hr_employee_inherit_pran_number" model="ir.ui.view">
+    <field name="name">hr.employee.form.pran.number</field>
+    <field name="model">hr.employee</field>
+    <field name="inherit_id" ref="hr.view_employee_form"/>
+    <field name="arch" type="xml">
+
+        <xpath expr="//field[@name='l10n_in_pan']" position="after">
+            <field name="pran_number"
+                   string="PRAN Number"
+                   placeholder="Enter 12 digit PRAN Number"/>
+        </xpath>
+
+    </field>
+</record>
 </data>
 </odoo>
