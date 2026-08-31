@@ -40,6 +40,7 @@ class HrEmployeeInherit(models.Model):
 
     employee_notice_period = fields.Integer(string="Probation Notice Period",tracking=True)
     confirmed_employee_notice_period = fields.Integer(string="Confirmed Notice Period",tracking=True)
+    probation_in_months = fields.Integer(string="Probation in Months",tracking=True)
     last_working_date_employee = fields.Date(
         string="Last Working Date",
         compute="_compute_last_working_date",

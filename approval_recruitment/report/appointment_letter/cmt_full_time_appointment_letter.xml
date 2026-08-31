@@ -145,7 +145,7 @@
                         <div style="margin-left: 20px; text-align: justify; margin-bottom: 20px;">
 
                             <p style="margin-bottom: 12px;">
-                                a.	You will be on internship for 3 months from your date of joining. During this period, the Company may conduct evaluation(s) on functional and behavioral aspects of your role as deemed fit, to ascertain the suitability of the employment.
+                                a.	You will be on internship for <t t-esc="object.probation_in_months or '-'"/> months from your date of joining. During this period, the Company may conduct evaluation(s) on functional and behavioral aspects of your role as deemed fit, to ascertain the suitability of the employment.
                             </p>
 
                             <p style="margin-bottom: 12px;">
@@ -188,11 +188,11 @@
                             </p>
 
                             <p style="margin-bottom: 12px;">
-                                b.	You are required to give a notice of a of <t t-esc="object.employee_notice_period or '-'"/> days if you wish to resign from the service of the Company.
+                                b.	You are required to give a notice of a of <t t-esc="object.confirmed_employee_notice_period or '-'"/> days if you wish to resign from the service of the Company.
                             </p>
 
                             <p style="margin-bottom: 12px;">
-                                c.	The Company shall be entitled to terminate the engagement by giving <t t-esc="object.employee_notice_period or '-'"/> days prior notice to you. However, the Company shall have the option, in its sole discretion, to make your termination effective at any time prior to the end of such notice period as long as the Company pays you the full salary to which you are entitled up to the last day of such reduced notice period.
+                                c.	The Company shall be entitled to terminate the engagement by giving <t t-esc="object.confirmed_employee_notice_period or '-'"/> days prior notice to you. However, the Company shall have the option, in its sole discretion, to make your termination effective at any time prior to the end of such notice period as long as the Company pays you the full salary to which you are entitled up to the last day of such reduced notice period.
                             </p>
 
                             <p style="margin-bottom: 12px;">
