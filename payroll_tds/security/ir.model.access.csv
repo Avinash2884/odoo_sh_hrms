@@ -1,9 +1,7 @@
-```csv
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_employee_salary_revision_user,employee.salary.revision.user,model_employee_salary_revision,base.group_user,1,1,1,1
 access_hr_employee_rented_house_user,employee.rented.house.user,model_hr_employee_rented_house,base.group_user,1,1,1,1
 access_hr_employee_rented_house_month_user,employee.rented.house.month.user,model_hr_employee_rented_house_month,base.group_user,1,1,1,1
-
 access_hr_employee_investment_user,employee.investment.user,model_hr_employee_investment,base.group_user,1,1,1,1
 access_hr_employee_investment_80ccc_user,employee.investment.80ccc.user,model_hr_employee_investment_80ccc,base.group_user,1,1,1,1
 access_hr_employee_investment_80ccd1_user,employee.investment.80ccd1.user,model_hr_employee_investment_80ccd1,base.group_user,1,1,1,1
@@ -19,9 +17,6 @@ access_hr_employee_investment_80gg_user,employee.investment.80gg.user,model_hr_e
 access_hr_employee_investment_80ggc_user,employee.investment.80ggc.user,model_hr_employee_investment_80ggc,base.group_user,1,1,1,1
 access_hr_employee_investment_80tta_user,employee.investment.80tta.user,model_hr_employee_investment_80tta,base.group_user,1,1,1,1
 access_hr_employee_investment_80u_user,employee.investment.80u.user,model_hr_employee_investment_80u,base.group_user,1,1,1,1
-
 access_hr_employee_other_allowance_user,employee.other.allowance.user,model_hr_employee_other_allowance,base.group_user,1,1,1,1
-
 access_hr_employee_investment_80d_user,employee.investment.80d.user,model_hr_employee_investment_80d,base.group_user,1,1,1,1
 access_hr_employee_other_income_user,employee.other.income.user,model_hr_employee_other_income,base.group_user,1,1,1,1
-```
