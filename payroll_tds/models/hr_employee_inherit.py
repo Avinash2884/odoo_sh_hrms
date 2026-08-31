@@ -238,12 +238,13 @@ class Employee(models.Model):
 
     l10n_in_nps_employer_type = fields.Selection(
         selection=[
-            ('5', '5%'),
-            ('10', '10%'),
-            ('14', '14%'),
+            ('0', '0'),
+            ('5', '5'),
+            ('10', '10'),
+            ('14', '14'),
         ],
         string="NPS Employer Contribution",
-        default='10',
+        default='0',
     )
 
     l10n_in_nps_employer_amount = fields.Monetary(
@@ -253,10 +254,14 @@ class Employee(models.Model):
         currency_field='currency_id',
     )
 
-    @api.depends('l10n_in_nps_employer_type')
+    @api.depends(
+        'l10n_in_nps_employer_type',
+        'version_id.l10n_in_basic_salary_amount',
+    )
     def _compute_l10n_in_nps_employer_amount(self):
         for employee in self:
             basic = employee.version_id.l10n_in_basic_salary_amount or 0.0
+
             percentage = float(
                 employee.l10n_in_nps_employer_type or 0.0
             )
