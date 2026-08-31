@@ -154,6 +154,11 @@ class HrEmployeeInherits(models.Model):
         readonly=True
     )
 
+    probation_in_months = fields.Integer(
+        related='employee_id.probation_in_months',
+        readonly=True
+    )
+
     cmt_hospital_name = fields.Char(
         related='employee_id.cmt_hospital_name',
         readonly=True
