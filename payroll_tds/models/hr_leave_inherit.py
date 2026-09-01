@@ -531,3 +531,11 @@ class HrLeave(models.Model):
                     % planning.shift_date.strftime('%d-%m-%Y')
 
                 )
+
+class HrLeaveType(models.Model):
+    _inherit = "hr.leave.type"
+
+    comp_off_start_date = fields.Date(
+        string="Comp Off Eligibility Start Date",
+        help="Comp Off will be generated only for public holidays on or after this date."
+    )

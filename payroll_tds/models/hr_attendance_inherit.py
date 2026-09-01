@@ -66,7 +66,9 @@ class HrAttendance(models.Model):
             flush=True,
         )
 
-        holidays = self.env["resource.calendar.leaves"].sudo().search(
+        holidays = self.env[
+            "resource.calendar.leaves"
+        ].sudo().search(
             [
                 ("resource_id", "=", False),
             ]
@@ -91,7 +93,9 @@ class HrAttendance(models.Model):
             flush=True,
         )
 
-        employees = self.env["hr.employee"].sudo().search([])
+        employees = self.env[
+            "hr.employee"
+        ].sudo().search([])
 
         print(
             "TOTAL EMPLOYEES FOUND:",
@@ -186,6 +190,7 @@ class HrAttendance(models.Model):
                     employee_tz = pytz.timezone(
                         employee_timezone
                     )
+
                 except Exception:
 
                     print(
@@ -204,14 +209,16 @@ class HrAttendance(models.Model):
                     holiday.date_from
                 )
 
-                # Odoo datetime is stored in UTC.
                 if holiday_utc_datetime.tzinfo:
+
                     holiday_utc_datetime = (
                         holiday_utc_datetime.astimezone(
                             pytz.UTC
                         )
                     )
+
                 else:
+
                     holiday_utc_datetime = pytz.UTC.localize(
                         holiday_utc_datetime
                     )
@@ -301,21 +308,8 @@ class HrAttendance(models.Model):
                 # -------------------------------------------------
                 # 6. Search Attendance
                 #
-                # IMPORTANT:
-                #
-                # Both Check-In AND Check-Out must be on
+                # BOTH Check-In AND Check-Out must be on
                 # the Public Holiday date.
-                #
-                # Example:
-                #
-                # 14-Aug 08:00 PM -> 15-Aug 11:00 PM
-                #       ❌ NO COMP OFF
-                #
-                # 15-Aug 08:00 AM -> 15-Aug 08:00 PM
-                #       ✅ COMP OFF
-                #
-                # 15-Aug 10:00 PM -> 16-Aug 02:00 AM
-                #       ❌ NO COMP OFF
                 # -------------------------------------------------
                 print(
                     "STEP 6: SEARCHING VALID ATTENDANCE...",
@@ -338,6 +332,7 @@ class HrAttendance(models.Model):
                             ">=",
                             utc_start,
                         ),
+
                         (
                             "check_in",
                             "<=",
@@ -350,6 +345,7 @@ class HrAttendance(models.Model):
                             ">=",
                             utc_start,
                         ),
+
                         (
                             "check_out",
                             "<=",
@@ -416,7 +412,7 @@ class HrAttendance(models.Model):
                 )
 
                 print(
-                    "Worked Hours:",
+                    "Odoo Worked Hours:",
                     attendance.worked_hours,
                     flush=True,
                 )
@@ -433,7 +429,7 @@ class HrAttendance(models.Model):
                 )
 
                 # -------------------------------------------------
-                # 9. Validate Attendance
+                # 9. Validate Check-Out
                 # -------------------------------------------------
                 if not attendance.check_out:
 
@@ -446,19 +442,195 @@ class HrAttendance(models.Model):
 
                     continue
 
-                if attendance.worked_hours <= 0:
+                # -------------------------------------------------
+                # 10. ACTUAL CHECK-IN / CHECK-OUT HOURS
+                #
+                # IMPORTANT:
+                #
+                # Calculate directly from Check-In and Check-Out.
+                #
+                # 5:59 hours  -> NO
+                # 6:00 hours  -> YES
+                # 6:01 hours  -> YES
+                # 8:00 hours  -> YES
+                # -------------------------------------------------
+
+                actual_worked_seconds = (
+                    attendance.check_out
+                    - attendance.check_in
+                ).total_seconds()
+
+                actual_worked_hours = (
+                    actual_worked_seconds / 3600.0
+                )
+
+                print("")
+                print(
+                    "************ 6 HOUR VALIDATION ************",
+                    flush=True,
+                )
+
+                print(
+                    "Check In:",
+                    attendance.check_in,
+                    flush=True,
+                )
+
+                print(
+                    "Check Out:",
+                    attendance.check_out,
+                    flush=True,
+                )
+
+                print(
+                    "Odoo Worked Hours:",
+                    attendance.worked_hours,
+                    flush=True,
+                )
+
+                print(
+                    "ACTUAL WORKED HOURS:",
+                    round(actual_worked_hours, 4),
+                    flush=True,
+                )
+
+                print(
+                    "MINIMUM REQUIRED HOURS: 6.0",
+                    flush=True,
+                )
+
+                print(
+                    "********************************************",
+                    flush=True,
+                )
+
+                _logger.warning(
+                    "COMP OFF HOURS CHECK | "
+                    "Employee=%s | Holiday=%s | "
+                    "CheckIn=%s | CheckOut=%s | "
+                    "OdooWorkedHours=%s | ActualWorkedHours=%s",
+                    employee.name,
+                    holiday_date,
+                    attendance.check_in,
+                    attendance.check_out,
+                    attendance.worked_hours,
+                    actual_worked_hours,
+                )
+
+                # -------------------------------------------------
+                # 11. Minimum 6 Hours Condition
+                # -------------------------------------------------
+                if actual_worked_hours < 6.0:
+
+                    print("")
+                    print(
+                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+                        flush=True,
+                    )
 
                     print(
-                        "SKIPPING:",
-                        employee.name,
-                        "| Worked Hours is 0.",
+                        "COMP OFF NOT CREATED",
                         flush=True,
+                    )
+
+                    print(
+                        "Employee:",
+                        employee.name,
+                        flush=True,
+                    )
+
+                    print(
+                        "Holiday:",
+                        holiday_date,
+                        flush=True,
+                    )
+
+                    print(
+                        "Actual Worked Hours:",
+                        round(actual_worked_hours, 4),
+                        flush=True,
+                    )
+
+                    print(
+                        "Reason: Employee worked LESS THAN 6 HOURS.",
+                        flush=True,
+                    )
+
+                    print(
+                        "Minimum Required: 6 HOURS",
+                        flush=True,
+                    )
+
+                    print(
+                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+                        flush=True,
+                    )
+
+                    _logger.warning(
+                        "COMP OFF SKIPPED | "
+                        "Employee=%s | Holiday=%s | "
+                        "Actual Worked Hours=%s | "
+                        "Minimum Required=6",
+                        employee.name,
+                        holiday_date,
+                        actual_worked_hours,
                     )
 
                     continue
 
                 # -------------------------------------------------
-                # 10. Unique Comp-Off Allocation Name
+                # 12. 6 Hours Condition Passed
+                # -------------------------------------------------
+                print("")
+                print(
+                    "********************************************",
+                    flush=True,
+                )
+
+                print(
+                    "6 HOUR CONDITION PASSED",
+                    flush=True,
+                )
+
+                print(
+                    "Employee:",
+                    employee.name,
+                    flush=True,
+                )
+
+                print(
+                    "Holiday:",
+                    holiday_date,
+                    flush=True,
+                )
+
+                print(
+                    "Actual Worked Hours:",
+                    round(actual_worked_hours, 4),
+                    flush=True,
+                )
+
+                print(
+                    "COMP OFF WILL BE CREATED.",
+                    flush=True,
+                )
+
+                print(
+                    "********************************************",
+                    flush=True,
+                )
+
+                _logger.warning(
+                    "6-HOUR CONDITION PASSED | "
+                    "Employee=%s | Holiday=%s | "
+                    "Actual Worked Hours=%s",
+                    employee.name,
+                    holiday_date,
+                    actual_worked_hours,
+                )
+
+                # -------------------------------------------------
+                # 13. Unique Comp-Off Allocation Name
                 # -------------------------------------------------
                 unique_name = (
                     f"Comp Off - "
@@ -472,7 +644,7 @@ class HrAttendance(models.Model):
                 )
 
                 # -------------------------------------------------
-                # 11. Prevent Duplicate Allocation
+                # 14. Prevent Duplicate Allocation
                 # -------------------------------------------------
                 existing = self.env[
                     "hr.leave.allocation"
@@ -498,6 +670,7 @@ class HrAttendance(models.Model):
                 )
 
                 if existing:
+
                     print(
                         "COMP OFF ALREADY EXISTS |",
                         employee.name,
@@ -511,8 +684,7 @@ class HrAttendance(models.Model):
                     continue
 
                 # -------------------------------------------------
-                # 12. Calculate Validity Period
-                # -------------------------------------------------
+                # 15. Calculate Validity Period
                 #
                 # Public Holiday:
                 # 15-Aug-2026
@@ -524,431 +696,425 @@ class HrAttendance(models.Model):
                 #
                 # 60th Day:
                 # 14-Oct-2026
-                #
-                # Therefore:
-                #
-                # date_from = 16-Aug-2026
-                # date_to   = 14-Oct-2026
-                #
                 # -------------------------------------------------
 
-            validity_start_date = (
+                validity_start_date = (
                     holiday_date + timedelta(days=1)
-            )
+                )
 
-            validity_end_date = (
+                validity_end_date = (
                     validity_start_date
                     + timedelta(days=59)
-            )
-
-            print("")
-            print(
-                "************ VALIDITY PERIOD ************",
-                flush=True,
-            )
-
-            print(
-                "Public Holiday Date:",
-                holiday_date,
-                flush=True,
-            )
-
-            print(
-                "Validity Start Date:",
-                validity_start_date,
-                flush=True,
-            )
-
-            print(
-                "Validity End Date:",
-                validity_end_date,
-                flush=True,
-            )
-
-            print(
-                "Total Validity Days:",
-                (
-                        validity_end_date
-                        - validity_start_date
-                ).days + 1,
-                flush=True,
-            )
-
-            print(
-                "******************************************",
-                flush=True,
-            )
-
-            _logger.warning(
-                "COMP OFF VALIDITY | "
-                "Employee=%s | Holiday=%s | "
-                "Start=%s | End=%s | Days=%s",
-                employee.name,
-                holiday_date,
-                validity_start_date,
-                validity_end_date,
-                (
-                        validity_end_date
-                        - validity_start_date
-                ).days + 1,
-            )
-
-            # -------------------------------------------------
-            # 13. Create Comp-Off Allocation
-            # -------------------------------------------------
-            try:
-
-                print("")
-                print(
-                    "STEP 13: CREATING COMP OFF...",
-                    flush=True,
-                )
-
-                allocation = self.env[
-                    "hr.leave.allocation"
-                ].sudo().create(
-                    {
-                        "name": unique_name,
-
-                        "employee_id": employee.id,
-
-                        "holiday_status_id":
-                            comp_off_type.id,
-
-                        "number_of_days": 1,
-
-                        # Validity starts next day
-                        "date_from":
-                            validity_start_date,
-
-                        # 60th day
-                        "date_to":
-                            validity_end_date,
-                    }
                 )
 
                 print("")
                 print(
-                    "####################################################",
+                    "************ VALIDITY PERIOD ************",
                     flush=True,
                 )
 
                 print(
-                    "************ COMP OFF CREATED ************",
-                    flush=True,
-                )
-
-                print(
-                    "Employee:",
-                    employee.name,
-                    flush=True,
-                )
-
-                print(
-                    "Allocation ID:",
-                    allocation.id,
-                    flush=True,
-                )
-
-                print(
-                    "Allocation Name:",
-                    allocation.name,
-                    flush=True,
-                )
-
-                print(
-                    "State BEFORE APPROVAL:",
-                    allocation.state,
-                    flush=True,
-                )
-
-                print(
-                    "Validity Start:",
-                    allocation.date_from,
-                    flush=True,
-                )
-
-                print(
-                    "Validity End:",
-                    allocation.date_to,
-                    flush=True,
-                )
-
-                print(
-                    "####################################################",
-                    flush=True,
-                )
-
-                # -------------------------------------------------
-                # 14. Automatically Approve Allocation
-                # -------------------------------------------------
-                print(
-                    "STEP 14: AUTO APPROVING COMP OFF...",
-                    flush=True,
-                )
-
-                _logger.warning(
-                    "AUTO APPROVAL STARTED | "
-                    "Allocation ID=%s | "
-                    "Current State=%s",
-                    allocation.id,
-                    allocation.state,
-                )
-
-                try:
-
-                    allocation.sudo()._action_validate()
-
-                    allocation.invalidate_recordset()
-
-                    print(
-                        "AUTO APPROVAL COMPLETED.",
-                        flush=True,
-                    )
-
-                    print(
-                        "STATE AFTER APPROVAL:",
-                        allocation.state,
-                        flush=True,
-                    )
-
-                    print(
-                        "VALIDITY START:",
-                        allocation.date_from,
-                        flush=True,
-                    )
-
-                    print(
-                        "VALIDITY END:",
-                        allocation.date_to,
-                        flush=True,
-                    )
-
-                    _logger.warning(
-                        "AUTO APPROVAL COMPLETED | "
-                        "Allocation ID=%s | "
-                        "State=%s | "
-                        "Start=%s | End=%s",
-                        allocation.id,
-                        allocation.state,
-                        allocation.date_from,
-                        allocation.date_to,
-                    )
-
-                except Exception as approval_error:
-
-                    print(
-                        "AUTO APPROVAL FAILED:",
-                        str(approval_error),
-                        flush=True,
-                    )
-
-                    _logger.exception(
-                        "AUTO APPROVAL FAILED | "
-                        "Allocation ID=%s | Error=%s",
-                        allocation.id,
-                        str(approval_error),
-                    )
-
-                # -------------------------------------------------
-                # 15. Employee Email
-                # -------------------------------------------------
-                if employee.work_email:
-                    self.env[
-                        "mail.mail"
-                    ].sudo().create(
-                        {
-                            "subject":
-                                "Compensatory Off Credited",
-
-                            "email_to":
-                                employee.work_email,
-
-                            "body_html": f"""
-                                                <div>
-                                                    <p>
-                                                        Dear
-                                                        <b>{employee.name}</b>,
-                                                    </p>
-
-                                                    <p>
-                                                        You worked on Public Holiday
-                                                        <b>
-                                                            {
-                            holiday_date.strftime(
-                                '%d/%m/%Y'
-                            )
-                            }
-                                                        </b>.
-                                                    </p>
-
-                                                    <p>
-                                                        <b>
-                                                            1 Compensatory Off
-                                                        </b>
-                                                        has been credited to your
-                                                        account.
-                                                    </p>
-
-                                                    <p>
-                                                        Compensatory Off Validity:
-                                                        <b>
-                                                            {
-                            validity_start_date.strftime(
-                                '%d/%m/%Y'
-                            )
-                            }
-                                                        </b>
-                                                        to
-                                                        <b>
-                                                            {
-                            validity_end_date.strftime(
-                                '%d/%m/%Y'
-                            )
-                            }
-                                                        </b>
-                                                    </p>
-
-                                                    <p>
-                                                        Regards,
-
-                                                        HR Team
-                                                    </p>
-                                                </div>
-                                            """,
-                        }
-                    ).send()
-
-                    print(
-                        "Employee email sent to:",
-                        employee.work_email,
-                        flush=True,
-                    )
-
-                # -------------------------------------------------
-                # 16. Manager Email
-                # -------------------------------------------------
-                manager = employee.parent_id
-
-                if manager and manager.work_email:
-                    self.env[
-                        "mail.mail"
-                    ].sudo().create(
-                        {
-                            "subject":
-                                "Employee Comp Off Credited",
-
-                            "email_to":
-                                manager.work_email,
-
-                            "body_html": f"""
-                                                <div>
-                                                    <p>
-                                                        Dear
-                                                        <b>{manager.name}</b>,
-                                                    </p>
-
-                                                    <p>
-                                                        Employee
-                                                        <b>{employee.name}</b>
-                                                        worked on Public Holiday
-                                                        <b>
-                                                            {
-                            holiday_date.strftime(
-                                '%d/%m/%Y'
-                            )
-                            }
-                                                        </b>.
-                                                    </p>
-
-                                                    <p>
-                                                        <b>
-                                                            1 Compensatory Off
-                                                        </b>
-                                                        has been credited to the
-                                                        employee.
-                                                    </p>
-
-                                                    <p>
-                                                        Compensatory Off Validity:
-                                                        <b>
-                                                            {
-                            validity_start_date.strftime(
-                                '%d/%m/%Y'
-                            )
-                            }
-                                                        </b>
-                                                        to
-                                                        <b>
-                                                            {
-                            validity_end_date.strftime(
-                                '%d/%m/%Y'
-                            )
-                            }
-                                                        </b>
-                                                    </p>
-
-                                                    <p>
-                                                        Regards,
-
-                                                        HR Team
-                                                    </p>
-                                                </div>
-                                            """,
-                        }
-                    ).send()
-
-                    print(
-                        "Manager email sent to:",
-                        manager.work_email,
-                        flush=True,
-                    )
-
-            except Exception as e:
-
-                print("")
-                print(
-                    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
-                    flush=True,
-                )
-
-                print(
-                    "COMP OFF CREATION FAILED",
-                    flush=True,
-                )
-
-                print(
-                    "Employee:",
-                    employee.name,
-                    flush=True,
-                )
-
-                print(
-                    "Holiday:",
+                    "Public Holiday Date:",
                     holiday_date,
                     flush=True,
                 )
 
                 print(
-                    "ERROR:",
-                    str(e),
+                    "Validity Start Date:",
+                    validity_start_date,
                     flush=True,
                 )
 
                 print(
-                    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+                    "Validity End Date:",
+                    validity_end_date,
                     flush=True,
                 )
 
-                _logger.exception(
-                    "COMP OFF FAILED for %s: %s",
-                    employee.name,
-                    str(e),
+                print(
+                    "Total Validity Days:",
+                    (
+                        validity_end_date
+                        - validity_start_date
+                    ).days + 1,
+                    flush=True,
                 )
 
-            # ---------------------------------------------------------
-            # 17. Cron Completed
-            # ---------------------------------------------------------
+                print(
+                    "******************************************",
+                    flush=True,
+                )
+
+                _logger.warning(
+                    "COMP OFF VALIDITY | "
+                    "Employee=%s | Holiday=%s | "
+                    "Start=%s | End=%s | Days=%s",
+                    employee.name,
+                    holiday_date,
+                    validity_start_date,
+                    validity_end_date,
+                    (
+                        validity_end_date
+                        - validity_start_date
+                    ).days + 1,
+                )
+
+                # -------------------------------------------------
+                # 16. Create Comp-Off Allocation
+                # -------------------------------------------------
+                try:
+
+                    print("")
+                    print(
+                        "STEP 16: CREATING COMP OFF...",
+                        flush=True,
+                    )
+
+                    allocation = self.env[
+                        "hr.leave.allocation"
+                    ].sudo().create(
+                        {
+                            "name": unique_name,
+
+                            "employee_id":
+                                employee.id,
+
+                            "holiday_status_id":
+                                comp_off_type.id,
+
+                            "number_of_days": 1,
+
+                            # Validity starts next day
+                            "date_from":
+                                validity_start_date,
+
+                            # 60th day
+                            "date_to":
+                                validity_end_date,
+                        }
+                    )
+
+                    print("")
+                    print(
+                        "####################################################",
+                        flush=True,
+                    )
+
+                    print(
+                        "************ COMP OFF CREATED ************",
+                        flush=True,
+                    )
+
+                    print(
+                        "Employee:",
+                        employee.name,
+                        flush=True,
+                    )
+
+                    print(
+                        "Allocation ID:",
+                        allocation.id,
+                        flush=True,
+                    )
+
+                    print(
+                        "Allocation Name:",
+                        allocation.name,
+                        flush=True,
+                    )
+
+                    print(
+                        "State BEFORE APPROVAL:",
+                        allocation.state,
+                        flush=True,
+                    )
+
+                    print(
+                        "Validity Start:",
+                        allocation.date_from,
+                        flush=True,
+                    )
+
+                    print(
+                        "Validity End:",
+                        allocation.date_to,
+                        flush=True,
+                    )
+
+                    print(
+                        "####################################################",
+                        flush=True,
+                    )
+
+                    # -------------------------------------------------
+                    # 17. Automatically Approve Allocation
+                    # -------------------------------------------------
+                    print(
+                        "STEP 17: AUTO APPROVING COMP OFF...",
+                        flush=True,
+                    )
+
+                    _logger.warning(
+                        "AUTO APPROVAL STARTED | "
+                        "Allocation ID=%s | "
+                        "Current State=%s",
+                        allocation.id,
+                        allocation.state,
+                    )
+
+                    try:
+
+                        allocation.sudo()._action_validate()
+
+                        allocation.invalidate_recordset()
+
+                        print(
+                            "AUTO APPROVAL COMPLETED.",
+                            flush=True,
+                        )
+
+                        print(
+                            "STATE AFTER APPROVAL:",
+                            allocation.state,
+                            flush=True,
+                        )
+
+                        print(
+                            "VALIDITY START:",
+                            allocation.date_from,
+                            flush=True,
+                        )
+
+                        print(
+                            "VALIDITY END:",
+                            allocation.date_to,
+                            flush=True,
+                        )
+
+                        _logger.warning(
+                            "AUTO APPROVAL COMPLETED | "
+                            "Allocation ID=%s | "
+                            "State=%s | Start=%s | End=%s",
+                            allocation.id,
+                            allocation.state,
+                            allocation.date_from,
+                            allocation.date_to,
+                        )
+
+                    except Exception as approval_error:
+
+                        print(
+                            "AUTO APPROVAL FAILED:",
+                            str(approval_error),
+                            flush=True,
+                        )
+
+                        _logger.exception(
+                            "AUTO APPROVAL FAILED | "
+                            "Allocation ID=%s | Error=%s",
+                            allocation.id,
+                            str(approval_error),
+                        )
+
+                    # -------------------------------------------------
+                    # 18. Employee Email
+                    # -------------------------------------------------
+                    if employee.work_email:
+
+                        self.env[
+                            "mail.mail"
+                        ].sudo().create(
+                            {
+                                "subject":
+                                    "Compensatory Off Credited",
+
+                                "email_to":
+                                    employee.work_email,
+
+                                "body_html": f"""
+                                    <div>
+                                        <p>
+                                            Dear
+                                            <b>{employee.name}</b>,
+                                        </p>
+
+                                        <p>
+                                            You worked on Public Holiday
+                                            <b>
+                                                {
+                                                    holiday_date.strftime(
+                                                        '%d/%m/%Y'
+                                                    )
+                                                }
+                                            </b>.
+                                        </p>
+
+                                        <p>
+                                            <b>
+                                                1 Compensatory Off
+                                            </b>
+                                            has been credited to your
+                                            account.
+                                        </p>
+
+                                        <p>
+                                            Compensatory Off Validity:
+                                            <b>
+                                                {
+                                                    validity_start_date.strftime(
+                                                        '%d/%m/%Y'
+                                                    )
+                                                }
+                                            </b>
+                                            to
+                                            <b>
+                                                {
+                                                    validity_end_date.strftime(
+                                                        '%d/%m/%Y'
+                                                    )
+                                                }
+                                            </b>
+                                        </p>
+
+                                        <p>
+                                            Regards,<br/>
+                                            HR Team
+                                        </p>
+                                    </div>
+                                """,
+                            }
+                        ).send()
+
+                        print(
+                            "Employee email sent to:",
+                            employee.work_email,
+                            flush=True,
+                        )
+
+                    # -------------------------------------------------
+                    # 19. Manager Email
+                    # -------------------------------------------------
+                    manager = employee.parent_id
+
+                    if manager and manager.work_email:
+
+                        self.env[
+                            "mail.mail"
+                        ].sudo().create(
+                            {
+                                "subject":
+                                    "Employee Comp Off Credited",
+
+                                "email_to":
+                                    manager.work_email,
+
+                                "body_html": f"""
+                                    <div>
+                                        <p>
+                                            Dear
+                                            <b>{manager.name}</b>,
+                                        </p>
+
+                                        <p>
+                                            Employee
+                                            <b>{employee.name}</b>
+                                            worked on Public Holiday
+                                            <b>
+                                                {
+                                                    holiday_date.strftime(
+                                                        '%d/%m/%Y'
+                                                    )
+                                                }
+                                            </b>.
+                                        </p>
+
+                                        <p>
+                                            <b>
+                                                1 Compensatory Off
+                                            </b>
+                                            has been credited to the
+                                            employee.
+                                        </p>
+
+                                        <p>
+                                            Compensatory Off Validity:
+                                            <b>
+                                                {
+                                                    validity_start_date.strftime(
+                                                        '%d/%m/%Y'
+                                                    )
+                                                }
+                                            </b>
+                                            to
+                                            <b>
+                                                {
+                                                    validity_end_date.strftime(
+                                                        '%d/%m/%Y'
+                                                    )
+                                                }
+                                            </b>
+                                        </p>
+
+                                        <p>
+                                            Regards,<br/>
+                                            HR Team
+                                        </p>
+                                    </div>
+                                """,
+                            }
+                        ).send()
+
+                        print(
+                            "Manager email sent to:",
+                            manager.work_email,
+                            flush=True,
+                        )
+
+                except Exception as e:
+
+                    print("")
+                    print(
+                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+                        flush=True,
+                    )
+
+                    print(
+                        "COMP OFF CREATION FAILED",
+                        flush=True,
+                    )
+
+                    print(
+                        "Employee:",
+                        employee.name,
+                        flush=True,
+                    )
+
+                    print(
+                        "Holiday:",
+                        holiday_date,
+                        flush=True,
+                    )
+
+                    print(
+                        "ERROR:",
+                        str(e),
+                        flush=True,
+                    )
+
+                    print(
+                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+                        flush=True,
+                    )
+
+                    _logger.exception(
+                        "COMP OFF FAILED for %s: %s",
+                        employee.name,
+                        str(e),
+                    )
+
+        # ---------------------------------------------------------
+        # 20. Cron Completed
+        # ---------------------------------------------------------
         print("")
         print(
             "====================================================",

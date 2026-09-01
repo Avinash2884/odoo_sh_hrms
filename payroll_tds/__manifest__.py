@@ -22,17 +22,21 @@
         'security/ir.model.access.csv',
         'views/hr_employee_inherit.xml',
         'views/hr_employee_views_inherit.xml',
-      #  'views/hr_leave_inherit.xml', #Error
+        'views/hr_leave_inherit.xml', #Error
         'views/hr_version_inherit.xml',
         'views/hr_payslip_fnf_views.xml',
         'views/hr_payslip_views.xml',
         'views/approval_requests_views.xml',
         'views/hr_attendance_inherit.xml',
         'views/employee_salary_revision_views.xml',
+        'views/hr_employee_rented_house_form.xml',
+        'views/hr_employee_investment.xml',
+
         #'views/hr_salary_rule_ind_emp_data_views.xml', #Error
         'report/leave_report.xml',
         'report/fnf_report.xml',
-        'report/fnf_report_template.xml'
+        'report/fnf_report_template.xml',
+        # 'report/tds_sheet_report.xml',
 
         # 'views/report_payslip_inherit.xml'
         # 'views/hr_version_inherit.xml'

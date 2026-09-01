@@ -1,11 +1,18 @@
 import calendar
+import logging
+import re
 import math
+import math
+from decimal import Decimal, ROUND_HALF_UP
+from odoo.exceptions import ValidationError
 from odoo import models, fields, api
 from calendar import monthrange
 from datetime import date
 
+
 class Employee(models.Model):
     _inherit = 'hr.employee'
+
 
     revision_ids = fields.One2many(
         'employee.salary.revision',
@@ -59,16 +66,381 @@ class Employee(models.Model):
                     basic * percentage / 100
             )
 
+    pran_number = fields.Char(
+        string="PRAN Number",
+        copy=False,
+        help="Enter a valid 12-digit PRAN number.",
+    )
+
+    @api.constrains("pran_number")
+    def _check_pran_number(self):
+        for employee in self:
+            if employee.pran_number:
+                pran = employee.pran_number.strip()
+
+                if not re.fullmatch(r"\d{12}", pran):
+                    raise ValidationError(
+                        "PRAN Number must contain exactly 12 digits."
+                    )
+
+    financial_year_incentive = fields.Monetary(
+        string="Financial Year Incentive",
+        currency_field='currency_id',
+        default=0.0,
+        copy=False,
+    )
+
+    def _get_financial_year_start(self, payslip_date=None):
+        """Return Financial Year start date (1st April)."""
+
+        if not payslip_date:
+            payslip_date = fields.Date.today()
+
+        payslip_date = fields.Date.to_date(payslip_date)
+
+        if payslip_date.month >= 4:
+            return payslip_date.replace(
+                month=4,
+                day=1
+            )
+        else:
+            return payslip_date.replace(
+                year=payslip_date.year - 1,
+                month=4,
+                day=1
+            )
+
+    def _get_financial_year_end(self, payslip_date=None):
+        """Return Financial Year end date (31st March)."""
+
+        fy_start = self._get_financial_year_start(
+            payslip_date
+        )
+
+        return fy_start.replace(
+            year=fy_start.year + 1,
+            month=3,
+            day=31
+        )
+
+    def _update_financial_year_incentive(self, payslip):
+        """
+        Store cumulative IN + Bonus for the current Financial Year.
+
+        Existing functionality is not changed.
+        This method only updates financial_year_incentive.
+        """
+
+        for employee in self:
+
+            if not employee or not payslip:
+                continue
+
+            if not payslip.date_from:
+                continue
+
+            payslip_date = fields.Date.to_date(
+                payslip.date_from
+            )
+
+            fy_start = employee._get_financial_year_start(
+                payslip_date
+            )
+
+            fy_end = employee._get_financial_year_end(
+                payslip_date
+            )
+
+            # -------------------------------------------------
+            # NEW FINANCIAL YEAR
+            # -------------------------------------------------
+            #
+            # If April is the first payslip of the FY,
+            # start the accumulation from zero.
+            #
+            # -------------------------------------------------
+
+            if payslip_date.month == 4:
+
+                previous_fy_slips = self.env['hr.payslip'].search([
+                    ('employee_id', '=', employee.id),
+                    ('date_from', '>=', fy_start),
+                    ('date_from', '<', payslip.date_from),
+                    ('state', 'in', ['done', 'paid']),
+                ])
+
+                if not previous_fy_slips:
+                    employee.financial_year_incentive = 0.0
+
+            # -------------------------------------------------
+            # GET CURRENT PAYSLIP IN
+            # -------------------------------------------------
+
+            incentive_lines = payslip.line_ids.filtered(
+                lambda line: line.code == 'IN'
+            )
+
+            current_incentive = abs(
+                sum(incentive_lines.mapped('total'))
+            )
+
+            # -------------------------------------------------
+            # GET CURRENT PAYSLIP BONUS
+            # -------------------------------------------------
+
+            bonus_lines = payslip.line_ids.filtered(
+                lambda line: line.code == 'Bonus'
+            )
+
+            current_bonus = abs(
+                sum(bonus_lines.mapped('total'))
+            )
+
+            # -------------------------------------------------
+            # CURRENT MONTH ADDITION
+            # -------------------------------------------------
+
+            current_month_amount = (
+                current_incentive
+                + current_bonus
+            )
+
+            # -------------------------------------------------
+            # FIND PREVIOUS PAYSLIPS IN SAME FY
+            # -------------------------------------------------
+
+            previous_slips = self.env['hr.payslip'].search([
+                ('employee_id', '=', employee.id),
+                ('id', '!=', payslip.id),
+                ('date_from', '>=', fy_start),
+                ('date_from', '<', payslip.date_from),
+                ('date_from', '<=', fy_end),
+                ('state', 'in', ['done', 'paid']),
+            ], order='date_from asc, id asc')
+
+            # -------------------------------------------------
+            # CALCULATE PREVIOUS IN + BONUS
+            # -------------------------------------------------
+
+            previous_total = 0.0
+
+            for previous_slip in previous_slips:
+
+                previous_incentive_lines = (
+                    previous_slip.line_ids.filtered(
+                        lambda line: line.code == 'IN'
+                    )
+                )
+
+                previous_bonus_lines = (
+                    previous_slip.line_ids.filtered(
+                        lambda line: line.code == 'Bonus'
+                    )
+                )
+
+                previous_incentive = abs(
+                    sum(
+                        previous_incentive_lines.mapped('total')
+                    )
+                )
+
+                previous_bonus = abs(
+                    sum(
+                        previous_bonus_lines.mapped('total')
+                    )
+                )
+
+                previous_total += (
+                    previous_incentive
+                    + previous_bonus
+                )
+
+            # -------------------------------------------------
+            # STORE CUMULATIVE FY VALUE
+            # -------------------------------------------------
+
+            employee.financial_year_incentive = (
+                previous_total
+                + current_month_amount
+            )
+
+    l10n_in_nps_employer_type = fields.Selection(
+        selection=[
+            ('0', '0'),
+            ('5', '5'),
+            ('10', '10'),
+            ('14', '14'),
+        ],
+        string="NPS Employer Contribution",
+        default='0',
+    )
+
+    l10n_in_nps_employer_amount = fields.Monetary(
+        string="NPS Employer Amount",
+        compute="_compute_l10n_in_nps_employer_amount",
+        store=True,
+        currency_field='currency_id',
+    )
+
+    @api.depends(
+        'l10n_in_nps_employer_type',
+        'version_id.l10n_in_basic_salary_amount',
+    )
+    def _compute_l10n_in_nps_employer_amount(self):
+        for employee in self:
+            basic = employee.version_id.l10n_in_basic_salary_amount or 0.0
+
+            percentage = float(
+                employee.l10n_in_nps_employer_type or 0.0
+            )
+
+            employee.l10n_in_nps_employer_amount = (
+                    basic * percentage / 100
+            )
+
     tax_regime = fields.Selection([
         ('old', 'Old Regime'),
         ('new', 'New Regime'),
     ], string='Tax Regime')
+
+    hra_exemption_amount = fields.Monetary(
+        string="HRA Exemption",
+        currency_field='currency_id',
+        compute="_compute_hra_exemption_amount",
+        store=True,
+        readonly=True,
+    )
+
+    @api.depends(
+        'rented_house_ids',
+        'rented_house_ids.total_hra_exemption',
+        'tax_regime'
+    )
+    def _compute_hra_exemption_amount(self):
+        for emp in self:
+            if emp.tax_regime == 'old':
+                emp.hra_exemption_amount = sum(
+                    emp.rented_house_ids.mapped('total_hra_exemption')
+                )
+            else:
+                emp.hra_exemption_amount = 0.0
+
+    tax_on_employment = fields.Monetary(
+        string="Tax on Employment",
+        currency_field='currency_id',
+        help="Professional Tax / Tax on Employment",
+    )
+    previous_employment_income = fields.Monetary(
+        string="Income After Exemptions",
+        currency_field='currency_id',
+        help="Taxable Income under Previous Employment - Income After Exemptions",
+    )
+
+    previous_employment_professional_tax = fields.Monetary(
+        string="Less: Professional Tax",
+        currency_field='currency_id',
+        help="Professional Tax under Previous Employment",
+    )
+
+    entertainment_allowance = fields.Monetary(
+        string="Entertainment Allowance",
+        currency_field='currency_id',
+        help="Entertainment Allowance under Section 19",
+    )
+
     standard_deduction = fields.Monetary(string='Standard Deduction')
-    section_80c = fields.Monetary(string='Section 80C', help="Available only under Old Regime")
+
+    section_80c = fields.Monetary(string='Section 123 (80C)', help="Available only under Old Regime")
+    # section_123_80c = fields.Monetary(
+    #     string='Section 123 (80C)',
+    #     help="Available only under Old Regime"
+    # )
+
+    section_123_80ccc = fields.Monetary(
+        string='Section 123 (80CCC)',
+        help="Available only under Old Regime"
+    )
+
+    section_124_1_80ccd_1 = fields.Monetary(
+        string='Section 124 (1) (80CCD (1))',
+        help="Available only under Old Regime"
+    )
+
+    section_124_1b_80ccd_1b = fields.Monetary(
+        string='Section 124(1B) (80CCD(1B))',
+        help="Available only under Old Regime"
+    )
+
+    section_126_80d = fields.Monetary(
+        string='Section 126 (80D)',
+        help="Available only under Old Regime"
+    )
+
+    section_127_80dd = fields.Monetary(
+        string='Section 127 (80DD)',
+        help="Available only under Old Regime"
+    )
+
+    section_128_80ddb = fields.Monetary(
+        string='Section 128(80DDB)',
+        help="Available only under Old Regime"
+    )
+
+    section_129_80e = fields.Monetary(
+        string='Section 129 (80E)',
+        help="Available only under Old Regime"
+    )
+
+    section_130_80ee = fields.Monetary(
+        string='Section 130 (80EE)',
+        help="Available only under Old Regime"
+    )
+
+    section_131_80eea = fields.Monetary(
+        string='Section 131 (80EEA)',
+        help="Available only under Old Regime"
+    )
+
+    section_132_80eeb = fields.Monetary(
+        string='Section 132 (80EEB)',
+        help="Available only under Old Regime"
+    )
+
+    section_133_80g = fields.Monetary(
+        string='Section 133(80G)',
+        help="Available only under Old Regime"
+    )
+
+    section_134_80gg = fields.Monetary(
+        string='Section 134(80GG)',
+        help="Available only under Old Regime"
+    )
+
+    section_137_80ggc = fields.Monetary(
+        string='Section 137 (80GGC)',
+        help="Available only under Old Regime"
+    )
+
+    section_153_80tta = fields.Monetary(
+        string='Section 153(80TTA)',
+        help="Available only under Old Regime"
+    )
+
+    section_154_80u = fields.Monetary(
+        string='Section 154(80U)',
+        help="Available only under Old Regime"
+    )
     section_80d = fields.Monetary(string='Section 80D', help="Available only under Old Regime")
     section_80g = fields.Monetary(string='Section 80G', help="Available only under Old Regime")
     nps = fields.Monetary(string='NPS (80CCD(1B))', help="Available only under Old Regime")
-    home_loan_interest = fields.Monetary(string='Home loan interest', help="Available only under Old Regime")
+    home_loan_interest = fields.Monetary(string='Home loan interest',  currency_field='currency_id',
+    help="Available only under Old Regime. Maximum allowable amount is ₹2,00,000.")
+
+    @api.onchange('home_loan_interest')
+    def _onchange_home_loan_interest(self):
+        if self.home_loan_interest and self.home_loan_interest > 200000:
+            self.home_loan_interest = 200000
+
     net_taxable_income = fields.Monetary(
         string='Net Taxable Income',
         currency_field='currency_id',
@@ -103,7 +475,7 @@ class Employee(models.Model):
     tds_amount_new_month = fields.Monetary(
         string='TDS Amount New Regime (Month)',
         currency_field='currency_id',
-        compute="_compute_tds_amount_month",
+        compute="_compute_tds_amount_new_month",
         store=True,
         readonly=False
     )
@@ -203,13 +575,24 @@ class Employee(models.Model):
         'payslip_paid_days',
         'payslip_month',
         'contract_date_start',
-        'final_yearly_costs'
+        'final_yearly_costs',
+        'financial_year_incentive',
     )
     def _compute_total_income(self):
         for emp in self:
 
-            # Existing employees
-            emp.total_income = emp.final_yearly_costs or 0.0
+            # =====================================================
+            # EXISTING EMPLOYEE CALCULATION
+            # =====================================================
+
+            emp.total_income = (
+                    (emp.final_yearly_costs or 0.0)
+                    + (emp.financial_year_incentive or 0.0)
+            )
+
+            # =====================================================
+            # BASIC VALIDATION
+            # =====================================================
 
             if not emp.contract_date_start or not emp.payslip_month:
                 continue
@@ -217,7 +600,10 @@ class Employee(models.Model):
             joining_date = emp.contract_date_start
             payslip_month = int(emp.payslip_month)
 
-            # Join month and payslip month must be same
+            # =====================================================
+            # JOINING MONTH AND PAYSLIP MONTH MUST BE SAME
+            # =====================================================
+
             if joining_date.month != payslip_month:
                 continue
 
@@ -226,30 +612,86 @@ class Employee(models.Model):
                 joining_date.month
             )[1]
 
-            # Joined on 1st -> existing logic
+            # =====================================================
+            # JOINED ON 1ST -> EXISTING LOGIC
+            # =====================================================
+
             if joining_date.day == 1:
                 continue
 
-            # Full month salary -> existing logic
+            # =====================================================
+            # FULL MONTH SALARY -> EXISTING LOGIC
+            # =====================================================
+
             if (emp.payslip_paid_days or 0.0) >= total_days:
                 continue
 
-            # Remaining full salary months
+            # =====================================================
+            # NEW JOINER - PARTIAL JOINING MONTH
+            # =====================================================
+
             if payslip_month >= 4:
                 remaining_months = 15 - payslip_month
             else:
                 remaining_months = 3 - payslip_month
 
-            print("Month:", payslip_month)
+            print("\n")
+            print("====================================================")
+            print("NEW JOINER TOTAL INCOME CALCULATION")
+            print("Employee:", emp.name)
+            print("Employee ID:", emp.id)
+            print("====================================================")
+
+            print("Joining Date:", joining_date)
+            print("Payslip Month:", payslip_month)
+            print("Total Days:", total_days)
+            print("Paid Days:", emp.payslip_paid_days)
             print("Remaining Months:", remaining_months)
+
             print("Gross Wage:", emp.wage)
-            print("June Gross:", emp.payslip_gross_wage)
+            print("Joining Month Gross:", emp.payslip_gross_wage)
+            print(
+                "Financial Year Incentive:",
+                emp.financial_year_incentive
+            )
+
+            # =====================================================
+            # JOINING MONTH ACTUAL SALARY
+            # +
+            # REMAINING FULL MONTH SALARY
+            # +
+            # FINANCIAL YEAR INCENTIVE
+            # =====================================================
+
+            joining_month_income = (
+                    emp.payslip_gross_wage or 0.0
+            )
+
+            remaining_salary_income = (
+                    (emp.wage or 0.0) * remaining_months
+            )
+
+            incentive_income = (
+                    emp.financial_year_incentive or 0.0
+            )
 
             emp.total_income = (
-                                       (emp.wage or 0.0) * remaining_months
-                               ) + (emp.payslip_gross_wage or 0.0)
+                    joining_month_income
+                    + remaining_salary_income
+                    + incentive_income
+            )
 
-            print("Total Income:", emp.total_income)
+            # =====================================================
+            # DEBUG
+            # =====================================================
+
+            print("----------------------------------------------------")
+            print("JOINING MONTH INCOME:", joining_month_income)
+            print("REMAINING SALARY:", remaining_salary_income)
+            print("INCENTIVE INCOME:", incentive_income)
+            print("----------------------------------------------------")
+            print("TOTAL INCOME:", emp.total_income)
+            print("====================================================")
 
     annual_tds_base = fields.Float(
         string="Annual TDS Base",
@@ -302,7 +744,6 @@ class Employee(models.Model):
             if payslip:
                 emp.payslip_gross_wage = payslip.gross_wage or 0.0
 
-
     @api.depends('payslip_gross_wage')
     def _compute_payslip_yearly_cost(self):
         for emp in self:
@@ -349,6 +790,8 @@ class Employee(models.Model):
         compute="_compute_el_balance",
         store=False
     )
+
+
 
     leave_encashment = fields.Monetary(
         string="Leave Encashment Amount",
@@ -438,7 +881,6 @@ class Employee(models.Model):
             else:
                 emp.prorated_salary = 0.0
 
-
     def _compute_el_balance(self):
         for emp in self:
             leave_type = self.env['hr.leave.type'].search([
@@ -457,10 +899,6 @@ class Employee(models.Model):
                     (self.el_balance or 0.0)
                     * (self.per_day_basic or 0.0)
             )
-
-
-
-
 
     @api.depends(
         'prorated_salary',
@@ -486,7 +924,6 @@ class Employee(models.Model):
             # If recovered exceeds advance, avoid negative (optional)
             emp.outstanding_amount = max(advance - recovered, 0.0)
 
-
     ff_total_wage = fields.Float(string="Total Wage")
     ff_basic = fields.Float(string="FF Basic")
     ff_paid_days = fields.Float(string="FF Paid Days")
@@ -494,9 +931,30 @@ class Employee(models.Model):
 
     @api.depends(
         'final_yearly_costs',
-        'total_income',          # <-- This is important
+        'total_income',
+        'financial_year_incentive',
         'standard_deduction',
+        'hra_exemption_amount',
+        'tax_on_employment',
+        'entertainment_allowance',
+        'previous_employment_income',
+        'previous_employment_professional_tax',
         'section_80c',
+        'section_123_80ccc',
+        'section_124_1_80ccd_1',
+        'section_124_1b_80ccd_1b',
+        'section_126_80d',
+        'section_127_80dd',
+        'section_128_80ddb',
+        'section_129_80e',
+        'section_130_80ee',
+        'section_131_80eea',
+        'section_132_80eeb',
+        'section_133_80g',
+        'section_134_80gg',
+        'section_137_80ggc',
+        'section_153_80tta',
+        'section_154_80u',
         'section_80d',
         'section_80g',
         'nps',
@@ -505,15 +963,21 @@ class Employee(models.Model):
     )
     def _compute_net_taxable_income(self):
         for emp in self:
+
             annual_income = emp.final_yearly_costs or 0.0
 
             joining_date = emp.contract_date_start
 
+            # =========================================================
+            # NEW JOINER IN CURRENT FINANCIAL YEAR
+            # =========================================================
             if joining_date and emp.payslip_month:
 
                 payslip_month = int(emp.payslip_month)
 
-                # New joiner in same payslip month
+                # -----------------------------------------------------
+                # Joining month itself
+                # -----------------------------------------------------
                 if (
                         joining_date.month == payslip_month
                         and joining_date.day > 1
@@ -522,30 +986,210 @@ class Employee(models.Model):
                     gross_wage = emp.wage or 0.0
                     payslip_gross = emp.payslip_gross_wage or 0.0
 
-                    # Partial month salary -> Use Total Income
-                    if round(gross_wage, 2) != round(payslip_gross, 2):
-                        annual_income = emp.total_income or annual_income
+                    # Partial month salary
+                    if round(gross_wage, 2) != round(
+                            payslip_gross, 2
+                    ):
+                        annual_income = (
+                                emp.total_income
+                                or annual_income
+                        )
 
-                    # Full month salary -> Use Final Yearly Cost
+                    # Full month salary
                     else:
-                        annual_income = emp.final_yearly_costs or 0.0
+                        annual_income = (
+                                emp.final_yearly_costs
+                                or 0.0
+                        )
 
+                # -----------------------------------------------------
+                # Current payslip month is AFTER joining month
+                # -----------------------------------------------------
+                elif (
+                        joining_date.day > 1
+                        and joining_date.month != payslip_month
+                ):
+
+                    # Find joining month payslip
+                    joining_month_start = date(
+                        joining_date.year,
+                        joining_date.month,
+                        1
+                    )
+
+                    joining_month_end = date(
+                        joining_date.year,
+                        joining_date.month,
+                        monthrange(
+                            joining_date.year,
+                            joining_date.month
+                        )[1]
+                    )
+
+                    joining_payslip = self.env['hr.payslip'].search(
+                        [
+                            ('employee_id', '=', emp.id),
+                            ('date_from', '>=', joining_month_start),
+                            ('date_to', '<=', joining_month_end),
+                        ],
+                        order='id desc',
+                        limit=1
+                    )
+
+                    joining_month_gross = 0.0
+
+                    if joining_payslip:
+                        joining_month_gross = (
+                                joining_payslip.gross_wage or 0.0
+                        )
+
+                    # -------------------------------------------------
+                    # Remaining months in Financial Year
+                    # -------------------------------------------------
+                    if payslip_month >= 4:
+                        remaining_months = 16 - payslip_month
+                    else:
+                        remaining_months = 4 - payslip_month
+
+                    # -------------------------------------------------
+                    # Total Income
+                    #
+                    # Joining month actual salary
+                    # +
+                    # Remaining full month salary
+                    # -------------------------------------------------
+                    if joining_month_gross:
+
+                        annual_income = (
+                                joining_month_gross
+                                + (
+                                        (emp.wage or 0.0)
+                                        * remaining_months
+                                )
+                                + (emp.financial_year_incentive or 0.0)
+                        )
+
+                        print("----------------------------------------------------")
+                        print("NET TAXABLE INCOME - NEW JOINER CALCULATION")
+                        print("Joining Month Gross:", joining_month_gross)
+                        print("Remaining Months:", remaining_months)
+                        print(
+                            "Remaining Salary:",
+                            (emp.wage or 0.0) * remaining_months
+                        )
+                        print(
+                            "Financial Year Incentive:",
+                            emp.financial_year_incentive or 0.0
+                        )
+                        print(
+                            "Annual Income Used:",
+                            annual_income
+                        )
+                        print("----------------------------------------------------")
+                    else:
+                        # Keep existing functionality if
+                        # joining month payslip is not available
+                        annual_income = (
+                                emp.total_income
+                                or annual_income
+                        )
+
+            # =========================================================
+            # DEDUCTIONS
+            # =========================================================
             deduction = emp.standard_deduction or 0.0
 
-
             if emp.tax_regime == 'old':
-                # Include all old regime deductions
+                deduction += (
+                        emp.hra_exemption_amount or 0.0
+                )
+
+                deduction += (
+                        emp.tax_on_employment or 0.0
+                )
+
+                deduction += (
+                        emp.entertainment_allowance or 0.0
+                )
+
+                # Previous Employment
+                deduction += (
+                        emp.previous_employment_income or 0.0
+                )
+
+                deduction += (
+                        emp.previous_employment_professional_tax
+                        or 0.0
+                )
+
                 deduction += (
                         (emp.section_80c or 0.0)
                         + (emp.section_80d or 0.0)
                         + (emp.section_80g or 0.0)
                         + (emp.nps or 0.0)
-                        + (emp.home_loan_interest or 0.0)
+                        + (emp.section_123_80ccc or 0.0)
+                        + (emp.section_124_1_80ccd_1 or 0.0)
+                        + (emp.section_124_1b_80ccd_1b or 0.0)
+                        + (emp.section_126_80d or 0.0)
+                        + (emp.section_127_80dd or 0.0)
+                        + (emp.section_128_80ddb or 0.0)
+                        + (emp.section_129_80e or 0.0)
+                        + (emp.section_130_80ee or 0.0)
+                        + (emp.section_131_80eea or 0.0)
+                        + (emp.section_132_80eeb or 0.0)
+                        + (emp.section_133_80g or 0.0)
+                        + (emp.section_134_80gg or 0.0)
+                        + (emp.section_137_80ggc or 0.0)
+                        + (emp.section_153_80tta or 0.0)
+                        + (emp.section_154_80u or 0.0)
+                        + min(
+                    emp.home_loan_interest or 0.0,
+                    200000.0
+                )
                 )
 
-            # Net taxable income = annual - total deductions
-            emp.net_taxable_income = max(annual_income - deduction, 0.0)
+            # =========================================================
+            # NET TAXABLE INCOME
+            # =========================================================
+            emp.net_taxable_income = max(
+                annual_income - deduction,
+                0.0
+            )
 
+            print("\n")
+            print("====================================================")
+            print("NET TAXABLE INCOME CALCULATION")
+            print("Employee:", emp.name)
+            print("Employee ID:", emp.id)
+            print("Final Yearly Costs:", emp.final_yearly_costs or 0.0)
+            print(
+                "Financial Year Incentive:",
+                emp.financial_year_incentive or 0.0
+            )
+            print(
+                "Total Income:",
+                emp.total_income or 0.0
+            )
+            print(
+                "Annual Income Used:",
+                annual_income
+            )
+            print(
+                "Standard Deduction:",
+                emp.standard_deduction or 0.0
+            )
+            print(
+                "Total Deduction:",
+                deduction
+            )
+            print(
+                "Net Taxable Income:",
+                max(
+                    annual_income - deduction,
+                    0.0
+                )
+            )
+            print("====================================================")
 
     @api.onchange('tax_regime')
     def _onchange_tax_regime(self):
@@ -582,7 +1226,7 @@ class Employee(models.Model):
                     # ₹1,12,500 + 30% on income exceeding ₹10L
                     tds = 112500 + (taxable_income - 1000000) * 0.30
 
-                # Add 4% Cess
+                    # Add 4% Cess
                 tds += tds * 0.04
 
             else:
@@ -590,7 +1234,8 @@ class Employee(models.Model):
 
             emp.tds_amount = round(tds, 2)
 
-    # @api.depends('tds_amount')
+            # @api.depends('tds_amount')
+
     # def _compute_tds_amount_month(self):
     #     for emp in self:
     #         emp.tds_amount_month = round((emp.tds_amount or 0.0) / 12.0, 2)
@@ -626,27 +1271,86 @@ class Employee(models.Model):
                 remaining_tax / remaining_months,
                 2
             )
+            # ---------------------------------------------------------
 
+    # TDS - New Regime
+    # ---------------------------------------------------------
     @api.depends('net_taxable_income', 'tax_regime')
     def _compute_tds_amount_new(self):
         for emp in self:
+            print("\n")
+            print("=" * 70)
+            print("TDS AMOUNT NEW CALCULATION START")
+            print("Employee:", emp.name)
+            print("Employee ID:", emp.id)
+            print("=" * 70)
+
             taxable_income = emp.net_taxable_income or 0.0
             tds = 0.0
 
+            print("Original Net Taxable Income:", taxable_income)
+            print("Tax Regime:", emp.tax_regime)
+
             if emp.tax_regime == 'new':
-                if taxable_income <= 400000:
+
+                # ---------------------------------------------------------
+                # ROUND TOTAL INCOME BY ₹10
+                # ---------------------------------------------------------
+                rounded_taxable_income = float(
+                    Decimal(str(taxable_income)).quantize(
+                        Decimal('1E1'),
+                        rounding=ROUND_HALF_UP
+                    )
+                )
+
+                print("\n--- TAXABLE INCOME ROUNDING ---")
+                print("Original Taxable Income:", taxable_income)
+                print("Rounded Taxable Income:", rounded_taxable_income)
+
+                taxable_income_for_tax = rounded_taxable_income
+
+                # ---------------------------------------------------------
+                # TAX SLAB CALCULATION
+                # ---------------------------------------------------------
+
+                if taxable_income_for_tax <= 400000:
                     tds = 0.0
-                elif taxable_income <= 800000:
-                    tds = (taxable_income - 400000) * 0.05
-                elif taxable_income <= 1200000:
-                    tds = (400000 * 0.05) + (taxable_income - 800000) * 0.10
-                elif taxable_income <= 1600000:
-                    tds = (400000 * 0.05) + (400000 * 0.10) + (taxable_income - 1200000) * 0.15
-                elif taxable_income <= 2000000:
-                    tds = (400000 * 0.05) + (400000 * 0.10) + (400000 * 0.15) + (taxable_income - 1600000) * 0.20
-                elif taxable_income <= 2400000:
-                    tds = (400000 * 0.05) + (400000 * 0.10) + (400000 * 0.15) + (400000 * 0.20) + (
-                            taxable_income - 2000000) * 0.25
+
+                elif taxable_income_for_tax <= 800000:
+                    tds = (
+                                  taxable_income_for_tax - 400000
+                          ) * 0.05
+
+                elif taxable_income_for_tax <= 1200000:
+                    tds = (
+                            (400000 * 0.05)
+                            + (taxable_income_for_tax - 800000) * 0.10
+                    )
+
+                elif taxable_income_for_tax <= 1600000:
+                    tds = (
+                            (400000 * 0.05)
+                            + (400000 * 0.10)
+                            + (taxable_income_for_tax - 1200000) * 0.15
+                    )
+
+                elif taxable_income_for_tax <= 2000000:
+                    tds = (
+                            (400000 * 0.05)
+                            + (400000 * 0.10)
+                            + (400000 * 0.15)
+                            + (taxable_income_for_tax - 1600000) * 0.20
+                    )
+
+                elif taxable_income_for_tax <= 2400000:
+                    tds = (
+                            (400000 * 0.05)
+                            + (400000 * 0.10)
+                            + (400000 * 0.15)
+                            + (400000 * 0.20)
+                            + (taxable_income_for_tax - 2000000) * 0.25
+                    )
+
                 else:
                     tds = (
                             (400000 * 0.05)
@@ -654,62 +1358,157 @@ class Employee(models.Model):
                             + (400000 * 0.15)
                             + (400000 * 0.20)
                             + (400000 * 0.25)
-                            + (taxable_income - 2400000) * 0.30
+                            + (taxable_income_for_tax - 2400000) * 0.30
                     )
 
-                # rebate
+                print("\n--- TAX SLAB RESULT ---")
+                print("Taxable Income Used For Tax:", taxable_income_for_tax)
+                print("Tax Before Rebate:", tds)
+
+                # ---------------------------------------------------------
+                # REBATE
+                # ---------------------------------------------------------
+
                 rebate_relief = 0.0
 
-                if taxable_income <= 1200000:
+                if taxable_income_for_tax <= 1200000:
                     rebate_relief = tds
                     tds = 0.0
 
-                # Surcharge
+                print("\n--- REBATE RESULT ---")
+                print("Rebate Relief:", rebate_relief)
+                print("Tax After Rebate:", tds)
+
+                # ---------------------------------------------------------
+                # SURCHARGE
+                # ---------------------------------------------------------
+
                 surcharge = 0.0
 
-                if taxable_income > 5000000 and taxable_income <= 10000000:
+                if taxable_income_for_tax > 5000000 and taxable_income_for_tax <= 10000000:
                     surcharge = tds * 0.10
 
-                elif taxable_income > 10000000 and taxable_income <= 20000000:
+                elif taxable_income_for_tax > 10000000 and taxable_income_for_tax <= 20000000:
                     surcharge = tds * 0.15
 
-                elif taxable_income > 20000000 and taxable_income <= 50000000:
+                elif taxable_income_for_tax > 20000000 and taxable_income_for_tax <= 50000000:
                     surcharge = tds * 0.25
 
-                elif taxable_income > 50000000:
-                    surcharge = tds * 0.25  # New Regime
+                elif taxable_income_for_tax > 50000000:
+                    surcharge = tds * 0.25
 
                 emp.surcharge_amount = round(surcharge, 2)
 
-                # Add surcharge
+                print("\n--- SURCHARGE RESULT ---")
+                print("Surcharge:", surcharge)
+
+                # ---------------------------------------------------------
+                # ADD SURCHARGE
+                # ---------------------------------------------------------
+
                 tds += surcharge
 
-                # Marginal Relief u/s 156(b)
+                print("Tax After Surcharge:", tds)
+
+                # ---------------------------------------------------------
+                # MARGINAL RELIEF
+                # ---------------------------------------------------------
+
                 marginal_relief = 0.0
 
-                if 1200000 < taxable_income <= 1260000:
-                    excess_income = taxable_income - 1200000
+                print("\n--- MARGINAL RELIEF CALCULATION ---")
+                print("Taxable Income Used:", taxable_income_for_tax)
+                print(
+                    "Marginal Relief Condition:",
+                    1200000 < taxable_income_for_tax <= 1260000
+                )
+
+                if 1200000 < taxable_income_for_tax <= 1260000:
+
+                    excess_income = taxable_income_for_tax - 1200000
+
+                    print("Excess Income Above 12L:", excess_income)
+                    print("Tax Before Marginal Relief:", tds)
 
                     if tds > excess_income:
+
                         marginal_relief = tds - excess_income
                         tds = excess_income
+
+                        print(
+                            "Marginal Relief Applied:",
+                            marginal_relief
+                        )
+
+                        print(
+                            "Tax After Marginal Relief:",
+                            tds
+                        )
+
+                    else:
+                        print(
+                            "Marginal Relief NOT Applied - "
+                            "Tax is not greater than excess income"
+                        )
+
+                else:
+                    print(
+                        "Marginal Relief NOT APPLIED - "
+                        "Taxable income is outside 12L-12.6L range"
+                    )
+
+                # ---------------------------------------------------------
+                # TOTAL RELIEF
+                # ---------------------------------------------------------
 
                 emp.relief_amount = round(
                     rebate_relief + marginal_relief,
                     2
                 )
 
-                # Add 4% cess
-                tds += tds * 0.04
+                print("\n--- FINAL RELIEF RESULT ---")
+                print("Rebate Relief:", rebate_relief)
+                print("Marginal Relief:", marginal_relief)
+                print("TOTAL RELIEF AMOUNT:", emp.relief_amount)
+
+                # ---------------------------------------------------------
+                # CESS
+                # ---------------------------------------------------------
+
+                cess = tds * 0.04
+
+                print("\n--- CESS CALCULATION ---")
+                print("Tax Before Cess:", tds)
+                print("Cess 4%:", cess)
+
+                tds += cess
+
+                print("Final TDS Including Cess:", tds)
 
             else:
                 tds = 0.0
                 emp.surcharge_amount = 0.0
                 emp.relief_amount = 0.0
 
+                print("\n--- NON NEW REGIME ---")
+                print("TDS:", tds)
+                print("Relief:", emp.relief_amount)
+
             emp.tds_amount_new = round(tds, 2)
 
-    # @api.depends('tds_amount_new')
+            print("\n" + "=" * 70)
+            print("FINAL TDS RESULT")
+            print("Employee:", emp.name)
+            print("Original Taxable Income:", taxable_income)
+            print("Taxable Income Used For Tax:", taxable_income_for_tax if emp.tax_regime == 'new' else 0.0)
+            print("Relief Amount:", emp.relief_amount)
+            print("Surcharge Amount:", emp.surcharge_amount)
+            print("TDS Amount New:", emp.tds_amount_new)
+            print("=" * 70)
+            print("\n")
+
+            # @api.depends('tds_amount_new')
+
     # def _compute_tds_amount_new_month(self):
     #     for emp in self:
     #         emp.tds_amount_new_month = round((emp.tds_amount_new or 0.0) / 12, 2)
@@ -722,56 +1521,193 @@ class Employee(models.Model):
         'contract_date_start',
         'wage',
         'payslip_gross_wage',
+        'annual_tds_base',
     )
-    def _compute_tds_amount_month(self):
+    def _compute_tds_amount_new_month(self):
         for emp in self:
 
-            month = int(emp.payslip_month or 0)
+            print("\n")
+            print("=" * 70)
+            print("TDS AMOUNT NEW REGIME MONTH CALCULATION START")
+            print("Employee:", emp.name)
+            print("Employee ID:", emp.id)
+            print("=" * 70)
+
+            month = int(
+                emp.payslip_month or 0
+            )
+
+            print("Payslip Month:", month)
 
             if not month:
                 emp.tds_amount_new_month = 0.0
+
+                print("No Payslip Month")
+                print("Monthly TDS: 0.0")
+                print("=" * 70)
+
                 continue
+
+            # ---------------------------------------
+            # Existing Remaining Months Logic
+            # ---------------------------------------
 
             if month >= 4:
                 remaining_months = 16 - month
             else:
                 remaining_months = 4 - month
 
-            remaining_months = max(remaining_months, 1)
+            remaining_months = max(
+                remaining_months,
+                1
+            )
 
-            annual_tds = emp.tds_amount_new or 0.0
+            print("\n--- EXISTING REMAINING MONTHS LOGIC ---")
+            print("Payslip Month:", month)
+            print("Remaining Months:", remaining_months)
+
+            joining_date = (
+                emp.contract_date_start
+            )
+
+            print("\n--- JOINING DATE ---")
+            print("Joining Date:", joining_date)
+
+            # ---------------------------------------
+            # Existing Annual TDS Logic
+            # ---------------------------------------
+
+            if (
+                    joining_date
+                    and joining_date.day > 1
+                    and emp.annual_tds_base
+                    and month == joining_date.month
+            ):
+                annual_tds = (
+                    emp.annual_tds_base
+                )
+
+                print("\n--- ANNUAL TDS BASE ---")
+                print("New Joiner - Joining Month")
+                print("Using Annual TDS Base:", annual_tds)
+
+            else:
+                annual_tds = (
+                        emp.tds_amount_new
+                        or 0.0
+                )
+
+                print("\n--- ANNUAL TDS ---")
+                print("Using TDS Amount New:", annual_tds)
+
+                print("\n--- ANNUAL TDS ---")
+                print("Using TDS Amount New:", annual_tds)
+
+            # ---------------------------------------
+            # Existing Remaining Tax Logic
+            # ---------------------------------------
 
             remaining_tax = max(
-                annual_tds - (emp.tds_till_last_month or 0.0),
+                annual_tds
+                - (
+                        emp.tds_till_last_month
+                        or 0.0
+                ),
                 0.0
             )
 
-            monthly_tds = remaining_tax / remaining_months
+            print("\n--- REMAINING TAX CALCULATION ---")
+            print("Annual TDS:", annual_tds)
+            print(
+                "TDS Till Last Month:",
+                emp.tds_till_last_month or 0.0
+            )
+            print("Remaining Tax:", remaining_tax)
+
+            monthly_tds = (
+                    remaining_tax
+                    / remaining_months
+            )
+
+            print("\n--- MONTHLY TDS BEFORE PRORATION ---")
+            print("Remaining Tax:", remaining_tax)
+            print("Remaining Months:", remaining_months)
+            print("Monthly TDS:", monthly_tds)
 
             # ---------------------------------------
             # Prorate TDS for New Joiner
             # ---------------------------------------
-            joining_date = emp.contract_date_start
+
+            joining_date = (
+                emp.contract_date_start
+            )
 
             if (
                     joining_date
                     and joining_date.month == month
                     and joining_date.day > 1
-                    and abs((emp.wage or 0.0) - (emp.payslip_gross_wage or 0.0)) > 0.01
+                    and abs(
+                (emp.wage or 0.0)
+                - (
+                        emp.payslip_gross_wage
+                        or 0.0
+                )
+            ) > 0.01
             ):
                 total_days = calendar.monthrange(
                     joining_date.year,
                     joining_date.month
                 )[1]
 
-                paid_days = emp.payslip_paid_days or total_days
+                paid_days = (
+                        emp.payslip_paid_days
+                        or total_days
+                )
+
+                print("\n--- NEW JOINER PRORATION ---")
+                print("Joining Date:", joining_date)
+                print("Joining Month:", joining_date.month)
+                print("Payslip Month:", month)
+                print("Total Days:", total_days)
+                print("Paid Days:", paid_days)
+                print("Monthly TDS Before Proration:", monthly_tds)
 
                 monthly_tds = (
                                       monthly_tds * paid_days
                               ) / total_days
 
-           # emp.tds_amount_new_month = round(monthly_tds, 2)
-            emp.tds_amount_new_month = round(monthly_tds)
+                print("Monthly TDS After Proration:", monthly_tds)
+
+            else:
+                print("\n--- NEW JOINER PRORATION NOT APPLIED ---")
+
+            # ---------------------------------------
+            # Existing rounding logic
+            # ---------------------------------------
+
+            emp.tds_amount_new_month = round(
+                monthly_tds
+            )
+
+            print("\n" + "=" * 70)
+            print("FINAL MONTHLY TDS RESULT")
+            print("Employee:", emp.name)
+            print("Employee ID:", emp.id)
+            print("Annual TDS:", annual_tds)
+            print(
+                "TDS Till Last Month:",
+                emp.tds_till_last_month or 0.0
+            )
+            print("Remaining Tax:", remaining_tax)
+            print("Remaining Months:", remaining_months)
+            print("Monthly TDS Before Rounding:", monthly_tds)
+            print(
+                "TDS Amount New Regime (Month):",
+                emp.tds_amount_new_month
+            )
+            print("=" * 70)
+            print("\n")
+
     def write(self, vals):
 
         res = super().write(vals)
@@ -780,6 +1716,8 @@ class Employee(models.Model):
 
             for employee in self:
                 print("Salary Changed")
+
+                employee.financial_year_incentive = 0.0
 
                 # Recompute Annual TDS
                 employee._compute_tds_amount()
@@ -888,7 +1826,8 @@ class Employee(models.Model):
 
             emp.remaining_balance = max(balance, 0.0)
 
-    # Privilege Leave Allocation
+            # Privilege Leave Allocation
+
     def cron_allocate_privilege_leave(self):
 
         current_year = fields.Date.today().year
@@ -936,7 +1875,7 @@ class Employee(models.Model):
 
                     leave_days += probation_months
 
-            # Every year after confirmation
+                    # Every year after confirmation
             else:
                 leave_days = 12
 
@@ -949,7 +1888,8 @@ class Employee(models.Model):
 
             emp.pl_allocation_year = current_year
 
-    # Casual and Sick Leave Allocation
+            # Casual and Sick Leave Allocation
+
     def cron_allocate_monthly_cl_sl(self):
 
         today = fields.Date.today()
@@ -995,7 +1935,7 @@ class Employee(models.Model):
                 ):
                     allocate_leave = True
 
-            # ==========================
+                    # ==========================
             # Confirmation Day Credit
             # ==========================
             if emp.date_of_confirmation:
@@ -1008,14 +1948,14 @@ class Employee(models.Model):
                 if today == confirmation_date:
                     allocate_leave = True
 
-                # Already confirmed employee
+                    # Already confirmed employee
                 elif (
                         confirmation_date < today
                         and today.day == 1
                 ):
                     allocate_leave = True
 
-            # ==========================
+                    # ==========================
             # Allocate CL
             # ==========================
             if (
@@ -1032,7 +1972,7 @@ class Employee(models.Model):
 
                 emp.last_cl_allocation_month = current_month
 
-            # ==========================
+                # ==========================
             # Allocate SL
             # ==========================
             if (
@@ -1049,7 +1989,8 @@ class Employee(models.Model):
 
                 emp.last_sl_allocation_month = current_month
 
-    # Bereavement Leave
+                # Bereavement Leave
+
     def cron_allocate_bereavement_leave(self):
 
         current_year = fields.Date.today().year
@@ -1100,7 +2041,7 @@ class Employee(models.Model):
         if not leave_type:
             return
 
-        # Employees currently under probation
+            # Employees currently under probation
         employees = self.search([
             ('probation_date_start', '!=', False),
             ('probation_date_end', '!=', False),
@@ -1116,7 +2057,7 @@ class Employee(models.Model):
             if today.day != start_date.day:
                 continue
 
-            # Prevent duplicate allocation in the same month
+                # Prevent duplicate allocation in the same month
             existing = self.env['hr.leave.allocation'].search([
                 ('employee_id', '=', emp.id),
                 ('holiday_status_id', '=', leave_type.id),
@@ -1195,8 +2136,7 @@ class Employee(models.Model):
                     'number_of_days': 2,
                 })
 
-
-            # =========================================
+                # =========================================
             # Probation > 3 Months
             # Allocate Monthly 1 CL
             # =========================================
@@ -1223,3 +2163,6 @@ class Employee(models.Model):
                     'holiday_status_id': leave_type.id,
                     'number_of_days': 1,
                 })
+
+
+
