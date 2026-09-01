@@ -217,14 +217,16 @@ class AttendanceMatrixReport(models.AbstractModel):
             ('state', 'in', ['validate', 'confirm', 'validate1']),
         ])
 
+        # ── CUSTOM LEAVE COLUMN SORTING (PL, CL, SL, CO, LOP first) ──
         all_leave_type_records = self.env['hr.leave.type'].search([], order='name')
-        all_leave_codes = []
         _seen_codes = set()
         for lt in all_leave_type_records:
             code = _get_leave_short_code(lt.name or 'Leave')
-            if code not in _seen_codes:
-                _seen_codes.add(code)
-                all_leave_codes.append(code)
+            _seen_codes.add(code)
+
+        preferred_order = ['PL', 'CL', 'SL', 'CO', 'LOP']
+        all_leave_codes = [c for c in preferred_order if c in _seen_codes]
+        all_leave_codes.extend(sorted([c for c in _seen_codes if c not in preferred_order]))
 
         leave_lookup = {}
         leave_counts_by_emp = {e.id: {} for e in employees}
@@ -371,7 +373,6 @@ class AttendanceMatrixReport(models.AbstractModel):
                 shift_name = emp_shifts.get(day_key) if is_rotational else None
 
                 if shift_name and not has_checkin:
-                    codes.append(f'SH:{shift_name}')
                     detail['shift_name'] = shift_name
                     detail['shift_status'] = 'planned'
                 elif has_checkin and not has_checkout:
@@ -382,16 +383,23 @@ class AttendanceMatrixReport(models.AbstractModel):
                 elif has_checkin and has_checkout:
                     rep_att = max(day_atts, key=lambda a: a.check_in)
 
-                    if effective_hrs >= 8.0:
-                        codes.append('P')
-                        detail['absence_status'] = 'full_present'
-                    elif effective_hrs >= 4.0:
-                        codes.append('P/A')
-                        detail['absence_status'] = 'half_absent'
-                        detail['half_day_type'] = getattr(rep_att, 'half_day_type', 'second') or 'second'
-                    elif not is_public_holiday and not is_weekoff:
-                        codes.append('AB')
-                        detail['absence_status'] = 'full_absent'
+                    # ── PUBLIC HOLIDAY SMART ASSIGNMENT (Strict 6 Hour Rule) ──
+                    if is_public_holiday:
+                        if actual_duration >= 6.0:
+                            codes.append('P')
+                            detail['absence_status'] = 'full_present'
+                        # If under 6 hours, it assigns absolutely nothing.
+                    else:
+                        if effective_hrs >= 8.0:
+                            codes.append('P')
+                            detail['absence_status'] = 'full_present'
+                        elif effective_hrs >= 4.0:
+                            codes.append('P/A')
+                            detail['absence_status'] = 'half_absent'
+                            detail['half_day_type'] = getattr(rep_att, 'half_day_type', 'second') or 'second'
+                        elif not is_weekoff:
+                            codes.append('AB')
+                            detail['absence_status'] = 'full_absent'
 
                     if shift_name:
                         detail['shift_name'] = shift_name
@@ -441,11 +449,12 @@ class AttendanceMatrixReport(models.AbstractModel):
                     detail['leave_half_day'] = is_half
                     detail['leave_draft'] = is_draft_leave
 
+                # ── PUBLIC HOLIDAY WORKED COUNTER (Isolated logic) ──
                 if is_public_holiday and has_checkin:
                     if actual_duration >= 6.0:
                         self._grant_compensatory_off(emp, day_key)
                         detail['comp_off_granted'] = True
-                    c_ph_worked += 1
+                        c_ph_worked += 1
 
                 if has_checkin:
                     if daily_perm_hrs > 0:
