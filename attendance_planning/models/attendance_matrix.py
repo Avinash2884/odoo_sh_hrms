@@ -221,16 +221,26 @@ class AttendanceMatrixReport(models.AbstractModel):
             ('state', 'in', ['validate', 'confirm', 'validate1']),
         ])
 
-        # ── UPDATED LEAVE COLUMN SORTING ──
+        # ── CUSTOM LEAVE COLUMN SORTING (Force LOP Last) ──
         all_leave_type_records = self.env['hr.leave.type'].search([], order='name')
         _seen_codes = set()
         for lt in all_leave_type_records:
             code = _get_leave_short_code(lt.name or 'Leave')
             _seen_codes.add(code)
 
-        preferred_order = ['CL', 'SL', 'CLP', 'SLP', 'PL', 'CO', 'BL', 'ML', 'PTL', 'LOP']
+        # 1. Define the exact sequence (excluding LOP)
+        preferred_order = ['CL', 'SL', 'CLP', 'SLP', 'PL', 'CO', 'BL', 'ML', 'PTL']
+
+        # 2. Build the list in the preferred order
         all_leave_codes = [c for c in preferred_order if c in _seen_codes]
-        all_leave_codes.extend(sorted([c for c in _seen_codes if c not in preferred_order]))
+
+        # 3. Add any random/extra leaves (like WL) alphabetically AFTER the preferred list
+        extras = sorted([c for c in _seen_codes if c not in preferred_order and c != 'LOP'])
+        all_leave_codes.extend(extras)
+
+        # 4. Force LOP to append at the absolute VERY END of the list
+        if 'LOP' in _seen_codes:
+            all_leave_codes.append('LOP')
 
         leave_lookup = {}
         leave_counts_by_emp = {e.id: {} for e in employees}
