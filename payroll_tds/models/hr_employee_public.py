@@ -32,6 +32,24 @@ class EmployeePublic(models.Model):
         readonly=False,
     )
 
+    l10n_in_nps_employer_type = fields.Selection(
+        selection=[
+            ('0', '0'),
+            ('5', '5'),
+            ('10', '10'),
+            ('14', '14'),
+        ],
+        string="NPS Employer Contribution",
+        default='0',
+    )
+
+    l10n_in_nps_employer_amount = fields.Monetary(
+        string="NPS Employer Amount",
+        compute="_compute_l10n_in_nps_employer_amount",
+        store=True,
+        currency_field='currency_id',
+    )
+
     # ==========================================================
     # Tax / TDS Fields
     # ==========================================================
