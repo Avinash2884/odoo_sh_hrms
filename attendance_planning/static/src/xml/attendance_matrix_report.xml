@@ -276,7 +276,9 @@
             <td class="align-middle text-left text-muted small">
                 <t t-esc="emp.work_email"/>
             </td>
-
+             <td class="align-middle text-left text-muted small fw-bold">
+                <t t-esc="emp.joining_date_recruit"/>
+            </td>
             <td class="align-middle text-left text-muted small">
                 <t t-esc="emp.parent_id"/>
             </td>
@@ -290,9 +292,7 @@
             </td>
 
             <!-- ── New Column Data ── -->
-            <td class="align-middle text-left text-muted small fw-bold">
-                <t t-esc="emp.joining_date_recruit"/>
-            </td>
+
 
             <!-- Day cells -->
             <t t-foreach="state.days" t-as="day" t-key="day">
