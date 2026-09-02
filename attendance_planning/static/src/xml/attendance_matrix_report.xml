@@ -8,7 +8,7 @@
             <style>
                 /* ── Table layout ── */
                 .o_attendance_matrix_table {
-                    border-collapse: separate !important; /* CRITICAL: 'collapse' breaks sticky columns */
+                    border-collapse: separate !important;
                     border-spacing: 0;
                 }
 
@@ -47,17 +47,17 @@
                     min-width: 100px !important;
                     max-width: 100px !important;
                     background-color: #ffffff !important;
-                    z-index: 10 !important; /* Floats above normal data cells */
+                    z-index: 10 !important;
                 }
 
                 .o_sticky_name {
                     position: sticky !important;
-                    left: 100px !important; /* Sits perfectly next to the 100px ID column */
+                    left: 100px !important;
                     min-width: 200px !important;
                     max-width: 200px !important;
                     background-color: #ffffff !important;
-                    z-index: 10 !important; /* Floats above normal data cells */
-                    border-right: 2px solid #dee2e6 !important; /* Visual separator line */
+                    z-index: 10 !important;
+                    border-right: 2px solid #dee2e6 !important;
                 }
 
                 /* Header intersections stay above EVERYTHING */
@@ -122,9 +122,9 @@
                                 <i t-att-class="state.codeFilter==='P/A' ? 'fa fa-check' : ''"/>
                                 <span>Half Day (P/A)</span>
                             </div>
-                            <div class="o_amc_filter_item" t-on-click="() => this.setCodeFilter('AB')">
-                                <i t-att-class="state.codeFilter==='AB' ? 'fa fa-check' : ''"/>
-                                <span>Absent (AB)</span>
+                            <div class="o_amc_filter_item" t-on-click="() => this.setCodeFilter('A')">
+                                <i t-att-class="state.codeFilter==='A' ? 'fa fa-check' : ''"/>
+                                <span>Absent (A)</span>
                             </div>
                             <div class="o_amc_filter_item" t-on-click="() => this.setCodeFilter('OT')">
                                 <i t-att-class="state.codeFilter==='OT' ? 'fa fa-check' : ''"/>
@@ -153,7 +153,7 @@
                     <small>Present</small>
                     <span class="o_amc_badge o_amc_P_A">P/A</span>
                     <small>Half Day</small>
-                    <span class="o_amc_badge o_amc_AB">AB</span>
+                    <span class="o_amc_badge o_amc_A">A</span>
                     <small>Absent</small>
                     <span class="o_amc_badge o_amc_OT">OT</span>
                     <small>Overtime</small>
@@ -179,11 +179,10 @@
                 <table class="table table-bordered table-sm o_attendance_matrix_table mb-0">
                     <thead class="o_attendance_matrix_head">
                         <tr>
-                            <!-- ── CLASSES ADDED HERE ── -->
                             <th rowspan="2" class="o_sticky_id align-middle text-left">Employee ID</th>
                             <th rowspan="2" class="o_sticky_name align-middle text-left">Employee Name</th>
-
                             <th rowspan="2" class="align-middle text-left" style="min-width: 160px;">Email ID</th>
+                            <th rowspan="2" class="align-middle text-left" style="min-width: 110px;">Date of Joining</th>
                             <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Reporting To</th>
                             <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Department</th>
                             <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Designation</th>
@@ -197,25 +196,25 @@
                             </t>
                             <!-- Flat summary columns -->
                             <th rowspan="2" class="align-middle text-center text-wrap"
-                                style="font-size: 10px; min-width: 90px; max-width: 100px;">TOTAL NO. OF CALENDAR DAYS IN THE MONTH</th>
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Calendar Days in the Month</th>
                             <th rowspan="2" class="align-middle text-center text-wrap"
-                                style="font-size: 10px; min-width: 90px; max-width: 100px;">TOTAL NO. OF WORKING DAYS</th>
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Working Days</th>
                             <th rowspan="2" class="align-middle text-center text-wrap"
-                                style="font-size: 10px; min-width: 90px; max-width: 100px;">TOTAL NO. OF WORKED DAYS</th>
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Days Worked</th>
                             <th rowspan="2" class="align-middle text-center text-wrap"
-                                style="font-size: 10px; min-width: 90px; max-width: 100px;">TOTAL NO. OF EDP DAYS</th>
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of EDP Days</th>
 
-                            <!-- Dynamic Leaves Split Header -->
+                            <!-- ── MOVED OT & HOLIDAY SUMMARIES HERE ── -->
+                            <th rowspan="2" class="align-middle text-center text-wrap"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Extra Worked Hours (OT Hours)</th>
+                            <th rowspan="2" class="align-middle text-center text-wrap"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Extra Duty (OT) Days</th>
+                            <th rowspan="2" class="align-middle text-center text-wrap"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Days Worked on Holidays</th>
+
+                            <!-- ── MOVED LEAVE DETAILS TO THE END ── -->
                             <th t-att-colspan="state.allLeaveCodes.length" class="text-center align-middle"
-                                style="background-color: #fef9c3; font-size: 10px; letter-spacing: 0.05em;">MONTH LEAVE DETAILS</th>
-
-                            <!-- Remaining Summaries -->
-                            <th rowspan="2" class="align-middle text-center text-wrap"
-                                style="font-size: 10px; min-width: 90px; max-width: 100px;">TOTAL NO. OF EXTRA DUTY (OT) HOURS</th>
-                            <th rowspan="2" class="align-middle text-center text-wrap"
-                                style="font-size: 10px; min-width: 90px; max-width: 100px;">TOTAL NO. OF EXTRA DUTY (OT) DAYS</th>
-                            <th rowspan="2" class="align-middle text-center text-wrap"
-                                style="font-size: 10px; min-width: 90px; max-width: 100px;">TOTAL NO. OF DAYS WORKED ON HOLIDAYS</th>
+                                style="background-color: #fef9c3; font-size: 10px; letter-spacing: 0.05em;">Month Leave Details</th>
                         </tr>
                         <tr>
                             <t t-foreach="state.allLeaveCodes" t-as="lc" t-key="lc">
@@ -239,8 +238,7 @@
                         <t t-if="groupedEmployees">
                             <t t-foreach="groupedEmployees" t-as="grp" t-key="grp.key">
                                 <tr class="o_amc_group_header_row">
-                                    <!-- Colspan updated to exactly 13 to align columns perfectly -->
-                                    <td t-att-colspan="state.days.length + state.allLeaveCodes.length + 13"
+                                    <td t-att-colspan="state.days.length + state.allLeaveCodes.length + 14"
                                         class="o_amc_group_header">
                                         <t t-esc="grp.label"/>
                                         <span class="text-muted ms-1">(<t t-esc="grp.employees.length"/>)</span>
@@ -263,7 +261,6 @@
     <!-- ── Reusable employee row ──────────────────────────────────────── -->
     <t t-name="attendance_planning.EmpRow" owl="1">
         <tr>
-            <!-- ── CLASSES ADDED HERE ── -->
             <td class="o_sticky_id align-middle text-left fw-bold">
                 <t t-esc="emp.ls_employee_id"/>
             </td>
@@ -277,7 +274,9 @@
             <td class="align-middle text-left text-muted small">
                 <t t-esc="emp.work_email"/>
             </td>
-
+             <td class="align-middle text-left text-muted small fw-bold">
+                <t t-esc="emp.joining_date_recruit"/>
+            </td>
             <td class="align-middle text-left text-muted small">
                 <t t-esc="emp.parent_id"/>
             </td>
@@ -310,7 +309,6 @@
                 </td>
             </t>
 
-            <!-- ── Flat Consolidation cells matching headers ── -->
             <t t-set="cons" t-value="getConsolidation(emp.id)"/>
 
             <td class="text-center align-middle fw-bold">
@@ -326,15 +324,7 @@
                 <t t-esc="cons.edp_days"/>
             </td>
 
-            <!-- Dynamic Leave Counts -->
-            <t t-foreach="state.allLeaveCodes" t-as="lc" t-key="lc">
-                <td class="text-center align-middle"
-                    t-att-class="leaveCountFor(emp.id, lc) === 0 ? 'text-muted' : 'text-danger fw-bold'">
-                    <t t-esc="leaveCountFor(emp.id, lc)"/>
-                </td>
-            </t>
-
-            <!-- Final 3 Summary Data Cells (Perfectly Aligned) -->
+            <!-- ── MOVED OT & HOLIDAY SUMMARIES HERE ── -->
             <td class="text-center align-middle text-warning text-dark fw-bold">
                 <t t-esc="cons.ot_hours_fmt"/>
             </td>
@@ -344,6 +334,14 @@
             <td class="text-center align-middle text-success fw-bold">
                 <t t-esc="cons.ph_worked"/>
             </td>
+
+            <!-- ── MOVED LEAVE DETAILS TO THE END ── -->
+            <t t-foreach="state.allLeaveCodes" t-as="lc" t-key="lc">
+                <td class="text-center align-middle"
+                    t-att-class="leaveCountFor(emp.id, lc) === 0 ? 'text-muted' : 'text-danger fw-bold'">
+                    <t t-esc="leaveCountFor(emp.id, lc)"/>
+                </td>
+            </t>
         </tr>
     </t>
 

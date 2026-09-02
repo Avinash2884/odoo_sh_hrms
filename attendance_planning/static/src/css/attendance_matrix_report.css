@@ -127,8 +127,8 @@
 .o_amc_P { background-color: #d1e7dd; color: #0f5132; border: 1px solid #a3cfbb; }
 /* P_A — Half day (present + absent) */
 .o_amc_P_A { background-color: #fef9c3; color: #713f12; border: 1px solid #fde68a; }
-/* AB — Absent / punched but below threshold */
-.o_amc_AB { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+/* A — Absent / punched but below threshold */
+.o_amc_A { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
 /* CHK — checked in, shift still open */
 .o_amc_CHK {
     background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;

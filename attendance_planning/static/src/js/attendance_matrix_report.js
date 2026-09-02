@@ -9,15 +9,27 @@ import { Dialog } from "@web/core/dialog/dialog";
 // SH: = shift name prefix (rotational planned)
 // LV: = leave prefix
 // :DRAFT suffix = pending leave
-const FIXED_CODES = new Set(['P', 'P/A', 'AB', 'CHK', 'OT', 'EDP', 'HO', 'WO']);
+const FIXED_CODES = new Set(['P', 'P/A', 'A', 'CHK', 'OT', 'EDP', 'HO', 'WO']);
 
 const KNOWN_LEAVE_CODES = {
-    'Privilege Leave': 'PL', 'Sick Leave': 'SL', 'Casual Leave': 'CL',
-    'Bereavement Leave': 'BL', 'Maternity Leave': 'ML',
-    'Paternity Leave': 'PTL', 'Wedding Leave': 'WL',
-    'Unpaid(LOP)': 'LOP', 'Loss of Pay': 'LOP',
-    'Compensatory Days': 'CO', 'Compensatory Off': 'CO',
-    'Extra Time Off': 'ETO', 'Sick Leave - Probation': 'SLP',
+    'Privilege Leave': 'PL',
+    'Paid Time Off': 'PL',
+    'Sick Leave': 'SL',
+    'Sick Time Off': 'SL',
+    'Casual Leave': 'CL',
+    'Bereavement Leave': 'BL',
+    'Maternity Leave': 'ML',
+    'Paternity Leave': 'PTL',
+    'Wedding Leave': 'WL',
+    'Unpaid(LOP)': 'LOP',
+    'Loss of Pay': 'LOP',
+    'Unpaid': 'LOP',
+    'Unpaid Time Off': 'LOP',
+    'Unpaid Leave': 'LOP',
+    'Compensatory Days': 'CO',
+    'Compensatory Off': 'CO',
+    'Extra Time Off': 'ETO',
+    'Sick Leave - Probation': 'SLP',
     'Casual Leave - Probation': 'CLP',
 };
 
@@ -138,7 +150,6 @@ export class AttendanceMatrixReport extends Component {
         if (key === 'group')  this.state.groupBy     = null;
     }
 
-    // ── Update: Multi-field Search Filter ──────────────────────────────────────
     get baseFilteredEmployees() {
         let list = this.state.employees;
         if (this.state.shiftFilter !== 'all') {
@@ -153,7 +164,8 @@ export class AttendanceMatrixReport extends Component {
                 (e.work_email || '').toLowerCase().includes(q) ||
                 (e.parent_id || '').toLowerCase().includes(q) ||
                 (e.department_id || '').toLowerCase().includes(q) ||
-                (e.job_id || '').toLowerCase().includes(q)
+                (e.job_id || '').toLowerCase().includes(q) ||
+                (e.joining_date_recruit || '').toLowerCase().includes(q)
             );
         }
         return list;
@@ -176,12 +188,11 @@ export class AttendanceMatrixReport extends Component {
     getConsolidation(empId) {
         return this.state.consolidation[empId] || {
             calendar_days: 0, working_days: 0, effective_present: 0,
-            ot_hours_fmt: '0:00', ot_days: 0, edp_days: 0, ph_worked: 0, // <-- ADDED ot_days: 0 fallback
+            ot_hours_fmt: '0:00', ot_days: 0, edp_days: 0, ph_worked: 0,
             leave_counts_full: {},
         };
     }
 
-    /** Count for one leave short code for this employee — 0 if never taken. */
     leaveCountFor(empId, code) {
         const cons = this.getConsolidation(empId);
         const val = cons.leave_counts_full ? cons.leave_counts_full[code] : undefined;
@@ -221,13 +232,6 @@ export class AttendanceMatrixReport extends Component {
 
     _cleanCode(code)    { return code.replace(':DRAFT', '').replace('LV:', '').replace('SH:', ''); }
 
-    /**
-     * Returns the CSS class string for any badge code.
-     * Handles: P, P/A, AB, CHK, OT, EDP, HO, WO
-     *          SH:shiftname  → shift name style
-     *          LV:SL, LV:SL½, LV:P/SL → leave badge (color inline)
-     *          any :DRAFT suffix → adds o_amc_draft pattern
-     */
     badgeClass(code) {
         const isDraft = this.isDraft(code);
         const base    = code.replace(':DRAFT', '');
@@ -246,7 +250,6 @@ export class AttendanceMatrixReport extends Component {
         const base = code.replace(':DRAFT', '');
         if (!base.startsWith('LV:')) return '';
         const inner = base.replace('LV:', '');
-        // combined P/SL → get SL part
         const shortCode = inner.startsWith('P/')
             ? inner.slice(2).split('½')[0]
             : inner.split('½')[0].trim();
@@ -278,14 +281,11 @@ export class AttendanceMatrixReport extends Component {
             : name.slice(0, 4).toUpperCase();
     }
 
-    // Display clean text inside the badge (No question marks!)
     displayCode(code) {
         const base = code.replace(':DRAFT', '');
         let text = base;
         if (base.startsWith('SH:')) text = base.slice(3);
         else if (base.startsWith('LV:')) text = base.slice(3);
-
-        // Just return the exact short code (e.g., SL, PTO). The CSS stripes will handle the draft look.
         return text;
     }
 
@@ -304,7 +304,7 @@ export class AttendanceMatrixReport extends Component {
         if (codes.length)                   cls.push("o_amc_filled");
         if (this.isToday(dayKey))           cls.push("o_amc_today_cell");
         const baseCodes = codes.map(c => c.replace(':DRAFT', ''));
-        if (baseCodes.includes('AB'))       cls.push("o_amc_abs_cell");
+        if (baseCodes.includes('A'))       cls.push("o_amc_abs_cell");
         if (baseCodes.includes('P/A'))      cls.push("o_amc_half_cell");
         return cls.join(" ");
     }

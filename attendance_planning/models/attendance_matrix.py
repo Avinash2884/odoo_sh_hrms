@@ -8,7 +8,9 @@ INDIA_TZ = pytz.timezone('Asia/Kolkata')
 # ── Leave type → short code map ────────────────────────────────────────────────
 LEAVE_SHORT_CODES = {
     'Privilege Leave': 'PL',
+    'Paid Time Off': 'PL',
     'Sick Leave': 'SL',
+    'Sick Time Off': 'SL',
     'Casual Leave': 'CL',
     'Bereavement Leave': 'BL',
     'Maternity Leave': 'ML',
@@ -16,6 +18,9 @@ LEAVE_SHORT_CODES = {
     'Wedding Leave': 'WL',
     'Unpaid(LOP)': 'LOP',
     'Loss of Pay': 'LOP',
+    'Unpaid': 'LOP',
+    'Unpaid Time Off': 'LOP',
+    'Unpaid Leave': 'LOP',
     'Compensatory Days': 'CO',
     'Compensatory Off': 'CO',
     'Extra Time Off': 'ETO',
@@ -23,7 +28,7 @@ LEAVE_SHORT_CODES = {
     'Casual Leave - Probation': 'CLP',
 }
 
-LOP_NAMES = {'Unpaid(LOP)', 'Loss of Pay', 'LOP'}
+LOP_NAMES = {'Unpaid(LOP)', 'Loss of Pay', 'LOP', 'Unpaid', 'Unpaid Time Off', 'Unpaid Leave'}
 COMPOFF_NAMES = {'Compensatory Days', 'Compensatory Off', 'Comp Off'}
 
 
@@ -155,7 +160,6 @@ class AttendanceMatrixReport(models.AbstractModel):
         if department_id:
             domain.append(('department_id', '=', department_id))
 
-        # Forces sequential employee ID sorting
         employees = Employee.search(domain, order='ls_employee_id asc, name asc')
 
         days_in_month = cal_module.monthrange(year, month)[1]
@@ -217,16 +221,26 @@ class AttendanceMatrixReport(models.AbstractModel):
             ('state', 'in', ['validate', 'confirm', 'validate1']),
         ])
 
-        # ── CUSTOM LEAVE COLUMN SORTING (PL, CL, SL, CO, LOP first) ──
+        # ── CUSTOM LEAVE COLUMN SORTING (Force LOP Last) ──
         all_leave_type_records = self.env['hr.leave.type'].search([], order='name')
         _seen_codes = set()
         for lt in all_leave_type_records:
             code = _get_leave_short_code(lt.name or 'Leave')
             _seen_codes.add(code)
 
-        preferred_order = ['PL', 'CL', 'SL', 'CO', 'LOP']
+        # 1. Define the exact sequence (excluding LOP)
+        preferred_order = ['CL', 'SL', 'CLP', 'SLP', 'PL', 'CO', 'BL', 'ML', 'PTL']
+
+        # 2. Build the list in the preferred order
         all_leave_codes = [c for c in preferred_order if c in _seen_codes]
-        all_leave_codes.extend(sorted([c for c in _seen_codes if c not in preferred_order]))
+
+        # 3. Add any random/extra leaves (like WL) alphabetically AFTER the preferred list
+        extras = sorted([c for c in _seen_codes if c not in preferred_order and c != 'LOP'])
+        all_leave_codes.extend(extras)
+
+        # 4. Force LOP to append at the absolute VERY END of the list
+        if 'LOP' in _seen_codes:
+            all_leave_codes.append('LOP')
 
         leave_lookup = {}
         leave_counts_by_emp = {e.id: {} for e in employees}
@@ -383,12 +397,10 @@ class AttendanceMatrixReport(models.AbstractModel):
                 elif has_checkin and has_checkout:
                     rep_att = max(day_atts, key=lambda a: a.check_in)
 
-                    # ── PUBLIC HOLIDAY SMART ASSIGNMENT (Strict 6 Hour Rule) ──
                     if is_public_holiday:
                         if actual_duration >= 6.0:
                             codes.append('P')
                             detail['absence_status'] = 'full_present'
-                        # If under 6 hours, it assigns absolutely nothing.
                     else:
                         if effective_hrs >= 8.0:
                             codes.append('P')
@@ -398,7 +410,7 @@ class AttendanceMatrixReport(models.AbstractModel):
                             detail['absence_status'] = 'half_absent'
                             detail['half_day_type'] = getattr(rep_att, 'half_day_type', 'second') or 'second'
                         elif not is_weekoff:
-                            codes.append('AB')
+                            codes.append('A')
                             detail['absence_status'] = 'full_absent'
 
                     if shift_name:
@@ -425,12 +437,12 @@ class AttendanceMatrixReport(models.AbstractModel):
                     is_draft_leave = leave_info['draft']
                     is_comp = leave_info['is_compoff']
 
-                    if 'AB' in codes and not is_half:
-                        codes.remove('AB')
+                    if 'A' in codes and not is_half:
+                        codes.remove('A')
 
                     if is_half and has_checkin:
                         badge = f'LV:P/{sc}'
-                        codes = [c for c in codes if c not in ('P', 'P/A', 'AB')]
+                        codes = [c for c in codes if c not in ('P', 'P/A', 'A')]
                     elif is_half:
                         badge = f'LV:{sc}½'
                     else:
@@ -449,7 +461,6 @@ class AttendanceMatrixReport(models.AbstractModel):
                     detail['leave_half_day'] = is_half
                     detail['leave_draft'] = is_draft_leave
 
-                # ── PUBLIC HOLIDAY WORKED COUNTER (Isolated logic) ──
                 if is_public_holiday and has_checkin:
                     if actual_duration >= 6.0:
                         self._grant_compensatory_off(emp, day_key)
@@ -496,7 +507,7 @@ class AttendanceMatrixReport(models.AbstractModel):
                     c_edp_days += 1
 
                 if not codes and not is_weekoff and not is_public_holiday and day_key <= today_str:
-                    codes.append('AB')
+                    codes.append('A')
                     detail['absence_status'] = 'full_absent'
 
                 # ── WYSIWYG COUNTERS ──
@@ -510,7 +521,6 @@ class AttendanceMatrixReport(models.AbstractModel):
                         c_present_half += 1
 
                     for c in codes:
-                        # Ensures Comp Off visually reads 'CO' but counts mathematically as 'Present'
                         if c == 'LV:CO':
                             c_present_full += 1
                         elif c == 'LV:CO½':
@@ -520,7 +530,7 @@ class AttendanceMatrixReport(models.AbstractModel):
                             if 'CO' in c:
                                 c_present_half += 1
 
-                    if 'AB' in codes:
+                    if 'A' in codes:
                         c_absent += 1
 
                 emp_row[day_key] = {'codes': codes, 'detail': detail}
@@ -565,6 +575,9 @@ class AttendanceMatrixReport(models.AbstractModel):
                 'parent_id': e.parent_id.name if e.parent_id else '',
                 'department_id': e.department_id.name if e.department_id else '',
                 'job_id': e.job_id.name if e.job_id else '',
+                'joining_date_recruit': e.joining_date_recruit.strftime('%d-%b-%Y') if getattr(e,
+                                                                                               'joining_date_recruit',
+                                                                                               False) else '',
             } for e in employees],
             'days': day_list,
             'matrix': matrix,
