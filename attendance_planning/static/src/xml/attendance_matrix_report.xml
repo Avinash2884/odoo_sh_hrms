@@ -4,6 +4,70 @@
     <t t-name="attendance_planning.AttendanceMatrixReport" owl="1">
         <div class="o_attendance_matrix_report h-100 d-flex flex-column">
 
+            <!-- ── CSS Fixes (Moved inline to bypass Odoo caching) ── -->
+            <style>
+                /* ── Table layout ── */
+                .o_attendance_matrix_table {
+                    border-collapse: separate !important; /* CRITICAL: 'collapse' breaks sticky columns */
+                    border-spacing: 0;
+                }
+
+                /* ── Restore Grid Borders ── */
+                .o_attendance_matrix_table th,
+                .o_attendance_matrix_table td {
+                    border-bottom: 1px solid #dee2e6;
+                    border-right: 1px solid #dee2e6;
+                }
+                .o_attendance_matrix_table thead tr:first-child th {
+                    border-top: 1px solid #dee2e6;
+                }
+
+                /* ── Vertical Sticky Headers (Staggered for 2 rows) ── */
+                .o_attendance_matrix_table thead th {
+                    background-clip: padding-box;
+                    background-color: #f8f9fa;
+                }
+                .o_attendance_matrix_table thead tr:first-child th {
+                    position: sticky;
+                    top: 0;
+                    z-index: 20;
+                    height: 75px;
+                    vertical-align: middle;
+                }
+                .o_attendance_matrix_table thead tr:nth-child(2) th {
+                    position: sticky;
+                    top: 74px !important;
+                    z-index: 20 !important;
+                }
+
+                /* ── Horizontal Sticky Columns (ID and Name) ── */
+                .o_sticky_id {
+                    position: sticky !important;
+                    left: 0 !important;
+                    min-width: 100px !important;
+                    max-width: 100px !important;
+                    background-color: #ffffff !important;
+                    z-index: 10 !important; /* Floats above normal data cells */
+                }
+
+                .o_sticky_name {
+                    position: sticky !important;
+                    left: 100px !important; /* Sits perfectly next to the 100px ID column */
+                    min-width: 200px !important;
+                    max-width: 200px !important;
+                    background-color: #ffffff !important;
+                    z-index: 10 !important; /* Floats above normal data cells */
+                    border-right: 2px solid #dee2e6 !important; /* Visual separator line */
+                }
+
+                /* Header intersections stay above EVERYTHING */
+                .o_attendance_matrix_table thead th.o_sticky_id,
+                .o_attendance_matrix_table thead th.o_sticky_name {
+                    z-index: 40 !important;
+                    background-color: #f8f9fa !important;
+                }
+            </style>
+
             <!-- ── Toolbar ─────────────────────────────────────────────── -->
             <div class="d-flex align-items-center p-2 border-bottom bg-light flex-wrap gap-2">
                 <button class="btn btn-secondary btn-sm" t-on-click="prevMonth"><i class="fa fa-chevron-left"/></button>
@@ -83,8 +147,6 @@
 
                 <!-- Legend -->
                 <div class="ms-auto d-flex align-items-center gap-2 o_amc_legend flex-wrap">
-                    <span class="o_amc_badge o_amc_shift_name">G1</span>
-                    <small>Planned Shift</small>
                     <span class="o_amc_badge o_amc_CHK">CHK</span>
                     <small>Checked In</small>
                     <span class="o_amc_badge o_amc_P">P</span>
@@ -113,14 +175,14 @@
             </div>
 
             <!-- ── Grid ────────────────────────────────────────────────── -->
-            <div class="flex-grow-1 overflow-auto">
+            <div class="flex-grow-1 overflow-auto w-100" style="max-width: 100%;">
                 <table class="table table-bordered table-sm o_attendance_matrix_table mb-0">
                     <thead class="o_attendance_matrix_head">
                         <tr>
-                            <!-- ── New Fixed Columns Headers ── -->
-                            <th rowspan="2" class="align-middle text-left" style="min-width: 100px;">Employee ID</th>
-                            <th rowspan="2"
-                                class="o_attendance_matrix_emp_col align-middle text-left">Employee Name</th>
+                            <!-- ── CLASSES ADDED HERE ── -->
+                            <th rowspan="2" class="o_sticky_id align-middle text-left">Employee ID</th>
+                            <th rowspan="2" class="o_sticky_name align-middle text-left">Employee Name</th>
+
                             <th rowspan="2" class="align-middle text-left" style="min-width: 160px;">Email ID</th>
                             <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Reporting To</th>
                             <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Department</th>
@@ -142,9 +204,12 @@
                                 style="font-size: 10px; min-width: 90px; max-width: 100px;">TOTAL NO. OF WORKED DAYS</th>
                             <th rowspan="2" class="align-middle text-center text-wrap"
                                 style="font-size: 10px; min-width: 90px; max-width: 100px;">TOTAL NO. OF EDP DAYS</th>
+
                             <!-- Dynamic Leaves Split Header -->
                             <th t-att-colspan="state.allLeaveCodes.length" class="text-center align-middle"
                                 style="background-color: #fef9c3; font-size: 10px; letter-spacing: 0.05em;">MONTH LEAVE DETAILS</th>
+
+                            <!-- Remaining Summaries -->
                             <th rowspan="2" class="align-middle text-center text-wrap"
                                 style="font-size: 10px; min-width: 90px; max-width: 100px;">TOTAL NO. OF EXTRA DUTY (OT) HOURS</th>
                             <th rowspan="2" class="align-middle text-center text-wrap"
@@ -174,7 +239,7 @@
                         <t t-if="groupedEmployees">
                             <t t-foreach="groupedEmployees" t-as="grp" t-key="grp.key">
                                 <tr class="o_amc_group_header_row">
-                                    <!-- Updated colspan to 13 to precisely match the headers -->
+                                    <!-- Colspan updated to exactly 13 to align columns perfectly -->
                                     <td t-att-colspan="state.days.length + state.allLeaveCodes.length + 13"
                                         class="o_amc_group_header">
                                         <t t-esc="grp.label"/>
@@ -198,12 +263,12 @@
     <!-- ── Reusable employee row ──────────────────────────────────────── -->
     <t t-name="attendance_planning.EmpRow" owl="1">
         <tr>
-            <!-- ── New Fixed Columns Data Cells ── -->
-            <td class="align-middle text-left fw-bold">
+            <!-- ── CLASSES ADDED HERE ── -->
+            <td class="o_sticky_id align-middle text-left fw-bold">
                 <t t-esc="emp.ls_employee_id"/>
             </td>
 
-            <td class="o_attendance_matrix_emp_col align-middle text-left fw-bold">
+            <td class="o_sticky_name align-middle text-left fw-bold">
                 <t t-esc="emp.name"/>
                 <span t-if="emp.shift_type === 'rotational'" class="o_amc_shift_pill o_amc_shift_rot ms-1">R</span>
                 <span t-else="" class="o_amc_shift_pill o_amc_shift_reg ms-1">F</span>
@@ -269,7 +334,7 @@
                 </td>
             </t>
 
-            <!-- Final 3 Summary Data Cells -->
+            <!-- Final 3 Summary Data Cells (Perfectly Aligned) -->
             <td class="text-center align-middle text-warning text-dark fw-bold">
                 <t t-esc="cons.ot_hours_fmt"/>
             </td>

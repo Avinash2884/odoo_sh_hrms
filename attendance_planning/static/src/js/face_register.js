@@ -4,18 +4,8 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { Component, useRef, onMounted, onWillUnmount, useState } from "@odoo/owl";
 
-// ---> ADDITION 1: Math functions to measure the eye blink
-function euclideanDistance(point1, point2) {
-    return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
-}
-
-function getEAR(eye) {
-    const v1 = euclideanDistance(eye[1], eye[5]);
-    const v2 = euclideanDistance(eye[2], eye[4]);
-    const h = euclideanDistance(eye[0], eye[3]);
-    return (v1 + v2) / (2.0 * h);
-}
-// <--- END ADDITION 1
+// Increased to 45 seconds for mobile devices on slow 3G/4G networks
+const MODEL_LOAD_TIMEOUT_MS = 45000;
 
 export class FaceRegister extends Component {
     setup() {
@@ -28,19 +18,18 @@ export class FaceRegister extends Component {
         this.employeeId = this.props.action.context.default_employee_id;
 
         this.state = useState({
-            statusMessage: "Loading AI Models... Please wait.",
+            statusMessage: "Downloading AI Engine... Please wait.",
             isReady: false,
-            needsBlink: true // ---> ADDITION 2: Require blink to unlock the capture button
         });
 
         this.stream = null;
-        this.scanInterval = null; // ---> ADDITION 3: To hold our scanner loop
-        this.isEyesClosed = false; // ---> ADDITION 4: Track blink state
 
         onMounted(async () => {
             await this.injectFaceApiScript();
-            await this.loadModels();
-            await this.startCamera();
+            const modelsOk = await this.loadModels();
+            if (modelsOk) {
+                await this.startCamera();
+            }
         });
 
         onWillUnmount(() => {
@@ -48,7 +37,6 @@ export class FaceRegister extends Component {
         });
     }
 
-    // ADD THIS NEW FUNCTION TO FORCE-LOAD THE SCRIPT
     async injectFaceApiScript() {
         return new Promise((resolve, reject) => {
             if (window.faceapi) {
@@ -68,91 +56,68 @@ export class FaceRegister extends Component {
     }
 
     async loadModels() {
-        try {
-            // NOTE: Change 'your_module' to your actual module folder name!
-            const modelPath = '/attendance_planning/static/src/models';
-            await faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath);
-            await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);
-            await faceapi.nets.faceRecognitionNet.loadFromUri(modelPath);
+        const modelPath = '/attendance_planning/static/src/models';
+        const timeout = (ms) => new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout")), ms)
+        );
 
-            this.state.statusMessage = "AI Ready! Please BLINK at the camera to unlock."; // Updated message
+        try {
+            await Promise.race([
+                (async () => {
+                    await faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath);
+                    await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);
+                    await faceapi.nets.faceRecognitionNet.loadFromUri(modelPath);
+                })(),
+                timeout(MODEL_LOAD_TIMEOUT_MS),
+            ]);
+
+            this.state.statusMessage = "AI Ready! Turning on camera...";
+            return true;
         } catch (error) {
-            console.error(error);
-            this.state.statusMessage = "Error loading AI models. Check console.";
+            console.error("Model load error:", error);
+            this.state.statusMessage = "Network too slow to download AI models. Please use Wi-Fi and try again.";
+            return false;
         }
     }
 
     async startCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            this.state.statusMessage = "Camera blocked. Ensure you are using HTTPS and a standard browser (Safari/Chrome).";
+            return;
+        }
         try {
             this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
             if (this.videoRef.el) {
                 this.videoRef.el.srcObject = this.stream;
-                // ---> ADDITION 5: Start looking for the blink once video plays
-                this.videoRef.el.addEventListener('play', () => this.startLivenessScanner());
+                this.videoRef.el.addEventListener('play', () => {
+                    // Instant unlock — no blinking required
+                    this.state.isReady = true;
+                    this.state.statusMessage = "Ready. Look at the camera and click Capture!";
+                });
             }
         } catch (err) {
-            this.state.statusMessage = "Camera access denied or unavailable.";
+            console.error("Camera error:", err);
+            this.state.statusMessage = "Camera access denied. Please allow permissions in your browser settings.";
         }
     }
 
-    // ---> ADDITION 6: The Continuous Liveness Scanner
-    startLivenessScanner() {
-        this.scanInterval = setInterval(async () => {
-            if (!this.state.needsBlink) return; // Stop scanning once they blink
-
-            const videoEl = this.videoRef.el;
-            if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) {
-                return;
-            }
-
-            let detection;
-            try {
-                detection = await faceapi.detectSingleFace(videoEl).withFaceLandmarks();
-            } catch (e) {
-                console.warn("Face detection skipped this frame:", e);
-                return;
-            }
-
-            if (detection) {
-                const leftEye = detection.landmarks.getLeftEye();
-                const rightEye = detection.landmarks.getRightEye();
-
-                const leftEAR = getEAR(leftEye);
-                const rightEAR = getEAR(rightEye);
-                const avgEAR = (leftEAR + rightEAR) / 2.0;
-
-                const BLINK_THRESHOLD = 0.25;
-
-                if (avgEAR < BLINK_THRESHOLD) {
-                    this.isEyesClosed = true;
-                    this.state.statusMessage = "Blink detected! Unlocking...";
-                } else if (this.isEyesClosed && avgEAR >= BLINK_THRESHOLD) {
-                    // Blink complete!
-                    this.isEyesClosed = false;
-                    this.state.needsBlink = false;
-                    this.state.isReady = true; // Unlock the capture button
-                    this.state.statusMessage = "Liveness verified. Click Capture to save face!";
-                    clearInterval(this.scanInterval); // Turn off the scanner to save memory
-                }
-            }
-        }, 200);
-    }
-    // <--- END ADDITION 6
-
     stopCamera() {
-        if (this.scanInterval) clearInterval(this.scanInterval); // Stop scanner on exit
         if (this.stream) {
             this.stream.getTracks().forEach(track => track.stop());
         }
     }
 
     async _onCaptureClick() {
-        this.state.statusMessage = "Scanning face... Hold still!";
-        this.state.isReady = false;
-
         const videoEl = this.videoRef.el;
 
-        // 1. Tell the AI to find the face and extract the math (descriptor)
+        // 1. FREEZE FRAME: Instantly pause the video and update the text
+        videoEl.pause();
+        this.state.statusMessage = " Snapshot taken! Analyzing face...";
+        this.state.isReady = false;
+
+        // 2. YIELD: Give the browser 50ms to actually render the freeze before the AI locks the CPU
+        await new Promise(resolve => setTimeout(resolve, 50));
+
         let detection;
         try {
             detection = await faceapi.detectSingleFace(videoEl)
@@ -160,40 +125,38 @@ export class FaceRegister extends Component {
                                        .withFaceDescriptor();
         } catch (e) {
             console.warn("Face capture failed:", e);
-            this.state.statusMessage = "Couldn't read the camera frame. Please try again.";
+            this.state.statusMessage = "Hardware error reading camera. Please try again.";
             this.state.isReady = true;
+            videoEl.play(); // UNFREEZE on error
             return;
         }
 
         if (!detection) {
             this.state.statusMessage = "No face detected! Make sure your face is clearly visible.";
             this.state.isReady = true;
+            videoEl.play(); // UNFREEZE on error
             return;
         }
 
-        // 2. Convert the 128 numbers into a string so Python can save it
         const descriptorArray = Array.from(detection.descriptor);
         const descriptorString = JSON.stringify(descriptorArray);
 
-        // 3. Send it to Python via RPC (USING THE SECRET BYPASS)
         try {
-            // THE CRITICAL LINE: Make sure it says sudo_save_face_by_id AND passes this.employeeId
             await this.orm.call("hr.employee", "sudo_save_face_by_id", [this.employeeId, descriptorString]);
+            this.state.statusMessage = "✅ Face Successfully Saved!";
 
-            this.state.statusMessage = "Face Successfully Saved!";
-
-            // Wait 1.5 seconds, then close the camera and go back
             setTimeout(() => {
                 this._onCancelClick();
             }, 1500);
 
         } catch (error) {
-            // If it fails, it prints the real error to your browser console
             console.error("Database Error:", error);
             this.state.statusMessage = "Error saving to database.";
             this.state.isReady = true;
+            videoEl.play(); // UNFREEZE on error
         }
     }
+
 
     _onCancelClick() {
         this.stopCamera();
@@ -201,10 +164,6 @@ export class FaceRegister extends Component {
     }
 }
 
-FaceRegister.template = "your_module.FaceRegisterScreen";
+// ── TEMPLATE NAME UPDATED ──
+FaceRegister.template = "attendance_planning.FaceRegisterScreen";
 registry.category("actions").add("attendance_face_register", FaceRegister);
-
-
-
-
-

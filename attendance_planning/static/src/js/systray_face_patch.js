@@ -107,10 +107,6 @@ export class FaceVerificationDialog extends Component {
             if (this.state.isProcessing) return;
 
             const videoEl = this.videoRef.el;
-            // Guard: skip this tick if the video frame isn't ready yet (0 dimensions,
-            // camera still warming up, tab backgrounded, etc). face-api throws a
-            // "Box.constructor" error on invalid/NaN geometry, which otherwise
-            // becomes an unhandled promise rejection and crashes the whole page.
             if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) {
                 return;
             }
@@ -157,7 +153,6 @@ export class FaceVerificationDialog extends Component {
                         (async () => {
                             const photoBase64 = this._capturedPhotoBase64;
 
-                            // 1. STAGE THE PHOTO ON THE SERVER FIRST (WITH 2-ATTEMPT RETRY LOOP)
                             if (photoBase64) {
                                 let staged = false;
                                 for (let i = 0; i < 2 && !staged; i++) {
@@ -178,8 +173,6 @@ export class FaceVerificationDialog extends Component {
                                 }
                             }
 
-                            // 2. TRIGGER NATIVE ODOO PUNCH
-                            // This guarantees the UI updates natively, and the backend handles the photo saving!
                             if (this.props.onSuccess) {
                                 await this.props.onSuccess();
                             }
@@ -196,6 +189,7 @@ export class FaceVerificationDialog extends Component {
             }
         }, 200);
     }
+
     async verifyWithDatabase(liveDescriptor) {
         try {
             const myDescriptor = await this.orm.call("hr.employee", "get_my_face_descriptor", []);
@@ -272,6 +266,22 @@ if (ActualAttendanceMenu) {
             }
             this._punchInProgress = true;
 
+            // ── DATABASE SYNC 1: Read actual status before punch ──
+            try {
+                if (this.employee && this.employee.id) {
+                    const [fresh] = await this.orm.read(
+                        "hr.employee",
+                        [this.employee.id],
+                        ["attendance_state", "last_attendance_id"]
+                    );
+                    if (fresh) {
+                        Object.assign(this.employee, fresh);
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not refresh employee attendance state before punch:", e);
+            }
+
             let currentState = 'checked_out';
             if (this.employee && this.employee.attendance_state) {
                 currentState = this.employee.attendance_state;
@@ -282,7 +292,6 @@ if (ActualAttendanceMenu) {
             }
 
             const geoCheckPromise = (async () => {
-                // FAST PATH: Check bypass first before turning on GPS
                 try {
                     const isBypass = await this.orm.call('hr.attendance', 'is_geo_bypass_employee', []);
                     if (isBypass) {
@@ -357,10 +366,36 @@ if (ActualAttendanceMenu) {
                 notificationService: this.notificationService,
                 releaseLock: releaseLock,
                 onSuccess: async () => {
-                    // 1. Let Odoo handle the UI reactivity natively
-                    await super.signInOut();
+                    // Trigger Native Punch securely
+                    try {
+                        await super.signInOut();
+                    } catch (e) {
+                        console.error("Native punch failed:", e);
+                        if (this.notificationService) {
+                            this.notificationService.add(
+                                "Couldn't record your attendance — your session may already be open. Please refresh the page and try again.",
+                                { type: "danger" }
+                            );
+                        }
+                        throw e;
+                    }
 
-                    // 2. Custom late checkout logic
+                    // ── DATABASE SYNC 2: Force UI to update color immediately after punch ──
+                    try {
+                        if (this.employee && this.employee.id) {
+                            const [fresh] = await this.orm.read(
+                                "hr.employee",
+                                [this.employee.id],
+                                ["attendance_state", "last_attendance_id"]
+                            );
+                            if (fresh) {
+                                Object.assign(this.employee, fresh);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Could not refresh employee attendance state after punch:", e);
+                    }
+
                     if (currentState === 'checked_in') {
                         if (typeof window.checkLateCheckout === 'function') {
                             setTimeout(window.checkLateCheckout, 1000);
