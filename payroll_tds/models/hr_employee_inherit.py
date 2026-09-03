@@ -1019,10 +1019,14 @@ class Employee(models.Model):
                     # -------------------------------------------------
                     # Remaining months in Financial Year
                     # -------------------------------------------------
-                    if payslip_month >= 4:
-                        remaining_months = 16 - payslip_month
+                    # -------------------------------------------------
+                    # Remaining months in Financial Year
+                    # Based on JOINING MONTH, not current payslip month
+                    # -------------------------------------------------
+                    if joining_date.month >= 4:
+                        remaining_months = 15 - joining_date.month
                     else:
-                        remaining_months = 4 - payslip_month
+                        remaining_months = 3 - joining_date.month
 
                     # -------------------------------------------------
                     # Total Income
