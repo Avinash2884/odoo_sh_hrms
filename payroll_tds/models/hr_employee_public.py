@@ -73,7 +73,7 @@ class EmployeePublic(models.Model):
     # Tax / TDS Fields
     # ==========================================================
 
-    ax_regime = fields.Selection([
+    tax_regime = fields.Selection([
         ('old', 'Old Regime'),
         ('new', 'New Regime'),
     ], string='Tax Regime')
