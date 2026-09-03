@@ -48,12 +48,12 @@ class HrEmployeeInherit(models.Model):
         tracking=True
     )
 
-    @api.depends('employee_notice_period')
+    @api.depends('confirmed_employee_notice_period')
     def _compute_last_working_date(self):
         for rec in self:
-            if rec.employee_notice_period:
+            if rec.confirmed_employee_notice_period:
                 rec.last_working_date_employee = fields.Date.today() + timedelta(
-                    days=rec.employee_notice_period
+                    days=rec.confirmed_employee_notice_period
                 )
             else:
                 rec.last_working_date_employee = False
