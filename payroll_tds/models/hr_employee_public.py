@@ -703,4 +703,13 @@ class EmployeePublic(models.Model):
         string="Paid Installments",
         readonly=False,
     )
+    # ==========================================================
+    # Rented House
+    # ==========================================================
+
+    is_rented_house = fields.Boolean(
+        related='employee_id.is_rented_house',
+        string='Are you staying in a rented house?',
+        readonly=False,
+    )
 
