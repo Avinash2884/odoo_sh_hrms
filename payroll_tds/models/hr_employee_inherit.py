@@ -1220,7 +1220,8 @@ class Employee(models.Model):
     @api.depends(
         'tds_amount',
         'tds_till_last_month',
-        'payslip_month'
+        'payslip_month',
+        'contract_date_start',
     )
     def _compute_tds_amount_month(self):
         for emp in self:
@@ -1231,12 +1232,61 @@ class Employee(models.Model):
                 emp.tds_amount_month = 0.0
                 continue
 
-            if month >= 4:
-                remaining_months = 16 - month
-            else:
-                remaining_months = 4 - month
+            joining_date = emp.contract_date_start
 
-            remaining_months = max(remaining_months, 1)
+            # =========================================================
+            # EXISTING EMPLOYEES
+            # Keep existing functionality exactly as it is
+            # =========================================================
+            if not (
+                    joining_date
+                    and joining_date.day > 1
+            ):
+                if month >= 4:
+                    remaining_months = 16 - month
+                else:
+                    remaining_months = 4 - month
+
+                remaining_months = max(
+                    remaining_months,
+                    1
+                )
+
+                remaining_tax = max(
+                    (emp.tds_amount or 0.0)
+                    - (emp.tds_till_last_month or 0.0),
+                    0.0
+                )
+
+                emp.tds_amount_month = round(
+                    remaining_tax / remaining_months,
+                    2
+                )
+
+                continue
+
+            # =========================================================
+            # NEW JOINER
+            # Joined after 1st of month
+            # =========================================================
+
+            # Current FY joining employee:
+            # Joining month itself is already prorated.
+            # The remaining full months are calculated from
+            # the joining month, not from the current payslip month.
+            if joining_date.month >= 4:
+                total_remaining_months = 15 - joining_date.month
+            else:
+                total_remaining_months = 3 - joining_date.month
+
+            total_remaining_months = max(
+                total_remaining_months,
+                1
+            )
+
+            # =========================================================
+            # OLD REGIME TDS
+            # =========================================================
 
             remaining_tax = max(
                 (emp.tds_amount or 0.0)
@@ -1244,8 +1294,24 @@ class Employee(models.Model):
                 0.0
             )
 
+            # Number of months still available from the current
+            # payslip month until March.
+            months_left = (
+                    total_remaining_months
+                    - (
+                            month
+                            - joining_date.month
+                            - 1
+                    )
+            )
+
+            months_left = max(
+                months_left,
+                1
+            )
+
             emp.tds_amount_month = round(
-                remaining_tax / remaining_months,
+                remaining_tax / months_left,
                 2
             )
             # ---------------------------------------------------------
