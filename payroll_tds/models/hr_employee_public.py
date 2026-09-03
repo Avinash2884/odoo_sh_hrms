@@ -8,6 +8,12 @@ class EmployeePublic(models.Model):
     # Leave Allocation Fields
     # ==========================================================
 
+    revision_ids = fields.One2many(
+        'employee.salary.revision',
+        'employee_id',
+        string='Revised Wage Details'
+    )
+
     pl_allocation_year = fields.Integer(
         related='employee_id.pl_allocation_year',
         string="PL Allocation Year",
@@ -50,6 +56,19 @@ class EmployeePublic(models.Model):
         currency_field='currency_id',
     )
 
+    pran_number = fields.Char(
+        string="PRAN Number",
+        copy=False,
+        help="Enter a valid 12-digit PRAN number.",
+    )
+
+    financial_year_incentive = fields.Monetary(
+        string="Financial Year Incentive",
+        currency_field='currency_id',
+        default=0.0,
+        copy=False,
+    )
+
     # ==========================================================
     # Tax / TDS Fields
     # ==========================================================
@@ -58,6 +77,36 @@ class EmployeePublic(models.Model):
         related='employee_id.tax_regime',
         string='Tax Regime',
         readonly=False,
+    )
+
+    hra_exemption_amount = fields.Monetary(
+        string="HRA Exemption",
+        currency_field='currency_id',
+        compute="_compute_hra_exemption_amount",
+        store=True,
+        readonly=True,
+    )
+    tax_on_employment = fields.Monetary(
+        string="Tax on Employment",
+        currency_field='currency_id',
+        help="Professional Tax / Tax on Employment",
+    )
+    previous_employment_income = fields.Monetary(
+        string="Income After Exemptions",
+        currency_field='currency_id',
+        help="Taxable Income under Previous Employment - Income After Exemptions",
+    )
+
+    previous_employment_professional_tax = fields.Monetary(
+        string="Less: Professional Tax",
+        currency_field='currency_id',
+        help="Professional Tax under Previous Employment",
+    )
+
+    entertainment_allowance = fields.Monetary(
+        string="Entertainment Allowance",
+        currency_field='currency_id',
+        help="Entertainment Allowance under Section 19",
     )
 
     standard_deduction = fields.Monetary(
@@ -72,6 +121,80 @@ class EmployeePublic(models.Model):
         string='Section 80C',
         currency_field='currency_id',
         readonly=False,
+    )
+    section_123_80ccc = fields.Monetary(
+        string='Section 123 (80CCC)',
+        help="Available only under Old Regime"
+    )
+
+    section_124_1_80ccd_1 = fields.Monetary(
+        string='Section 124 (1) (80CCD (1))',
+        help="Available only under Old Regime"
+    )
+
+    section_124_1b_80ccd_1b = fields.Monetary(
+        string='Section 124(1B) (80CCD(1B))',
+        help="Available only under Old Regime"
+    )
+
+    section_126_80d = fields.Monetary(
+        string='Section 126 (80D)',
+        help="Available only under Old Regime"
+    )
+
+    section_127_80dd = fields.Monetary(
+        string='Section 127 (80DD)',
+        help="Available only under Old Regime"
+    )
+
+    section_128_80ddb = fields.Monetary(
+        string='Section 128(80DDB)',
+        help="Available only under Old Regime"
+    )
+
+    section_129_80e = fields.Monetary(
+        string='Section 129 (80E)',
+        help="Available only under Old Regime"
+    )
+
+    section_130_80ee = fields.Monetary(
+        string='Section 130 (80EE)',
+        help="Available only under Old Regime"
+    )
+
+    section_131_80eea = fields.Monetary(
+        string='Section 131 (80EEA)',
+        help="Available only under Old Regime"
+    )
+
+    section_132_80eeb = fields.Monetary(
+        string='Section 132 (80EEB)',
+        help="Available only under Old Regime"
+    )
+
+    section_133_80g = fields.Monetary(
+        string='Section 133(80G)',
+        help="Available only under Old Regime"
+    )
+
+    section_134_80gg = fields.Monetary(
+        string='Section 134(80GG)',
+        help="Available only under Old Regime"
+    )
+
+    section_137_80ggc = fields.Monetary(
+        string='Section 137 (80GGC)',
+        help="Available only under Old Regime"
+    )
+
+    section_153_80tta = fields.Monetary(
+        string='Section 153(80TTA)',
+        help="Available only under Old Regime"
+    )
+
+    section_154_80u = fields.Monetary(
+        string='Section 154(80U)',
+        help="Available only under Old Regime"
     )
 
     section_80d = fields.Monetary(
@@ -173,41 +296,61 @@ class EmployeePublic(models.Model):
         readonly=True,
     )
 
+    l10n_in_pf_employee_type = fields.Selection(
+        related="version_id.l10n_in_pf_employee_type",
+        store=True,
+        readonly=False,
+    )
+
+    l10n_in_pf_employer_type = fields.Selection(
+        related="version_id.l10n_in_pf_employer_type",
+        store=True,
+        readonly=False,
+    )
+    dearness_allowance = fields.Monetary(
+        related="version_id.dearness_allowance",
+        store=True,
+        readonly=False,
+    )
+    conveyance_allowance = fields.Monetary(
+        related="version_id.conveyance_allowance",
+        store=True,
+        readonly=False,
+    )
+
     # ==========================================================
     # Payslip Fields
     # ==========================================================
 
-    payslip_gross_wage = fields.Monetary(
-        related='employee_id.payslip_gross_wage',
-        string="Payslip Gross Wage",
-        currency_field='currency_id',
-        readonly=False,
-    )
-
-    payslip_yearly_cost = fields.Monetary(
-        related='employee_id.payslip_yearly_cost',
-        string="Payslip Yearly Cost",
-        currency_field='currency_id',
-        readonly=False,
-    )
-
-    payslip_month = fields.Selection(
-        related='employee_id.payslip_month',
+    payslip_month = fields.Selection([
+        ('1', 'January'),
+        ('2', 'February'),
+        ('3', 'March'),
+        ('4', 'April'),
+        ('5', 'May'),
+        ('6', 'June'),
+        ('7', 'July'),
+        ('8', 'August'),
+        ('9', 'September'),
+        ('10', 'October'),
+        ('11', 'November'),
+        ('12', 'December'),
+    ],
         string="Payslip Month",
-        readonly=False,
+        default=lambda self: str(fields.Date.today().month)
+    )
+    payslip_paid_days = fields.Float(
+        string="Payslip Paid Days",
+        default=0.0,
     )
 
-    month = fields.Selection(
-        related='employee_id.month',
-        string="Month",
-        readonly=False,
+    total_income = fields.Monetary(
+        string="Total Income",
+        currency_field="currency_id",
+        compute="_compute_total_income",
+        store=True
     )
 
-    year = fields.Char(
-        related='employee_id.year',
-        string="Year",
-        readonly=False,
-    )
 
     # ==========================================================
     # Salary / Working Day Calculation Fields
@@ -242,6 +385,11 @@ class EmployeePublic(models.Model):
         string="Leave Encashment Amount",
         currency_field='currency_id',
         readonly=False,
+    )
+    el_balance = fields.Float(
+        string="EL Balance",
+        compute="_compute_el_balance",
+        store=False
     )
 
     total_earnings = fields.Monetary(
