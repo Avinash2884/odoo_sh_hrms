@@ -2,6 +2,7 @@ from . import hr_employee_inherit
 from . import hr_version_inherit
 from . import hr_leave_inherit
 from . import hr_payslip
+from . import mail_mail
 from . import hr_approval_requests
 from . import hr_attendance_inherit
 from . import hr_leave_allocation

@@ -186,7 +186,6 @@
                             <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Reporting To</th>
                             <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Department</th>
                             <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Designation</th>
-                            <!-- ── New Column ── -->
 
                             <t t-foreach="state.days" t-as="day" t-key="day">
                                 <th rowspan="2" t-att-class="headerCellClass(day) + ' align-middle'">
@@ -195,7 +194,7 @@
                                     <div t-if="isPublicHoliday(day)" class="o_amc_ph_label" t-esc="holidayName(day)"/>
                                 </th>
                             </t>
-                            <!-- Flat summary columns (Updated terminologies) -->
+                            <!-- Flat summary columns -->
                             <th rowspan="2" class="align-middle text-center text-wrap"
                                 style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Calendar Days in the Month</th>
                             <th rowspan="2" class="align-middle text-center text-wrap"
@@ -205,17 +204,17 @@
                             <th rowspan="2" class="align-middle text-center text-wrap"
                                 style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of EDP Days</th>
 
-                            <!-- Dynamic Leaves Split Header -->
-                            <th t-att-colspan="state.allLeaveCodes.length" class="text-center align-middle"
-                                style="background-color: #fef9c3; font-size: 10px; letter-spacing: 0.05em;">Month Leave Details</th>
-
-                            <!-- Remaining Summaries (Updated terminologies) -->
+                            <!-- ── MOVED OT & HOLIDAY SUMMARIES HERE ── -->
                             <th rowspan="2" class="align-middle text-center text-wrap"
                                 style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Extra Worked Hours (OT Hours)</th>
                             <th rowspan="2" class="align-middle text-center text-wrap"
                                 style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Extra Duty (OT) Days</th>
                             <th rowspan="2" class="align-middle text-center text-wrap"
                                 style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Days Worked on Holidays</th>
+
+                            <!-- ── MOVED LEAVE DETAILS TO THE END ── -->
+                            <th t-att-colspan="state.allLeaveCodes.length" class="text-center align-middle"
+                                style="background-color: #fef9c3; font-size: 10px; letter-spacing: 0.05em;">Month Leave Details</th>
                         </tr>
                         <tr>
                             <t t-foreach="state.allLeaveCodes" t-as="lc" t-key="lc">
@@ -239,7 +238,6 @@
                         <t t-if="groupedEmployees">
                             <t t-foreach="groupedEmployees" t-as="grp" t-key="grp.key">
                                 <tr class="o_amc_group_header_row">
-                                    <!-- Colspan updated from 13 to 14 to include Date of Joining -->
                                     <td t-att-colspan="state.days.length + state.allLeaveCodes.length + 14"
                                         class="o_amc_group_header">
                                         <t t-esc="grp.label"/>
@@ -276,7 +274,9 @@
             <td class="align-middle text-left text-muted small">
                 <t t-esc="emp.work_email"/>
             </td>
-
+             <td class="align-middle text-left text-muted small fw-bold">
+                <t t-esc="emp.joining_date_recruit"/>
+            </td>
             <td class="align-middle text-left text-muted small">
                 <t t-esc="emp.parent_id"/>
             </td>
@@ -287,11 +287,6 @@
 
             <td class="align-middle text-left text-muted small">
                 <t t-esc="emp.job_id"/>
-            </td>
-
-            <!-- ── New Column Data ── -->
-            <td class="align-middle text-left text-muted small fw-bold">
-                <t t-esc="emp.joining_date_recruit"/>
             </td>
 
             <!-- Day cells -->
@@ -329,13 +324,7 @@
                 <t t-esc="cons.edp_days"/>
             </td>
 
-            <t t-foreach="state.allLeaveCodes" t-as="lc" t-key="lc">
-                <td class="text-center align-middle"
-                    t-att-class="leaveCountFor(emp.id, lc) === 0 ? 'text-muted' : 'text-danger fw-bold'">
-                    <t t-esc="leaveCountFor(emp.id, lc)"/>
-                </td>
-            </t>
-
+            <!-- ── MOVED OT & HOLIDAY SUMMARIES HERE ── -->
             <td class="text-center align-middle text-warning text-dark fw-bold">
                 <t t-esc="cons.ot_hours_fmt"/>
             </td>
@@ -345,6 +334,14 @@
             <td class="text-center align-middle text-success fw-bold">
                 <t t-esc="cons.ph_worked"/>
             </td>
+
+            <!-- ── MOVED LEAVE DETAILS TO THE END ── -->
+            <t t-foreach="state.allLeaveCodes" t-as="lc" t-key="lc">
+                <td class="text-center align-middle"
+                    t-att-class="leaveCountFor(emp.id, lc) === 0 ? 'text-muted' : 'text-danger fw-bold'">
+                    <t t-esc="leaveCountFor(emp.id, lc)"/>
+                </td>
+            </t>
         </tr>
     </t>
 
