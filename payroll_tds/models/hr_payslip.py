@@ -582,6 +582,31 @@ class HrPayslip(models.Model):
                 if line.work_entry_type_id.code == 'LEAVE90'
             )
 
+    # ---------------------------------------------------------
+    # Disable automatic payslip email during validation
+    # ---------------------------------------------------------
+    def _generate_pdf(self):
+        """
+        Generate the payslip PDF without sending any email.
+
+        Odoo's standard hr_payroll _generate_pdf() generates the
+        PDF and then automatically sends the payslip email.
+        Email sending is intentionally disabled here.
+        """
+        # Original Odoo mail-sending code is intentionally disabled.
+        #
+        # The standard Odoo method contains logic similar to:
+        #
+        # template.send_mail(
+        #     payslip.id,
+        #     email_layout_xmlid='mail.mail_notification_light'
+        # )
+        #
+        # We intentionally do NOT call super()._generate_pdf()
+        # because it would trigger the automatic payslip email.
+
+        return True
+
     def action_payslip_done(self):
 
         if self.env.context.get('install_demo'):
