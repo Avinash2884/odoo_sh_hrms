@@ -37,34 +37,7 @@ class Employee(models.Model):
         string="Bereavement Allocation Year",
         default=0
     )
-    l10n_in_nps_employer_type = fields.Selection(
-        selection=[
-            ('5', '5%'),
-            ('10', '10%'),
-            ('14', '14%'),
-        ],
-        string="NPS Employer Contribution",
-        default='10',
-    )
 
-    l10n_in_nps_employer_amount = fields.Monetary(
-        string="NPS Employer Amount",
-        compute="_compute_l10n_in_nps_employer_amount",
-        store=True,
-        currency_field='currency_id',
-    )
-
-    @api.depends('l10n_in_nps_employer_type')
-    def _compute_l10n_in_nps_employer_amount(self):
-        for employee in self:
-            basic = employee.version_id.l10n_in_basic_salary_amount or 0.0
-            percentage = float(
-                employee.l10n_in_nps_employer_type or 0.0
-            )
-
-            employee.l10n_in_nps_employer_amount = (
-                    basic * percentage / 100
-            )
 
     pran_number = fields.Char(
         string="PRAN Number",

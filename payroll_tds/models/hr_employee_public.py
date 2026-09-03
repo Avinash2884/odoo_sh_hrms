@@ -73,11 +73,10 @@ class EmployeePublic(models.Model):
     # Tax / TDS Fields
     # ==========================================================
 
-    tax_regime = fields.Selection(
-        related='employee_id.tax_regime',
-        string='Tax Regime',
-        readonly=False,
-    )
+    ax_regime = fields.Selection([
+        ('old', 'Old Regime'),
+        ('new', 'New Regime'),
+    ], string='Tax Regime')
 
     hra_exemption_amount = fields.Monetary(
         string="HRA Exemption",
@@ -322,6 +321,20 @@ class EmployeePublic(models.Model):
     # Payslip Fields
     # ==========================================================
 
+    # ADD HERE
+    payslip_gross_wage = fields.Monetary(
+        string="Payslip Gross Wage",
+        currency_field='currency_id',
+        compute="_compute_payslip_gross_wage",
+        store=True
+    )
+    payslip_yearly_cost = fields.Monetary(
+        string="Payslip Yearly Cost",
+        currency_field='currency_id',
+        compute="_compute_payslip_yearly_cost",
+        store=True
+    )
+
     payslip_month = fields.Selection([
         ('1', 'January'),
         ('2', 'February'),
@@ -351,6 +364,40 @@ class EmployeePublic(models.Model):
         store=True
     )
 
+    annual_tds_base = fields.Float(
+        string="Annual TDS Base",
+        copy=False,
+    )
+
+    pl_allocation_year = fields.Integer(
+        string="PL Allocation Year",
+        default=0
+    )
+
+    last_cl_allocation_month = fields.Char(
+        string="Last CL Allocation Month"
+    )
+
+    last_sl_allocation_month = fields.Char(
+        string="Last SL Allocation Month"
+    )
+
+    bereavement_allocation_year = fields.Integer(
+        string="Bereavement Allocation Year",
+        default=0
+    )
+
+    month = fields.Selection([
+        ('1', 'January'), ('2', 'February'), ('3', 'March'),
+        ('4', 'April'), ('5', 'May'), ('6', 'June'),
+        ('7', 'July'), ('8', 'August'), ('9', 'September'),
+        ('10', 'October'), ('11', 'November'), ('12', 'December'),
+    ], string="Month")
+
+    year = fields.Char(
+        string="Year",
+        default=lambda self: str(fields.Date.today().year)
+    )
 
     # ==========================================================
     # Salary / Working Day Calculation Fields
@@ -657,19 +704,3 @@ class EmployeePublic(models.Model):
         readonly=False,
     )
 
-    payslip_paid_days = fields.Float(
-        string="Payslip Paid Days",
-        default=0.0,
-    )
-
-    total_income = fields.Monetary(
-        string="Total Income",
-        currency_field="currency_id",
-        compute="_compute_total_income",
-        store=True
-    )
-
-    annual_tds_base = fields.Float(
-        string="Annual TDS Base",
-        copy=False,
-    )
