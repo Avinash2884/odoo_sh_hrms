@@ -295,27 +295,27 @@ class EmployeePublic(models.Model):
         readonly=True,
     )
 
-    l10n_in_pf_employee_type = fields.Selection(
-        related="version_id.l10n_in_pf_employee_type",
-        store=True,
-        readonly=False,
-    )
-
-    l10n_in_pf_employer_type = fields.Selection(
-        related="version_id.l10n_in_pf_employer_type",
-        store=True,
-        readonly=False,
-    )
-    dearness_allowance = fields.Monetary(
-        related="version_id.dearness_allowance",
-        store=True,
-        readonly=False,
-    )
-    conveyance_allowance = fields.Monetary(
-        related="version_id.conveyance_allowance",
-        store=True,
-        readonly=False,
-    )
+    # l10n_in_pf_employee_type = fields.Selection(
+    #     related="version_id.l10n_in_pf_employee_type",
+    #     store=True,
+    #     readonly=False,
+    # )
+    #
+    # l10n_in_pf_employer_type = fields.Selection(
+    #     related="version_id.l10n_in_pf_employer_type",
+    #     store=True,
+    #     readonly=False,
+    # )
+    # dearness_allowance = fields.Monetary(
+    #     related="version_id.dearness_allowance",
+    #     store=True,
+    #     readonly=False,
+    # )
+    # conveyance_allowance = fields.Monetary(
+    #     related="version_id.conveyance_allowance",
+    #     store=True,
+    #     readonly=False,
+    # )
 
     # ==========================================================
     # Payslip Fields
