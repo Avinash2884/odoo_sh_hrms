@@ -246,6 +246,85 @@ class HrPayslip(models.Model):
             )[:1]
             slip.incentive = incentive_line.total if incentive_line else 0.0
 
+    other_earnings = fields.Monetary(
+        string="Other Earnings",
+        compute="_compute_other_earnings",
+        currency_field="currency_id",
+        store=True,
+    )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_other_earnings(self):
+        for slip in self:
+            other_line = slip.line_ids.filtered(
+                lambda l: l.code == 'OE'
+            )[:1]
+            slip.other_earnings = other_line.total if other_line else 0.0
+
+
+    hold_salary = fields.Monetary(
+        string="Hold Salary",
+        compute="_compute_hold_salary",
+        currency_field="currency_id",
+        store=True,
+    )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_hold_salary(self):
+        for slip in self:
+            hold_line = slip.line_ids.filtered(
+                lambda l: l.code == 'HS'
+            )[:1]
+            slip.hold_salary = hold_line.total if hold_line else 0.0
+
+
+    variable_pay = fields.Monetary(
+        string="Variable Pay",
+        compute="_compute_variable_pay",
+        currency_field="currency_id",
+        store=True,
+    )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_variable_pay(self):
+        for slip in self:
+            variable_line = slip.line_ids.filtered(
+                lambda l: l.code == 'VP'
+            )[:1]
+            slip.variable_pay = variable_line.total if variable_line else 0.0
+
+
+    pf_arrear = fields.Monetary(
+        string="PF Arrear",
+        compute="_compute_pf_arrear",
+        currency_field="currency_id",
+        store=True,
+    )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_pf_arrear(self):
+        for slip in self:
+            pf_arrear_line = slip.line_ids.filtered(
+                lambda l: l.code == 'PFA'
+            )[:1]
+            slip.pf_arrear = pf_arrear_line.total if pf_arrear_line else 0.0
+
+
+    nps_contribution = fields.Monetary(
+        string="NPS Contribution",
+        compute="_compute_nps_contribution",
+        currency_field="currency_id",
+        store=True,
+    )
+
+    @api.depends('line_ids.total', 'line_ids.code')
+    def _compute_nps_contribution(self):
+        for slip in self:
+            nps_line = slip.line_ids.filtered(
+                lambda l: l.code == 'NPS'
+            )[:1]
+            slip.nps_contribution = nps_line.total if nps_line else 0.0
+
     referral = fields.Monetary(
         related='employee_id.referral_incentive',
         string='Referral',

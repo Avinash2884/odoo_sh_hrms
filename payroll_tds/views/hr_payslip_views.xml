@@ -133,6 +133,25 @@
                     <field name="stipend" string="Stipend"/>
                     <field name="bonus" string="Bonus"/>
                     <field name="incentive" string="Incentive"/>
+                    <field name="other_earnings"
+       string="Other Earnings"
+       readonly="0"/>
+
+<field name="hold_salary"
+       string="Hold Salary"
+       readonly="0"/>
+
+<field name="variable_pay"
+       string="Variable Pay"
+       readonly="0"/>
+
+<field name="pf_arrear"
+       string="PF Arrear"
+       readonly="0"/>
+
+<field name="nps_contribution"
+       string="NPS Contribution"
+       readonly="0"/>
                     <field name="referral" string="Referral"/>
                     <field name="other_deductions" string="Other Deductions"/>
                     <field name="total_period_days" />
