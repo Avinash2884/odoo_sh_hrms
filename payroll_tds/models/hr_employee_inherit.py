@@ -564,6 +564,56 @@ class Employee(models.Model):
             )
 
             # =====================================================
+            # GAP PAYROLL MONTH HANDLING
+            # =====================================================
+
+            if emp.payslip_month:
+
+                payslip_month = int(emp.payslip_month)
+
+                payslip_year = fields.Date.today().year
+
+                if payslip_month <= 3:
+                    payslip_year += 1
+
+                current_payslip_date = date(
+                    payslip_year,
+                    payslip_month,
+                    1
+                )
+
+                if emp._has_missing_fy_payslip(
+                        current_payslip_date
+                ):
+                    gap_income = (
+                        emp._get_fy_projected_income_from_payslips(
+                            current_payslip_date
+                        )
+                    )
+
+                    emp.total_income = (
+                            gap_income
+                            + (emp.financial_year_incentive or 0.0)
+                    )
+
+                    print("\n")
+                    print("=" * 70)
+                    print("GAP MONTH TOTAL INCOME")
+                    print("Employee:", emp.name)
+                    print("Employee ID:", emp.id)
+                    print("=" * 70)
+                    print("Gap FY Income:", gap_income)
+                    print(
+                        "Financial Year Incentive:",
+                        emp.financial_year_incentive
+                    )
+                    print(
+                        "Total Income:",
+                        emp.total_income
+                    )
+                    print("=" * 70)
+
+            # =====================================================
             # BASIC VALIDATION
             # =====================================================
 
@@ -937,7 +987,73 @@ class Employee(models.Model):
     def _compute_net_taxable_income(self):
         for emp in self:
 
-            annual_income = emp.final_yearly_costs or 0.0
+            annual_income = (
+                    emp.final_yearly_costs or 0.0
+            )
+
+            # =========================================================
+            # GAP PAYROLL MONTH HANDLING
+            # =========================================================
+            #
+            # Existing logic remains untouched when there is no gap.
+            #
+            # If FY has missing payslip month(s), calculate income from:
+            # actual payslips + future salary projection.
+            #
+            # Example:
+            # Apr  = actual payslip
+            # May  = actual payslip
+            # Jun  = missing -> 0
+            # Jul  = missing -> 0
+            # Aug  = actual payslip
+            # Sep-Mar = projected wage
+            #
+            # =========================================================
+
+            if emp.payslip_month:
+
+                payslip_month = int(emp.payslip_month)
+
+                payslip_year = fields.Date.today().year
+
+                if payslip_month <= 3:
+                    payslip_year += 1
+
+                current_payslip_date = date(
+                    payslip_year,
+                    payslip_month,
+                    1
+                )
+
+                if emp._has_missing_fy_payslip(
+                        current_payslip_date
+                ):
+                    actual_fy_income = (
+                        emp._get_fy_projected_income_from_payslips(
+                            current_payslip_date
+                        )
+                    )
+
+                    print("\n")
+                    print("=" * 70)
+                    print("GAP MONTH INCOME CALCULATION")
+                    print("Employee:", emp.name)
+                    print("Employee ID:", emp.id)
+                    print("=" * 70)
+
+                    print(
+                        "Final Yearly Costs:",
+                        emp.final_yearly_costs
+                    )
+
+                    print(
+                        "Actual + Projected FY Income:",
+                        actual_fy_income
+                    )
+
+                    print("=" * 70)
+
+                    annual_income = actual_fy_income
 
             joining_date = emp.contract_date_start
 
@@ -2206,6 +2322,187 @@ class Employee(models.Model):
                     'holiday_status_id': leave_type.id,
                     'number_of_days': 1,
                 })
+
+    def _get_fy_projected_income_from_payslips(self, payslip_date=None):
+        """
+        Calculate Financial Year income based on actual payslips.
+
+        Rules:
+        - Existing payslip with actual gross -> use actual gross.
+        - Existing payslip with 0 gross -> use 0.
+        - Missing past/current month -> use 0.
+        - Future month -> project employee wage.
+        - Financial year = April to March.
+
+        This is only used when there are missing payroll months.
+        Existing income logic remains unchanged otherwise.
+        """
+        self.ensure_one()
+
+        if not payslip_date:
+            payslip_date = fields.Date.today()
+
+        payslip_date = fields.Date.to_date(payslip_date)
+
+        # Financial Year
+        if payslip_date.month >= 4:
+            fy_start = date(
+                payslip_date.year,
+                4,
+                1
+            )
+        else:
+            fy_start = date(
+                payslip_date.year - 1,
+                4,
+                1
+            )
+
+        fy_end = date(
+            fy_start.year + 1,
+            3,
+            31
+        )
+
+        current_month_start = payslip_date.replace(day=1)
+
+        total_income = 0.0
+
+        check_date = fy_start
+
+        while check_date <= fy_end:
+            month_start = check_date
+
+            # Month end
+            last_day = monthrange(
+                month_start.year,
+                month_start.month
+            )[1]
+
+            month_end = date(
+                month_start.year,
+                month_start.month,
+                last_day
+            )
+
+            # ---------------------------------------------------------
+            # FUTURE MONTH
+            # ---------------------------------------------------------
+            if month_start > current_month_start:
+
+                total_income += (
+                        self.wage or 0.0
+                )
+
+            # ---------------------------------------------------------
+            # CURRENT / PREVIOUS MONTH
+            # ---------------------------------------------------------
+            else:
+
+                payslip = self.env['hr.payslip'].search([
+                    ('employee_id', '=', self.id),
+                    ('date_from', '=', month_start),
+                    ('date_to', '=', month_end),
+                    ('state', 'in', ['draft', 'verify', 'done', 'paid']),
+                ], order='id desc', limit=1)
+
+                if payslip:
+                    # IMPORTANT:
+                    # If payslip exists with 0 salary,
+                    # use 0. Do NOT replace it with wage.
+                    actual_gross = (
+                            payslip.payslip_gross_wage
+                            or 0.0
+                    )
+
+                    total_income += actual_gross
+
+                else:
+                    # Missing past/current payslip = 0
+                    total_income += 0.0
+
+            # Next month
+            if check_date.month == 12:
+                check_date = check_date.replace(
+                    year=check_date.year + 1,
+                    month=1,
+                    day=1
+                )
+            else:
+                check_date = check_date.replace(
+                    month=check_date.month + 1,
+                    day=1
+                )
+
+        return total_income
+
+    def _has_missing_fy_payslip(self, payslip_date=None):
+        """
+        Returns True if any month before/current month in the FY
+        does not have a payslip.
+
+        Existing employees without gaps are untouched.
+        """
+        self.ensure_one()
+
+        if not payslip_date:
+            payslip_date = fields.Date.today()
+
+        payslip_date = fields.Date.to_date(payslip_date)
+
+        if payslip_date.month >= 4:
+            fy_start = date(
+                payslip_date.year,
+                4,
+                1
+            )
+        else:
+            fy_start = date(
+                payslip_date.year - 1,
+                4,
+                1
+            )
+
+        current_month_start = payslip_date.replace(day=1)
+
+        check_date = fy_start
+
+        while check_date <= current_month_start:
+
+            last_day = monthrange(
+                check_date.year,
+                check_date.month
+            )[1]
+
+            month_end = date(
+                check_date.year,
+                check_date.month,
+                last_day
+            )
+
+            payslip = self.env['hr.payslip'].search([
+                ('employee_id', '=', self.id),
+                ('date_from', '=', check_date),
+                ('date_to', '=', month_end),
+                ('state', 'in', ['draft', 'verify', 'done', 'paid']),
+            ], limit=1)
+
+            if not payslip:
+                return True
+
+            if check_date.month == 12:
+                check_date = check_date.replace(
+                    year=check_date.year + 1,
+                    month=1,
+                    day=1
+                )
+            else:
+                check_date = check_date.replace(
+                    month=check_date.month + 1,
+                    day=1
+                )
+
+        return False
 
 
 

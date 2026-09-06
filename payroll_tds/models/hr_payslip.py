@@ -845,10 +845,36 @@ class HrPayslip(models.Model):
                     'tds_amount',
                 ])
 
-                # Recompute
                 employee._compute_net_taxable_income()
                 employee._compute_tds_amount()
                 employee._compute_tds_amount_new()
+
+                gap_month_tds = self._get_gap_month_tds(slip)
+
+                if gap_month_tds is not None:
+                    # -------------------------------------------------
+                    # GAP MONTH + CURRENT MONTH LOP
+                    # Store the specially calculated monthly TDS
+                    # -------------------------------------------------
+                    employee.write({
+                        'tds_amount_new_month': gap_month_tds
+                    })
+
+                else:
+                    # -------------------------------------------------
+                    # NORMAL TDS CALCULATION
+                    # Existing logic remains unchanged
+                    # -------------------------------------------------
+                    employee._compute_tds_amount_month()
+
+                # -----------------------------------------------------
+                # IMPORTANT:
+                # Recompute payslip AFTER tds_amount_new_month is set.
+                #
+                # The TDS salary rule reads the employee's monthly TDS
+                # value during compute_sheet().
+                # -----------------------------------------------------
+                slip.compute_sheet()
 
                 # Save Annual TDS only for new joiner (once)
                 if (
@@ -858,9 +884,6 @@ class HrPayslip(models.Model):
                         and not employee.annual_tds_base
                 ):
                     employee.annual_tds_base = employee.tds_amount_new
-
-                    # Compute Monthly TDS
-                employee._compute_tds_amount_month()
 
             res = super(HrPayslip, valid_slips).action_payslip_done()
 
@@ -978,4 +1001,190 @@ class HrPayslip(models.Model):
                 slip.employee_id.paid_installments += 1
 
         return res
+
+    def _get_missing_payroll_months(self, slip):
+        employee = slip.employee_id
+
+        # Financial year start
+        if slip.date_from.month >= 4:
+            fy_start = slip.date_from.replace(
+                month=4,
+                day=1
+            )
+        else:
+            fy_start = slip.date_from.replace(
+                year=slip.date_from.year - 1,
+                month=4,
+                day=1
+            )
+
+        # Previous completed/paid payslips
+        previous_slips = self.env['hr.payslip'].search([
+            ('employee_id', '=', employee.id),
+            ('id', '!=', slip.id),
+            ('state', 'in', ['done', 'paid']),
+            ('date_from', '>=', fy_start),
+            ('date_to', '<', slip.date_from),
+        ])
+
+        paid_months = set()
+
+        for prev in previous_slips:
+            # Consider the month as paid only when the payslip
+            # actually has gross earnings.
+            gross_wage = sum(
+                prev.line_ids.filtered(
+                    lambda l: l.code == 'GROSS'
+                ).mapped('total')
+            )
+
+            if gross_wage > 0:
+                paid_months.add(
+                    prev.date_from.strftime('%Y-%m')
+                )
+
+        # Find months between FY start and current month
+        missing_months = []
+
+        check_date = fy_start
+
+        while check_date < slip.date_from:
+
+            month_key = check_date.strftime('%Y-%m')
+
+            if month_key not in paid_months:
+                missing_months.append(month_key)
+
+            if check_date.month == 12:
+                check_date = check_date.replace(
+                    year=check_date.year + 1,
+                    month=1,
+                    day=1
+                )
+            else:
+                check_date = check_date.replace(
+                    month=check_date.month + 1,
+                    day=1
+                )
+
+        return missing_months
+
+    def _has_current_month_lop(self, slip):
+
+        total_days = (
+                             slip.date_to - slip.date_from
+                     ).days + 1
+
+        paid_days = slip.attendance_days or 0.0
+
+        return paid_days < total_days
+
+    def _get_gap_month_tds(self, slip):
+        """
+        Special TDS handling only when:
+        1. Current payslip has LOP
+        2. One or more previous payroll months are missing
+
+        Returns None for normal employees/months so the existing
+        TDS calculation continues unchanged.
+        """
+
+        # Current month must have LOP
+        if not self._has_current_month_lop(slip):
+            return None
+
+        # Check missing payroll months
+        missing_months = self._get_missing_payroll_months(slip)
+
+        if not missing_months:
+            return None
+
+        employee = slip.employee_id
+
+        print("\n" + "=" * 70)
+        print("GAP MONTH + LOP TDS CALCULATION")
+        print("Employee:", employee.name)
+        print("Current Month:", slip.date_from)
+        print("Missing Months:", missing_months)
+        print("Paid Days:", slip.attendance_days)
+        print("LOP Days:", slip.unpaid_days)
+        print("=" * 70)
+
+        # -------------------------------------------------
+        # Existing annual TDS
+        # -------------------------------------------------
+        annual_tds = employee.tds_amount_new or 0.0
+
+        # -------------------------------------------------
+        # TDS already deducted before current payslip
+        # -------------------------------------------------
+        previous_tds = employee.tds_till_last_month or 0.0
+
+        remaining_tds = max(
+            annual_tds - previous_tds,
+            0.0
+        )
+
+        # -------------------------------------------------
+        # Remaining payroll months INCLUDING current month
+        #
+        # IMPORTANT:
+        # Missing previous months are NOT removed here.
+        #
+        # Missing months have already contributed ₹0 income.
+        # Current month through March still has to be distributed
+        # across all remaining payroll months.
+        # -------------------------------------------------
+
+        current_month = slip.date_from.month
+        if current_month >= 4:
+            remaining_months = 16 - current_month
+        else:
+            remaining_months = 4 - current_month
+
+        remaining_months = max(
+            remaining_months,
+            1
+        )
+
+        # -------------------------------------------------
+        # Normal monthly TDS
+        # -------------------------------------------------
+        normal_month_tds = (
+            remaining_tds / remaining_months
+            if remaining_months
+            else 0.0
+        )
+
+        # -------------------------------------------------
+        # Current month proration
+        # -------------------------------------------------
+        total_days = (
+                             slip.date_to - slip.date_from
+                     ).days + 1
+
+        paid_days = slip.attendance_days or 0.0
+
+        current_month_tds = (
+            normal_month_tds * paid_days / total_days
+            if total_days
+            else 0.0
+        )
+
+        current_month_tds = round(current_month_tds)
+
+        print("--- GAP TDS RESULT ---")
+        print("Annual TDS:", annual_tds)
+        print("Previous TDS:", previous_tds)
+        print("Remaining TDS:", remaining_tds)
+        print("Missing Months:", missing_months)
+        print("Remaining Months:", remaining_months)
+        print("Normal Monthly TDS:", normal_month_tds)
+        print("Total Days:", total_days)
+        print("Paid Days:", paid_days)
+        print("LOP Days:", slip.unpaid_days)
+        print("Current Month TDS:", current_month_tds)
+        print("=" * 70)
+
+        return current_month_tds
 
