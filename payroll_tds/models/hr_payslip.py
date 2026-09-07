@@ -637,11 +637,11 @@ class HrPayslip(models.Model):
                 if joining_date > rec.date_to:
                     eligible_days = 0
 
-                    # Joined during payslip period
+                # Joined during payslip period
                 elif rec.date_from <= joining_date <= rec.date_to:
                     eligible_days = (rec.date_to - joining_date).days + 1
 
-                    # Joined before payslip period
+                # Joined before payslip period
                 else:
                     eligible_days = total_days
 
