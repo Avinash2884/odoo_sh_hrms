@@ -56,6 +56,8 @@
 
             'attendance_planning/static/src/js/systray_face_patch.js',
             'attendance_planning/static/src/xml/systray_face_popup.xml',
+            'attendance_planning/static/src/xml/attendance_big_button.xml',
+            'attendance_planning/static/src/css/attendance_big_button.css',
 
             # Attendance Matrix Report (custom OWL grid)
             'attendance_planning/static/src/js/attendance_matrix_report.js',
