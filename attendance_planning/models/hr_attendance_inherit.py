@@ -533,22 +533,41 @@ class HrAttendance(models.Model):
             att.total_hours = round((att.worked_hours_custom or 0.0) + (att.approved_extra_hours or 0.0), 2)
 
     # ==========================================================
-    # 4. THE SIBLING SYNC (For Multiple Punches)
+    # 4. THE SIBLING SYNC & AUTO-APPROVAL NET
     # ==========================================================
     @api.model_create_multi
     def create(self, vals_list):
         records = super(HrAttendance, self).create(vals_list)
         records._sync_siblings_on_save()
+
+        # 🟢 THE FIX: Auto-Approve if *extra hours* are under 4
+        for att in records:
+            if 0 < att.extra_hours < 4.0 and att.late_checkout_state == 'draft':
+                att.late_checkout_state = 'approved'
+
         return records
 
     def write(self, vals):
         res = super(HrAttendance, self).write(vals)
+
         if 'check_out' in vals or 'check_in' in vals:
             self._sync_siblings_on_save()
+
+            # 🟢 THE FIX: Auto-Approve if a manager edits the *extra hours* manually
+            state_changed = False
+            for att in self:
+                if 0 < att.extra_hours < 4.0 and att.late_checkout_state == 'draft':
+                    # Use super to write silently and avoid infinite loops
+                    super(HrAttendance, att).write({'late_checkout_state': 'approved'})
+                    state_changed = True
+
+            if state_changed:
+                self._sync_native_overtime_record()
+
         if 'late_checkout_state' in vals:
             self._sync_native_overtime_record()
-        return res
 
+        return res
     @api.model
     def face_punch_and_save_photo(self, photo_base64, geo_zone_id=False):
         """Atomic punch + photo save — punch and photo happen in ONE
@@ -772,24 +791,57 @@ class HrAttendance(models.Model):
         for rec in self:
             rec.write({'late_checkout_state': 'rejected'})
 
+    # @api.model
+    # def save_late_reason(self, reason):
+    #     employee = self.env.user.employee_id
+    #     if not employee:
+    #         raise UserError("No employee linked to this user.")
+    #     attendance = self.search([
+    #         ('employee_id', '=', employee.id),
+    #         ('check_out', '!=', False),
+    #     ], order="check_out desc", limit=1)
+    #     if not attendance:
+    #         raise UserError("No attendance found.")
+    #     if attendance.employee_id.id != employee.id:
+    #         raise UserError("Not allowed.")
+    #     attendance.sudo().write({
+    #         'late_checkout_reason': reason,
+    #         'late_checkout_state': 'draft',
+    #     })
+    #     attendance._send_late_checkout_email()
+    #     return True
+
     @api.model
     def save_late_reason(self, reason):
         employee = self.env.user.employee_id
         if not employee:
             raise UserError("No employee linked to this user.")
+
         attendance = self.search([
             ('employee_id', '=', employee.id),
             ('check_out', '!=', False),
         ], order="check_out desc", limit=1)
+
         if not attendance:
             raise UserError("No attendance found.")
         if attendance.employee_id.id != employee.id:
             raise UserError("Not allowed.")
-        attendance.sudo().write({
-            'late_checkout_reason': reason,
-            'late_checkout_state': 'draft',
-        })
-        attendance._send_late_checkout_email()
+
+        # 🟢 THE FIX: Only trigger approval logic if OT is 4 hours or more
+        if attendance.extra_hours >= 4.0:
+            attendance.sudo().write({
+                'late_checkout_reason': reason,
+                'late_checkout_state': 'draft',  # Keeps it pending for manager
+            })
+            attendance._send_late_checkout_email()
+        else:
+            # If it's less than 4 hours, auto-approve it so the manager gets no email
+            # and the system automatically accumulates it in the red column!
+            attendance.sudo().write({
+                'late_checkout_reason': reason,
+                'late_checkout_state': 'approved',
+            })
+
         return True
 
     approved_extra_hours = fields.Float(
@@ -798,10 +850,20 @@ class HrAttendance(models.Model):
         store=True,
     )
 
+    # @api.depends('extra_hours', 'late_checkout_state')
+    # def _compute_approved_extra_hours(self):
+    #     for att in self:
+    #         att.approved_extra_hours = (att.extra_hours if att.late_checkout_state == 'approved' else 0.0)
+
     @api.depends('extra_hours', 'late_checkout_state')
     def _compute_approved_extra_hours(self):
         for att in self:
-            att.approved_extra_hours = (att.extra_hours if att.late_checkout_state == 'approved' else 0.0)
+            # 🟢 NEW: Auto-approve small OT, strictly block 4+ hours!
+            if att.extra_hours > 0 and att.extra_hours < 4.0:
+                att.approved_extra_hours = att.extra_hours
+            else:
+                # If it's 4.0 or more, it stays 0.0 UNTIL the manager clicks approve
+                att.approved_extra_hours = (att.extra_hours if att.late_checkout_state == 'approved' else 0.0)
 
     @api.model
     def get_my_latest_attendance(self):

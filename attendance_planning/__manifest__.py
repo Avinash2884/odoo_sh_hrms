@@ -27,7 +27,7 @@
         "views/hr_attendance_view.xml",
         "views/hr_attendance_management_action.xml",
         "views/planning_role_view.xml",
-        "views/hr_attendance_custom_view.xml",
+        # "views/hr_attendance_custom_view.xml",
         "views/hr_attendance_permission_views.xml",
         'views/hr_employee_views.xml',
         'views/edp_approval_views.xml',
