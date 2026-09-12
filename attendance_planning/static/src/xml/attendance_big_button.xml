@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!--
+        Replaces Odoo's native attendance systray template (small dot icon
+        that opens a dropdown) with a single, always-visible button that:
+          - shows "Check In" (red) when not checked in
+          - shows "Check Out" (green) when checked in
+          - calls signInOut() directly on click, no dropdown involved.
+
+        signInOut() itself is still the one patched in systray_face_patch.js,
+        so the face-ID + geolocation verification flow is untouched.
+    -->
+    <t t-inherit="hr_attendance.attendance_menu" t-inherit-mode="extension">
+        <xpath expr="//Dropdown" position="replace">
+            <div class="o_menu_systray_item d-flex align-items-center bg-inherit op_attendance_big_wrap"
+                 role="menu" aria-label="Attendance">
+                <button type="button"
+                        t-on-click="() => this.signInOut()"
+                        t-attf-class="btn btn-sm fw-bold op_big_attendance_btn {{ this.state.checkedIn ? 'btn-success' : 'btn-danger' }}">
+                    <span t-if="!this.state.checkedIn">Check In</span>
+                    <span t-else="">Check Out</span>
+                </button>
+            </div>
+        </xpath>
+    </t>
+
+</templates>

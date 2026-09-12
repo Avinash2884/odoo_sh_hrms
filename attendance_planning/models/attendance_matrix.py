@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from odoo import api, models
 from datetime import date, timedelta, datetime
 import calendar as cal_module
@@ -153,12 +154,18 @@ class AttendanceMatrixReport(models.AbstractModel):
 
     @api.model
     def get_matrix_data(self, year, month, employee_ids=None, department_id=None):
-        Employee = self.env['hr.employee']
+
+        Employee = self.env['hr.employee'].sudo()
         domain = []
-        if employee_ids:
-            domain.append(('id', 'in', employee_ids))
-        if department_id:
-            domain.append(('department_id', '=', department_id))
+
+        is_officer = self.env.user.has_group('hr_attendance.group_hr_attendance_officer')
+        if not is_officer:
+            domain.append(('user_id', '=', self.env.user.id))
+        else:
+            if employee_ids:
+                domain.append(('id', 'in', employee_ids))
+            if department_id:
+                domain.append(('department_id', '=', department_id))
 
         employees = Employee.search(domain, order='ls_employee_id asc, name asc')
 
@@ -190,17 +197,20 @@ class AttendanceMatrixReport(models.AbstractModel):
 
         utc_window_start = datetime(year, month, 1) - timedelta(days=1)
         utc_window_end = datetime(year, month, days_in_month) + timedelta(days=2)
-        attendances = self.env['hr.attendance'].search([
+
+        attendances = self.env['hr.attendance'].sudo().search([
             ('employee_id', 'in', emp_ids),
             ('check_in', '>=', utc_window_start),
             ('check_in', '<', utc_window_end),
         ])
 
         local_tz = pytz.timezone('Asia/Calcutta')
-        ph_leaves = self.env['resource.calendar.leaves'].search([
+
+        ph_leaves = self.env['resource.calendar.leaves'].sudo().search([
             ('resource_id', '=', False),
             '|', ('company_id', '=', self.env.company.id), ('company_id', '=', False),
         ])
+
         public_holiday_map = {}
         for leaf in ph_leaves:
             if leaf.date_from:
@@ -210,7 +220,7 @@ class AttendanceMatrixReport(models.AbstractModel):
                 if date_str in day_set:
                     public_holiday_map[date_str] = leaf.name or 'Public Holiday'
 
-        edp_requests = self.env['hr.edp.request'].search([
+        edp_requests = self.env['hr.edp.request'].sudo().search([
             ('employee_id', 'in', emp_ids),
             ('date', '>=', first_day), ('date', '<=', last_day),
             ('state', '=', 'approved'),
@@ -221,24 +231,17 @@ class AttendanceMatrixReport(models.AbstractModel):
             ('state', 'in', ['validate', 'confirm', 'validate1']),
         ])
 
-        # ── CUSTOM LEAVE COLUMN SORTING (Force LOP Last) ──
         all_leave_type_records = self.env['hr.leave.type'].search([], order='name')
+
         _seen_codes = set()
         for lt in all_leave_type_records:
             code = _get_leave_short_code(lt.name or 'Leave')
             _seen_codes.add(code)
 
-        # 1. Define the exact sequence (excluding LOP)
         preferred_order = ['CL', 'SL', 'CLP', 'SLP', 'PL', 'CO', 'BL', 'ML', 'PTL']
-
-        # 2. Build the list in the preferred order
         all_leave_codes = [c for c in preferred_order if c in _seen_codes]
-
-        # 3. Add any random/extra leaves (like WL) alphabetically AFTER the preferred list
         extras = sorted([c for c in _seen_codes if c not in preferred_order and c != 'LOP'])
         all_leave_codes.extend(extras)
-
-        # 4. Force LOP to append at the absolute VERY END of the list
         if 'LOP' in _seen_codes:
             all_leave_codes.append('LOP')
 
@@ -323,12 +326,13 @@ class AttendanceMatrixReport(models.AbstractModel):
         for edp in edp_requests:
             edp_lookup[(edp.employee_id.id, str(edp.date))] = edp
 
-        all_permissions = self.env['hr.attendance.permission'].search([
+        all_permissions = self.env['hr.attendance.permission'].sudo().search([
             ('employee_id', 'in', emp_ids),
             ('date', '>=', first_day),
             ('date', '<=', last_day),
             ('state', '=', 'approved'),
         ])
+
         permission_by_emp = {}
         for perm in all_permissions:
             permission_by_emp.setdefault(perm.employee_id.id, []).append(str(perm.date))
@@ -347,6 +351,7 @@ class AttendanceMatrixReport(models.AbstractModel):
             c_present_half = 0
             c_absent = 0
             c_ot_hours = 0.0
+            c_ot_hours_less = 0.0
             c_ot_days = 0
             c_edp_days = 0
             c_comp_off_used = 0.0
@@ -381,8 +386,10 @@ class AttendanceMatrixReport(models.AbstractModel):
                 daily_perm_hrs = sum(a.permission_credit_applied or 0.0 for a in day_atts)
                 effective_hrs = daily_worked_hrs + daily_perm_hrs
 
-                raw_ot = sum(a.approved_extra_hours or 0.0 for a in day_atts)
-                capped_ot = min(raw_ot, 4.0)
+                # --- 🟢 NEW SPLIT OT LOGIC ---
+                daily_actual_extra = sum(a.extra_hours or 0.0 for a in day_atts)
+                daily_approved_extra = sum(a.approved_extra_hours or 0.0 for a in day_atts)
+                capped_ot = min(daily_actual_extra, 4.0)
 
                 shift_name = emp_shifts.get(day_key) if is_rotational else None
 
@@ -419,11 +426,18 @@ class AttendanceMatrixReport(models.AbstractModel):
 
                 if has_checkout and not is_public_holiday:
                     if effective_hrs > 0 and capped_ot > 0:
-                        codes.append('OT')
-                        c_ot_hours += capped_ot
 
+                        # 🟢 THE CLEANED UP 4-HOUR RULE
                         if capped_ot >= 4.0:
-                            c_ot_days += 1
+                            # 4+ Hours: Waits for Approval. Only show the 'OT' badge
+                            # AND count it once a manager has actually approved it.
+                            if daily_approved_extra > 0:
+                                codes.append('OT')
+                                c_ot_hours += daily_approved_extra
+                                c_ot_days += 1
+                        else:
+                            # < 4 Hours: Goes to Red Column (Auto-Accumulates)
+                            c_ot_hours_less += capped_ot
 
                 if is_public_holiday:
                     codes.append('HO')
@@ -496,8 +510,8 @@ class AttendanceMatrixReport(models.AbstractModel):
                         })
                     detail['punches'] = punches
                     detail['total_worked_hours'] = round(daily_worked_hrs, 2)
-                    detail['total_ot_hours'] = round(capped_ot, 2)
-                    detail['total_payable_hours'] = round(min(effective_hrs + capped_ot, 12.0), 2)
+                    detail['total_ot_hours'] = round(daily_approved_extra, 2)
+                    detail['total_payable_hours'] = round(min(effective_hrs + daily_approved_extra, 12.0), 2)
 
                 edp = edp_lookup.get((emp.id, day_key))
                 if edp and has_checkout:
@@ -558,6 +572,7 @@ class AttendanceMatrixReport(models.AbstractModel):
                 'ot_hours': round(c_ot_hours, 2),
                 'ot_days': c_ot_days,
                 'ot_hours_fmt': _fmt_hours(c_ot_hours),
+                'ot_hours_less_fmt': _fmt_hours(c_ot_hours_less),
                 'permissions_used': c_permissions,
                 'edp_days': c_edp_days,
                 'comp_off_used': c_comp_off_used_total,
@@ -587,3 +602,4 @@ class AttendanceMatrixReport(models.AbstractModel):
             'leave_type_colors': leave_type_colors,
             'all_leave_codes': all_leave_codes,
         }
+

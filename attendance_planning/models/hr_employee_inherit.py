@@ -36,8 +36,11 @@ class HrEmployee(models.Model):
     last_photo_attach_status = fields.Boolean(string="Last Photo Attach Succeeded", default=True)
     last_photo_attach_note = fields.Char(string="Last Photo Attach Note")
 
-    version_ids = fields.One2many(groups="base.group_user")
+    # version_ids = fields.One2many(groups="base.group_user")
+    # The field is on its own line
+    version_id = fields.Many2one('hr.version', required=True, ondelete='cascade', groups="base.group_user")
 
+    # The decorator and function are on their own lines below it
     @api.model
     def stage_attendance_data(self, photo_base64, geo_zone_id=False):
         """Step 1: Stages the photo and exact time right before the punch."""
@@ -177,13 +180,15 @@ class HrEmployee(models.Model):
 class HrEmployeePublic(models.Model):
     _inherit = 'hr.employee.public'
 
-    version_ids = fields.Boolean(
-        string="Version IDs Bypass",
+    version_id = fields.Many2one(
+        'hr.version',
+        string="Version ID Bypass",
         readonly=True,
         store=False,
         compute='_compute_dummy_version'
     )
 
+    pending_attendance_photo = fields.Text(string="Pending Photo", compute='_compute_public_attendance_fields')
     pending_attendance_photo = fields.Text(string="Pending Photo", compute='_compute_public_attendance_fields')
     pending_geo_zone_id = fields.Integer(string="Pending Geo Zone", compute='_compute_public_attendance_fields')
     pending_photo_timestamp = fields.Datetime(string="Pending Photo Time", compute='_compute_public_attendance_fields')

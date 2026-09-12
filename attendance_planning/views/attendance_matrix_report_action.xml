@@ -1,23 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- 1. The Main App Icon -> Visible to Officers AND our custom group -->
+    <menuitem id="hr_attendance.menu_hr_attendance_root"
+              name="Attendances"
+              groups="hr_attendance.group_hr_attendance_officer,attendance_planning.group_attendance_sheet_own"/>
+
+    <!-- 2. Lock ALL Native Menus -> Strictly Officer Only -->
+    <!-- ADDED THE WEEKLY DASHBOARD LOCK HERE: -->
+    <menuitem id="hr_attendance.menu_hr_attendance_dashboard"
+              groups="hr_attendance.group_hr_attendance_officer"/>
+    <menuitem id="hr_attendance.menu_hr_attendance_attendances_overview"
+              groups="hr_attendance.group_hr_attendance_officer"/>
+    <menuitem id="hr_attendance.menu_hr_attendance_management"
+              groups="hr_attendance.group_hr_attendance_officer"/>
+    <menuitem id="hr_attendance.menu_hr_attendance_kiosk_no_user_mode"
+              groups="hr_attendance.group_hr_attendance_officer"/>
+    <menuitem id="hr_attendance.menu_hr_attendance_report"
+              groups="hr_attendance.group_hr_attendance_officer"/>
+
+    <!-- 3. Client Action -->
     <record id="action_attendance_matrix_report" model="ir.actions.client">
         <field name="name">Attendance Sheet</field>
         <field name="tag">attendance_matrix_report_action</field>
     </record>
 
+    <!-- 4. The Attendance Sheet Menu -> Visible to Officers AND our custom group -->
     <menuitem id="menu_attendance_matrix_report_attendance"
               name="Attendance Sheet"
               parent="hr_attendance.menu_hr_attendance_root"
               sequence="15"
               action="action_attendance_matrix_report"
-              groups="hr_attendance.group_hr_attendance_officer"/>
-
-    <menuitem id="menu_attendance_matrix_report_planning"
-              name="Attendance Sheet"
-              parent="planning.planning_menu_root"
-              sequence="90"
-              action="action_attendance_matrix_report"
-              groups="hr_attendance.group_hr_attendance_officer"/>
+              groups="hr_attendance.group_hr_attendance_officer,attendance_planning.group_attendance_sheet_own"/>
 
 </odoo>
