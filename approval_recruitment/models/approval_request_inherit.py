@@ -24,6 +24,27 @@ class ApprovalRequestInherit(models.Model):
     approval_start_date = fields.Date(string="Approval Start Date")
     approval_end_date = fields.Date(string="Approval End Date")
 
+    @api.onchange('category_id', 'request_owner_id')
+    def _onchange_category_id(self):
+        # 1. Standard Odoo logic-ஐ Call செய்யவும்
+        super(ApprovalRequestInherit, self)._onchange_category_id()
+
+        # 2. Category தேர்வு செய்யப்பட்டால்:
+        if self.category_id:
+            # Category-ல் configured செய்யப்பட்டுள்ள user IDs-ஐ மட்டும் எடுக்கும்
+            allowed_user_ids = self.category_id.approver_ids.mapped('user_id').ids
+
+            # Standard Odoo சேர்த்த Reporting Manager-ஐ Filter செய்து நீக்கிவிடும்
+            clean_approvers = [(5, 0, 0)]  # Clear existing onchange list
+            for app in self.category_id.approver_ids:
+                clean_approvers.append((0, 0, {
+                    'user_id': app.user_id.id,
+                    'required': app.required,
+                    'sequence': app.sequence,
+                }))
+
+            self.approver_ids = clean_approvers
+
     @api.depends('approver_ids.status', 'approver_ids.required')
     def _compute_request_status(self):
         super(ApprovalRequestInherit, self)._compute_request_status()
