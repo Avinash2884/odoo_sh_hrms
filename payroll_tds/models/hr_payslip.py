@@ -614,43 +614,43 @@ class HrPayslip(models.Model):
     #             if line.code == 'WORK100'
     #         )
 
-    # @api.depends(
-    #     'date_from',
-    #     'date_to',
-    #     'employee_id.joining_date_recruit',
-    #     'unpaid_days'
-    # )
-    # def _compute_attendance_days(self):
-    #     for rec in self:
-    #
-    #         rec.attendance_days = 0.0
-    #
-    #         if not rec.date_from or not rec.date_to:
-    #             continue
-    #
-    #         total_days = (rec.date_to - rec.date_from).days + 1
-    #         joining_date = rec.employee_id.joining_date_recruit
-    #
-    #         if joining_date:
-    #
-    #             # Joined after payslip period
-    #             if joining_date > rec.date_to:
-    #                 eligible_days = 0
-    #
-    #             # Joined during payslip period
-    #             elif rec.date_from <= joining_date <= rec.date_to:
-    #                 eligible_days = (rec.date_to - joining_date).days + 1
-    #
-    #             # Joined before payslip period
-    #             else:
-    #                 eligible_days = total_days
-    #
-    #         else:
-    #             eligible_days = total_days
-    #
-    #         paid_days = eligible_days - (rec.unpaid_days or 0)
-    #
-    #         rec.attendance_days = max(paid_days, 0)
+    @api.depends(
+        'date_from',
+        'date_to',
+        'employee_id.joining_date_recruit',
+        'unpaid_days'
+    )
+    def _compute_attendance_days(self):
+        for rec in self:
+
+            rec.attendance_days = 0.0
+
+            if not rec.date_from or not rec.date_to:
+                continue
+
+            total_days = (rec.date_to - rec.date_from).days + 1
+            joining_date = rec.employee_id.joining_date_recruit
+
+            if joining_date:
+
+                # Joined after payslip period
+                if joining_date > rec.date_to:
+                    eligible_days = 0
+
+                # Joined during payslip period
+                elif rec.date_from <= joining_date <= rec.date_to:
+                    eligible_days = (rec.date_to - joining_date).days + 1
+
+                # Joined before payslip period
+                else:
+                    eligible_days = total_days
+
+            else:
+                eligible_days = total_days
+
+            paid_days = eligible_days - (rec.unpaid_days or 0)
+
+            rec.attendance_days = max(paid_days, 0)
 
     @api.depends('worked_days_line_ids.number_of_days', 'worked_days_line_ids.work_entry_type_id')
     def _compute_unpaid_days(self):
