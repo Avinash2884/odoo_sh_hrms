@@ -93,7 +93,7 @@
     ],
     'assets': {
             'web.assets_frontend': [
-                'approval_recruitment/static/src/scss/custom_buttons.scss',
+                # 'approval_recruitment/static/src/scss/custom_buttons.scss',
                 'approval_recruitment/static/src/js/application_form.js',
                 'approval_recruitment/static/src/js/pre_offer_form.js',
 
