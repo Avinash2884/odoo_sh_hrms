@@ -13,12 +13,12 @@
 </xpath>
 
 <!-- Hide native Special Allowance amount row -->
-<xpath expr="//field[@name='l10n_in_fixed_allowance']/ancestor::div[contains(@class, 'o_row')][1]" position="attributes">
+<xpath expr="//field[@name='l10n_in_fixed_allowance']/ancestor::div[hasclass('o_row')][1]" position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
 
 <!-- Show the SAME native field immediately after HRA -->
-<xpath expr="//field[@name='l10n_in_hra_percentage']/ancestor::div[contains(@class, 'o_row')][1]" position="after">
+<xpath expr="//field[@name='l10n_in_hra_percentage']/ancestor::div[hasclass('o_row')][1]" position="after">
     <label for="l10n_in_fixed_allowance"/>
     <div class="o_row">
         <field name="l10n_in_fixed_allowance" class="o_hr_narrow_field"/>
@@ -353,27 +353,27 @@
 
             </xpath>
 
-           <xpath expr="//field[@name='l10n_in_standard_allowance']/ancestor::div[contains(@class, 'o_row')][1]" position="attributes">
+           <xpath expr="//field[@name='l10n_in_standard_allowance']/ancestor::div[hasclass('o_row')][1]" position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
 
-<xpath expr="//field[@name='l10n_in_standard_allowance_percentage']/ancestor::div[contains(@class, 'o_row')][1]" position="attributes">
+<xpath expr="//field[@name='l10n_in_standard_allowance_percentage']/ancestor::div[hasclass('o_row')][1]" position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
 
-<xpath expr="//field[@name='l10n_in_performance_bonus']/ancestor::div[contains(@class, 'o_row')][1]" position="attributes">
+<xpath expr="//field[@name='l10n_in_performance_bonus']/ancestor::div[hasclass('o_row')][1]" position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
 
-<xpath expr="//field[@name='l10n_in_performance_bonus_percentage']/ancestor::div[contains(@class, 'o_row')][1]" position="attributes">
+<xpath expr="//field[@name='l10n_in_performance_bonus_percentage']/ancestor::div[hasclass('o_row')][1]" position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
 <!-- Hide Leave Travel Allowance -->
-<xpath expr="//field[@name='l10n_in_leave_travel_allowance']/ancestor::div[contains(@class, 'o_row')][1]" position="attributes">
+<xpath expr="//field[@name='l10n_in_leave_travel_allowance']/ancestor::div[hasclass('o_row')][1]" position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
 
-<xpath expr="//field[@name='l10n_in_leave_travel_percentage']/ancestor::div[contains(@class, 'o_row')][1]" position="attributes">
+<xpath expr="//field[@name='l10n_in_leave_travel_percentage']/ancestor::div[hasclass('o_row')][1]" position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
 <!-- Hide complete native Benefits section -->
@@ -381,7 +381,7 @@
     <attribute name="invisible">True</attribute>
 </xpath>
 
-<xpath expr="//field[@name='l10n_in_phone_subscription']/ancestor::div[contains(@class, 'o_row')][1]" position="attributes">
+<xpath expr="//field[@name='l10n_in_phone_subscription']/ancestor::div[hasclass('o_row')][1]" position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
 
@@ -389,7 +389,7 @@
     <attribute name="invisible">True</attribute>
 </xpath>
 
-<xpath expr="//field[@name='l10n_in_internet_subscription']/ancestor::div[contains(@class, 'o_row')][1]" position="attributes">
+<xpath expr="//field[@name='l10n_in_internet_subscription']/ancestor::div[hasclass('o_row')][1]" position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
 
@@ -397,7 +397,7 @@
     <attribute name="invisible">True</attribute>
 </xpath>
 
-<xpath expr="//field[@name='l10n_in_meal_voucher_amount']/ancestor::div[contains(@class, 'o_row')][1]" position="attributes">
+<xpath expr="//field[@name='l10n_in_meal_voucher_amount']/ancestor::div[hasclass('o_row')][1]" position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
 
@@ -405,7 +405,7 @@
     <attribute name="invisible">True</attribute>
 </xpath>
 
-<xpath expr="//field[@name='l10n_in_company_transport']/ancestor::div[contains(@class, 'o_row')][1]" position="attributes">
+<xpath expr="//field[@name='l10n_in_company_transport']/ancestor::div[hasclass('o_row')][1]" position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
 
@@ -424,7 +424,7 @@
 </xpath>
 
 <!-- Hide Medical Insurance row -->
-<xpath expr="//field[@name='l10n_in_medical_insurance']/ancestor::div[contains(@class, 'o_row')][1]"
+<xpath expr="//field[@name='l10n_in_medical_insurance']/ancestor::div[hasclass('o_row')][1]"
        position="attributes">
     <attribute name="invisible">True</attribute>
 </xpath>
