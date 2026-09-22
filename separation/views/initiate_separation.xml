@@ -22,30 +22,30 @@
                     <button
                         name="action_manager_approve"
                         type="object"
-                        string="Approve"
+                        string="Manager Approve"
                         class="oe_highlight"
-                        invisible="internal_state in (False,'manager_approved','manager_rejected','hr_approved','hr_rejected','revoked') or not is_only_manager"/>
+                        invisible="internal_state in (False,'manager_approved','manager_rejected','hr_approved','hr_rejected','revoked') or (not is_only_manager and not is_only_hr_head)"/>
 
                     <button
                         name="action_manager_reject"
                         type="object"
-                        string="Reject"
+                        string="Manager Reject"
                         class="oe_highlight"
-                        invisible="internal_state in (False,'manager_approved','manager_rejected','hr_approved','hr_rejected') or not is_only_manager"/>
+                        invisible="internal_state in (False,'manager_approved','manager_rejected','hr_approved','hr_rejected','revoked') or (not is_only_manager and not is_only_hr_head)"/>
 
                     <button
                         name="action_hr_approve"
                         type="object"
-                        string="Approve"
+                        string="HR Approve"
                         class="oe_highlight"
-                        invisible="internal_state in (False,'submitted','hr_approved','hr_rejected') or not is_only_hr_head"/>
+                        invisible="internal_state in (False,'hr_approved','hr_rejected','revoked') or (not is_only_manager and not is_only_hr_head)"/>
 
                     <button
                         name="action_hr_reject"
                         type="object"
-                        string="Reject"
+                        string="HR Reject"
                         class="oe_highlight"
-                        invisible="internal_state in (False,'submitted','hr_approved','hr_rejected') or not is_only_hr_head"/>
+                        invisible="internal_state in (False,'hr_approved','hr_rejected','revoked') or (not is_only_manager and not is_only_hr_head)"/>
 
                     <field name="state" widget="statusbar"/>
                 </header>
