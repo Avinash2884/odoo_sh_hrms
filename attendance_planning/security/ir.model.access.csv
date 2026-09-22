@@ -8,8 +8,4 @@ access_attendance_photo,attendance.photo,model_attendance_photo,base.group_user,
 access_planning_matrix_import,planning.matrix.import,model_planning_matrix_import,base.group_user,1,1,1,1
 access_attendance_matrix_report,attendance.matrix.report,model_attendance_matrix_report,hr_attendance.group_hr_attendance_officer,1,0,0,0
 access_planning_matrix_import_warning,planning.matrix.import.warning,model_planning_matrix_import_warning,base.group_user,1,1,1,1
-
-
-
-
-
+access_attendance_matrix_report_own,attendance.matrix.report.own,model_attendance_matrix_report,attendance_planning.group_attendance_sheet_own,1,0,0,0

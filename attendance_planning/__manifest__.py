@@ -27,7 +27,7 @@
         "views/hr_attendance_view.xml",
         "views/hr_attendance_management_action.xml",
         "views/planning_role_view.xml",
-        "views/hr_attendance_custom_view.xml",
+        # "views/hr_attendance_custom_view.xml",
         "views/hr_attendance_permission_views.xml",
         'views/hr_employee_views.xml',
         'views/edp_approval_views.xml',
@@ -56,6 +56,8 @@
 
             'attendance_planning/static/src/js/systray_face_patch.js',
             'attendance_planning/static/src/xml/systray_face_popup.xml',
+            'attendance_planning/static/src/xml/attendance_big_button.xml',
+            'attendance_planning/static/src/css/attendance_big_button.css',
 
             # Attendance Matrix Report (custom OWL grid)
             'attendance_planning/static/src/js/attendance_matrix_report.js',

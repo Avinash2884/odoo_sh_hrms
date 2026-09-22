@@ -205,6 +205,9 @@
                                 style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of EDP Days</th>
 
                             <!-- ── MOVED OT & HOLIDAY SUMMARIES HERE ── -->
+                            <th rowspan="2" class="align-middle text-center text-wrap text-danger"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of OT Hrs
+                                (Non-Payable)</th>
                             <th rowspan="2" class="align-middle text-center text-wrap"
                                 style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Extra Worked Hours (OT Hours)</th>
                             <th rowspan="2" class="align-middle text-center text-wrap"
@@ -238,7 +241,7 @@
                         <t t-if="groupedEmployees">
                             <t t-foreach="groupedEmployees" t-as="grp" t-key="grp.key">
                                 <tr class="o_amc_group_header_row">
-                                    <td t-att-colspan="state.days.length + state.allLeaveCodes.length + 14"
+                                    <td t-att-colspan="state.days.length + state.allLeaveCodes.length + 15"
                                         class="o_amc_group_header">
                                         <t t-esc="grp.label"/>
                                         <span class="text-muted ms-1">(<t t-esc="grp.employees.length"/>)</span>
@@ -325,6 +328,9 @@
             </td>
 
             <!-- ── MOVED OT & HOLIDAY SUMMARIES HERE ── -->
+            <td class="text-center align-middle text-danger fw-bold">
+                <t t-esc="cons.ot_hours_less_fmt"/>
+            </td>
             <td class="text-center align-middle text-warning text-dark fw-bold">
                 <t t-esc="cons.ot_hours_fmt"/>
             </td>

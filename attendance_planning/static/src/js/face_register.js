@@ -65,6 +65,7 @@ export class FaceRegister extends Component {
             await Promise.race([
                 (async () => {
                     await faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath);
+                    await faceapi.nets.tinyFaceDetector.loadFromUri(modelPath);
                     await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);
                     await faceapi.nets.faceRecognitionNet.loadFromUri(modelPath);
                 })(),
@@ -86,7 +87,13 @@ export class FaceRegister extends Component {
             return;
         }
         try {
-            this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: "user",
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
+                }
+            });
             if (this.videoRef.el) {
                 this.videoRef.el.srcObject = this.stream;
                 this.videoRef.el.addEventListener('play', () => {
@@ -115,14 +122,40 @@ export class FaceRegister extends Component {
         this.state.statusMessage = " Snapshot taken! Analyzing face...";
         this.state.isReady = false;
 
-        // 2. YIELD: Give the browser 50ms to actually render the freeze before the AI locks the CPU
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // 2. YIELD: Give the browser more time to actually render the freeze
+        // before the AI locks the CPU — slower/budget phones need longer than
+        // flagship devices for the paused frame to fully settle.
+        await new Promise(resolve => setTimeout(resolve, 250));
 
         let detection;
         try {
+            // Attempt 1: SSD Mobilenet (accurate, but heavier — can miss on weak devices)
             detection = await faceapi.detectSingleFace(videoEl)
                                        .withFaceLandmarks()
                                        .withFaceDescriptor();
+
+            // Attempt 2: fall back to TinyFaceDetector — lighter, more forgiving
+            // on low-power devices / poor camera quality.
+            if (!detection) {
+                detection = await faceapi.detectSingleFace(
+                                        videoEl,
+                                        new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 })
+                                    )
+                                       .withFaceLandmarks()
+                                       .withFaceDescriptor();
+            }
+
+            // Attempt 3: one more try after a brief pause, in case the frame
+            // just hadn't settled yet.
+            if (!detection) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                detection = await faceapi.detectSingleFace(
+                                        videoEl,
+                                        new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.35 })
+                                    )
+                                       .withFaceLandmarks()
+                                       .withFaceDescriptor();
+            }
         } catch (e) {
             console.warn("Face capture failed:", e);
             this.state.statusMessage = "Hardware error reading camera. Please try again.";

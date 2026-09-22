@@ -1,0 +1,22 @@
+.op_attendance_big_wrap {
+    padding: 0 8px;
+}
+
+.op_big_attendance_btn {
+    min-width: 112px;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    color: #fff;
+}
+
+.op_big_attendance_btn.btn-danger {
+    background-color: #dc3545;
+}
+
+.op_big_attendance_btn.btn-success {
+    background-color: #28a745;
+}
