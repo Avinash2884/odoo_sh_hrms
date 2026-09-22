@@ -369,19 +369,6 @@ class EmployeePublic(models.Model):
         copy=False,
     )
 
-    pl_allocation_year = fields.Integer(
-        string="PL Allocation Year",
-        default=0
-    )
-
-    last_cl_allocation_month = fields.Char(
-        string="Last CL Allocation Month"
-    )
-
-    last_sl_allocation_month = fields.Char(
-        string="Last SL Allocation Month"
-    )
-
     bereavement_allocation_year = fields.Integer(
         string="Bereavement Allocation Year",
         default=0
@@ -726,5 +713,112 @@ class EmployeePublic(models.Model):
         related='employee_id.is_rented_house',
         string='Are you staying in a rented house?',
         readonly=False,
+    )
+    show_pf_contribution_details = fields.Boolean(
+        string="Show PF Contribution Details",
+        default=False,
+    )
+
+    show_esic_details = fields.Boolean(
+        string="Show ESIC Details",
+        default=False,
+    )
+
+    show_other_deductions_details = fields.Boolean(
+        string="Show Other Deductions Details",
+        default=False,
+    )
+
+    show_lwf_details = fields.Boolean(
+        string="Show LWF Details",
+        default=False,
+    )
+
+    show_tax_deductions_details = fields.Boolean(
+        string="Show Tax Deductions Details",
+        default=False,
+    )
+    basic_salary_annual = fields.Monetary(
+        related='employee_id.basic_salary_annual',
+        string="Basic Salary (Annual)",
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    hra_annual = fields.Monetary(
+        related='employee_id.hra_annual',
+        string="HRA (Annual)",
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    conveyance_annual = fields.Monetary(
+        related='employee_id.conveyance_annual',
+        string="Conveyance Allowance (Annual)",
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    pf_employer_annual = fields.Monetary(
+        related='employee_id.pf_employer_annual',
+        string="PF Employer Contribution (Annual)",
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    edli_employer_amount = fields.Monetary(
+        related='employee_id.edli_employer_amount',
+        string="EDLI - Employer Contribution",
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    edli_employer_annual = fields.Monetary(
+        related='employee_id.edli_employer_annual',
+        string="EDLI Employer Contribution (Annual)",
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    epf_admin_amount = fields.Monetary(
+        related='employee_id.epf_admin_amount',
+        string="EPF Admin Charges - Employer Contribution",
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    epf_admin_annual = fields.Monetary(
+        related='employee_id.epf_admin_annual',
+        string="EPF Admin Charges (Annual)",
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    salary_structure_gross_earnings = fields.Monetary(
+        related='employee_id.salary_structure_gross_earnings',
+        string="Gross Earnings",
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    salary_structure_gross_earnings_annual = fields.Monetary(
+        related='employee_id.salary_structure_gross_earnings_annual',
+        string="Gross Earnings (Annual)",
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    salary_structure_monthly_total = fields.Monetary(
+        related='employee_id.salary_structure_monthly_total',
+        string="Cost to Company",
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    salary_structure_annual_total = fields.Monetary(
+        related='employee_id.salary_structure_annual_total',
+        string="Annual Cost to Company",
+        currency_field='currency_id',
+        readonly=True,
     )
 
