@@ -142,13 +142,13 @@
                                             type="object"
                                             string="Approve"
                                             class="oe_highlight me-2"
-                                            invisible="key_state in (False,'approved','resubmitted') or not is_only_manager"/>
+                                            invisible="key_state in (False,'approved','resubmitted') or (not is_only_manager and not is_hr_head)"/>
 
                                 <button name="action_handover_reject"
                                         type="object"
                                         string="Resubmit"
                                         class="oe_highlight"
-                                        invisible="key_state in (False,'approved','resubmitted') or not is_only_manager"/>
+                                        invisible="key_state in (False,'approved','resubmitted') or (not is_only_manager and not is_hr_head)"/>
                             </form>
                         </page>
                         <page string="Clearance" name="clearance"
