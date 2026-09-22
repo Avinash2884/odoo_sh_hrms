@@ -48,7 +48,7 @@
 <!-- ESIC EMPLOYEE ROW (amount + / month + %) -->
 <!-- ================================================= -->
 
-<xpath expr="//field[@name='l10n_in_esic_employee_amount']/ancestor::div[contains(@class, 'o_row')][1]"
+<xpath expr="//field[@name='l10n_in_esic_employee_amount']/ancestor::div[hasclass('o_row')][1]"
        position="attributes">
     <attribute name="invisible">
         not show_esic_details
@@ -70,12 +70,13 @@
 <!-- ESIC EMPLOYER ROW (amount + / month + %) -->
 <!-- ================================================= -->
 
-<xpath expr="//field[@name='l10n_in_esic_employer_amount']/ancestor::div[contains(@class, 'o_row')][1]"
+<xpath expr="//field[@name='l10n_in_esic_employer_amount']/ancestor::div[hasclass('o_row')][1]"
        position="attributes">
     <attribute name="invisible">
         not show_esic_details
     </attribute>
 </xpath>
+
 <!-- ================================================= -->
 <!-- PF CONTRIBUTION - TOGGLE BUTTON                   -->
 <!-- ================================================= -->
@@ -119,7 +120,7 @@
 <!-- PF EMPLOYEE AMOUNT - SHOW / HIDE                  -->
 <!-- ================================================= -->
 
-<xpath expr="//field[@name='l10n_in_pf_employee_amount']/ancestor::div[contains(@class, 'o_row')][1]"
+<xpath expr="//field[@name='l10n_in_pf_employee_amount']/ancestor::div[hasclass('o_row')][1]"
        position="attributes">
 
     <attribute name="invisible">
@@ -161,7 +162,7 @@
 <!-- PF EMPLOYER AMOUNT - SHOW / HIDE                  -->
 <!-- ================================================= -->
 
-<xpath expr="//field[@name='l10n_in_pf_employer_amount']/ancestor::div[contains(@class, 'o_row')][1]"
+<xpath expr="//field[@name='l10n_in_pf_employer_amount']/ancestor::div[hasclass('o_row')][1]"
        position="attributes">
 
     <attribute name="invisible">
@@ -234,6 +235,7 @@
     </attribute>
 
 </xpath>
+
              <!-- ================================================= -->
 <!-- LABOUR WELFARE FUND (LWF) - BUTTON -->
 <!-- ================================================= -->
@@ -684,3 +686,4 @@
 
     </data>
 </odoo>
+
