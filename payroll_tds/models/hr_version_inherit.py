@@ -4,6 +4,13 @@ from odoo import models, fields, api, _
 class HrVersion(models.Model):
     _inherit = "hr.version"
 
+    ls_employee_id = fields.Char(
+        related='employee_id.ls_employee_id',
+        string='Employee ID',
+        store=True,
+        readonly=True,
+    )
+
 
     def _l10n_in_get_pf_selection(self):
         selection = super()._l10n_in_get_pf_selection()

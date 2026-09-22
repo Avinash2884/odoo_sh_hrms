@@ -341,25 +341,25 @@ class Employee(models.Model):
     # =========================================================
 
     basic_salary_annual = fields.Monetary(
-        string="Annual Amount",
+        string="Basic Salary (Annual)",
         compute="_compute_salary_structure_amounts",
         currency_field="currency_id",
     )
 
     hra_annual = fields.Monetary(
-        string="Annual Amount",
+        string="HRA (Annual)",
         compute="_compute_salary_structure_amounts",
         currency_field="currency_id",
     )
 
     conveyance_annual = fields.Monetary(
-        string="Annual Amount",
+        string="Conveyance Allowance (Annual)",
         compute="_compute_salary_structure_amounts",
         currency_field="currency_id",
     )
 
     pf_employer_annual = fields.Monetary(
-        string="Annual Amount",
+        string="PF Employer Contribution (Annual)",
         compute="_compute_salary_structure_amounts",
         currency_field="currency_id",
     )
@@ -371,7 +371,7 @@ class Employee(models.Model):
     )
 
     edli_employer_annual = fields.Monetary(
-        string="Annual Amount",
+        string="EDLI Employer Contribution (Annual)",
         compute="_compute_salary_structure_amounts",
         currency_field="currency_id",
     )
@@ -383,7 +383,7 @@ class Employee(models.Model):
     )
 
     epf_admin_annual = fields.Monetary(
-        string="Annual Amount",
+        string="EPF Admin Charges (Annual)",
         compute="_compute_salary_structure_amounts",
         currency_field="currency_id",
     )
@@ -399,7 +399,7 @@ class Employee(models.Model):
     )
 
     salary_structure_gross_earnings_annual = fields.Monetary(
-        string="Annual Amount",
+        string="Gross Earnings (Annual)",
         compute="_compute_salary_structure_amounts",
         currency_field="currency_id",
     )
