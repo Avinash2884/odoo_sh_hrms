@@ -255,6 +255,17 @@ class Employee(models.Model):
         currency_field='currency_id',
     )
 
+    show_nps_contribution_details = fields.Boolean(
+        string="Show NPS Contribution Details",
+        default=False,
+    )
+
+    def action_toggle_nps_contribution_details(self):
+        for employee in self:
+            employee.show_nps_contribution_details = not employee.show_nps_contribution_details
+
+
+
     @api.depends(
         'l10n_in_nps_employer_type',
         'version_id.l10n_in_basic_salary_amount',
@@ -270,6 +281,201 @@ class Employee(models.Model):
             employee.l10n_in_nps_employer_amount = (
                     basic * percentage / 100
             )
+
+    show_pf_contribution_details = fields.Boolean(
+        string="Show PF Contribution Details",
+        default=False
+    )
+
+    def action_toggle_pf_contribution_details(self):
+        for employee in self:
+            employee.show_pf_contribution_details = not employee.show_pf_contribution_details
+        return True
+
+    show_esic_details = fields.Boolean(
+        string="Show ESIC Details",
+        default=False
+    )
+
+    def action_toggle_esic_details(self):
+        for employee in self:
+            employee.show_esic_details = not employee.show_esic_details
+        return True
+
+    show_other_deductions_details = fields.Boolean(
+        string="Show Other Deductions Details",
+        default=False
+    )
+
+    def action_toggle_other_deductions_details(self):
+        for employee in self:
+            employee.show_other_deductions_details = (
+                not employee.show_other_deductions_details
+            )
+        return True
+
+    show_lwf_details = fields.Boolean(
+        string="Show LWF Details",
+        default=False
+    )
+
+    def action_toggle_lwf_details(self):
+        for employee in self:
+            employee.show_lwf_details = not employee.show_lwf_details
+        return True
+
+    show_tax_deductions_details = fields.Boolean(
+        string="Show Tax Deductions Details",
+        default=False,
+    )
+
+    def action_toggle_tax_deductions_details(self):
+        for employee in self:
+            employee.show_tax_deductions_details = not employee.show_tax_deductions_details
+        return True
+
+
+
+    # =========================================================
+    # SALARY STRUCTURE - ANNUAL AMOUNTS
+    # =========================================================
+
+    basic_salary_annual = fields.Monetary(
+        string="Annual Amount",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    hra_annual = fields.Monetary(
+        string="Annual Amount",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    conveyance_annual = fields.Monetary(
+        string="Annual Amount",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    pf_employer_annual = fields.Monetary(
+        string="Annual Amount",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    edli_employer_amount = fields.Monetary(
+        string="EDLI - Employer Contribution",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    edli_employer_annual = fields.Monetary(
+        string="Annual Amount",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    epf_admin_amount = fields.Monetary(
+        string="EPF Admin Charges - Employer Contribution",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    epf_admin_annual = fields.Monetary(
+        string="Annual Amount",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    # =========================================================
+    # GROSS EARNINGS
+    # =========================================================
+
+    salary_structure_gross_earnings = fields.Monetary(
+        string="Gross Earnings",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    salary_structure_gross_earnings_annual = fields.Monetary(
+        string="Annual Amount",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    salary_structure_monthly_total = fields.Monetary(
+        string="Cost to Company",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    salary_structure_annual_total = fields.Monetary(
+        string="Annual Cost to Company",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    # =========================================================
+    # SALARY STRUCTURE CALCULATION
+    # =========================================================
+
+    @api.depends(
+        'l10n_in_basic_salary_amount',
+        'l10n_in_hra',
+        'conveyance_allowance',
+        'l10n_in_pf_employer_amount',
+    )
+    def _compute_salary_structure_amounts(self):
+
+        for employee in self:
+            # Basic
+            basic = employee.l10n_in_basic_salary_amount or 0.0
+            employee.basic_salary_annual = basic * 12
+
+            # HRA
+            hra = employee.l10n_in_hra or 0.0
+            employee.hra_annual = hra * 12
+
+            # Conveyance
+            conveyance = employee.conveyance_allowance or 0.0
+            employee.conveyance_annual = conveyance * 12
+
+            # =================================================
+            # GROSS EARNINGS
+            # Basic + HRA + Conveyance
+            # =================================================
+            gross_earnings = basic + hra + conveyance
+
+            employee.salary_structure_gross_earnings = gross_earnings
+            employee.salary_structure_gross_earnings_annual = gross_earnings * 12
+
+            # EPF Employer
+            pf_employer = employee.l10n_in_pf_employer_amount or 0.0
+            employee.pf_employer_annual = pf_employer * 12
+
+            # EDLI - Fixed ₹75 per month
+            edli = 75.0
+            employee.edli_employer_amount = edli
+            employee.edli_employer_annual = edli * 12
+
+            # EPF Admin Charges - Fixed ₹75 per month
+            epf_admin = 75.0
+            employee.epf_admin_amount = epf_admin
+            employee.epf_admin_annual = epf_admin * 12
+
+            # Cost to Company
+            monthly_total = (
+                    basic
+                    + hra
+                    + conveyance
+                    + pf_employer
+                    + edli
+                    + epf_admin
+            )
+
+            employee.salary_structure_monthly_total = monthly_total
+            employee.salary_structure_annual_total = monthly_total * 12
 
     tax_regime = fields.Selection([
         ('old', 'Old Regime'),
@@ -1886,6 +2092,24 @@ class Employee(models.Model):
 
         return res
 
+    show_employee_earnings_details = fields.Boolean(
+        string="Show Employee Earnings Details",
+        default=False,
+    )
+
+    def action_toggle_employee_earnings_details(self):
+        for employee in self:
+            employee.show_employee_earnings_details = not employee.show_employee_earnings_details
+
+    show_employee_deductions_details = fields.Boolean(
+        string="Show Employee Deductions Details",
+        default=False,
+    )
+
+    def action_toggle_employee_deductions_details(self):
+        for employee in self:
+            employee.show_employee_deductions_details = not employee.show_employee_deductions_details
+
     variable_pay = fields.Monetary(string="Variable Pay")
     variable_bonus = fields.Monetary(string="Bonus")
     basic_arrear = fields.Monetary(string="Basic Arrear")
@@ -2503,6 +2727,23 @@ class Employee(models.Model):
                 )
 
         return False
+
+    def action_open_salary_revision_wizard(self):
+        self.ensure_one()
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Create Revised Wage Details',
+            'res_model': 'salary.revision.wizard',
+            'view_mode': 'form',
+            'view_id': self.env.ref(
+                'payroll_tds.view_salary_revision_wizard_form'
+            ).id,
+            'target': 'new',
+            'context': {
+                'default_employee_id': self.id,
+            },
+        }
 
 
 

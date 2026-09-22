@@ -605,6 +605,21 @@ class EmployeePublic(models.Model):
         readonly=False,
     )
 
+    show_employee_earnings_details = fields.Boolean(
+        string="Show Employee Earnings Details",
+        default=False,
+    )
+
+    show_employee_deductions_details = fields.Boolean(
+        string="Show Employee Deductions Details",
+        default=False,
+    )
+
+    show_nps_contribution_details = fields.Boolean(
+        string="Show NPS Contribution Details",
+        default=False,
+    )
+
     salary_arrear = fields.Monetary(
         related='employee_id.salary_arrear',
         string="Salary Arrear",
