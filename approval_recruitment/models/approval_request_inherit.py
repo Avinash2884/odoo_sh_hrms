@@ -24,6 +24,25 @@ class ApprovalRequestInherit(models.Model):
     approval_start_date = fields.Date(string="Approval Start Date")
     approval_end_date = fields.Date(string="Approval End Date")
 
+    @api.onchange('category_id')
+    def _onchange_category_id_custom(self):
+        if not self.category_id:
+            self.approver_ids = [(5, 0, 0)]
+            return
+
+        # Category-ல் உள்ள Approver-களை மட்டும் பலவந்தமாக அமைத்தல்
+        approver_commands = [(5, 0, 0)]  # Old list-ஐ clear செய்ய
+
+        for app in self.category_id.approver_ids:
+            if app.user_id:
+                approver_commands.append((0, 0, {
+                    'user_id': app.user_id.id,
+                    'required': app.required,
+                    'sequence': app.sequence,
+                }))
+
+        self.approver_ids = approver_commands
+
     @api.depends('approver_ids.status', 'approver_ids.required')
     def _compute_request_status(self):
         super(ApprovalRequestInherit, self)._compute_request_status()

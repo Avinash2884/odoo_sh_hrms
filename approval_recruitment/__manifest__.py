@@ -101,9 +101,9 @@
             'web.assets_backend': [
                 'approval_recruitment/static/src/scss/custom_buttons.scss',
             ],
-            'web.report_assets_common': [
-                'approval_recruitment/static/src/css/fonts.css',
-            ],
+            # 'web.report_assets_common': [
+            #     'approval_recruitment/static/src/css/fonts.css',
+            # ],
         },
     'installable': True,
     'application': True,

@@ -14,6 +14,11 @@
                     name == 'HeadCount Requisition'
                 </attribute>
             </xpath>
+            <xpath expr="//field[@name='automated_sequence']" position="attributes">
+                <attribute name="invisible">
+                    1
+                </attribute>
+            </xpath>
             <xpath expr="//field[@name='manager_approval']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
