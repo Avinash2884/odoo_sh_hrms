@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging
 from odoo import models, fields, api
 from datetime import timedelta
+
+_logger = logging.getLogger(__name__)
 
 
 class AttendancePhoto(models.Model):
@@ -49,7 +52,13 @@ class AttendancePhoto(models.Model):
                 vals['deletion_date'] = (
                     fields.Date.today() + timedelta(days=60)
                 )
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        for rec in records:
+            _logger.info(
+                "[attendance.photo.create] id=%s attendance_id=%s employee_id=%s punch_type=%s",
+                rec.id, rec.attendance_id.id, rec.employee_id.id, rec.punch_type
+            )
+        return records
 
     @api.model
     def _auto_delete_old_photos(self):
@@ -57,4 +66,8 @@ class AttendancePhoto(models.Model):
         today = fields.Date.today()
         expired = self.search([('deletion_date', '<=', today)])
         if expired:
+            _logger.info(
+                "[attendance.photo._auto_delete_old_photos] Deleting %d expired photo record(s): ids=%s",
+                len(expired), expired.ids
+            )
             expired.sudo().unlink()
