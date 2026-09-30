@@ -319,7 +319,7 @@ class HrContractSalaryOffer(models.Model):
             if not record.designation:
                 missing_fields.append("Offer Designation")
 
-            if not record.variable_pay_ctc:
+            if record.variable_pay_ctc is False:
                 missing_fields.append("Variable Pay CTC")
 
             if not record.offer_hospital_name:

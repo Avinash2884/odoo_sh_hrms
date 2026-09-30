@@ -15,3 +15,7 @@ class ExitInterviewQuestion(models.Model):
         string="Company",
         default=lambda self: self.env.company
     )
+    active = fields.Boolean(
+        string="Active",
+        default=True
+    )

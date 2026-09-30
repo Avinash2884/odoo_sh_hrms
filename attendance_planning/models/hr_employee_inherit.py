@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import logging
 from odoo import models, fields, api
+
+_logger = logging.getLogger(__name__)
 
 # ==========================================
 # 1. THE ADMIN / CORE EMPLOYEE MODEL
@@ -51,6 +54,15 @@ class HrEmployee(models.Model):
                 'pending_geo_zone_id': geo_zone_id or False,
                 'pending_photo_timestamp': fields.Datetime.now(),
             })
+            _logger.info(
+                "[stage_attendance_data] Staged photo for employee_id=%s (%s), geo_zone_id=%s",
+                employee.id, employee.name, geo_zone_id
+            )
+        else:
+            _logger.warning(
+                "[stage_attendance_data] No employee linked to user_id=%s (uid=%s) — nothing staged.",
+                self.env.user.id, self.env.uid
+            )
         return True
 
     def _attendance_action_change(self, geo_information=None):
@@ -84,18 +96,33 @@ class HrEmployee(models.Model):
                             'last_photo_attach_status': True,
                             'last_photo_attach_note': False,
                         })
+                        _logger.info(
+                            "[_attendance_action_change] Photo attached OK employee_id=%s attendance_id=%s "
+                            "punch_type=%s",
+                            emp.id, att.id, punch_type
+                        )
                     else:
                         # Failed: No record
                         emp.sudo().write({
                             'last_photo_attach_status': False,
                             'last_photo_attach_note': 'No attendance record found to attach photo to.',
                         })
+                        _logger.error(
+                            "[_attendance_action_change] No attendance record to attach photo to for "
+                            "employee_id=%s (%s) — punch may not have registered correctly.",
+                            emp.id, emp.name
+                        )
                 else:
                     # Failed: Expired
                     emp.sudo().write({
                         'last_photo_attach_status': False,
                         'last_photo_attach_note': f'Staged photo expired ({int(time_diff.total_seconds())}s old) before attach.',
                     })
+                    _logger.warning(
+                        "[_attendance_action_change] Staged photo EXPIRED for employee_id=%s (%s) — "
+                        "%.0fs old (limit 60s). Photo was NOT attached.",
+                        emp.id, emp.name, time_diff.total_seconds()
+                    )
 
                 # Always wipe staging fields clean
                 emp.sudo().write({
@@ -135,6 +162,29 @@ class HrEmployee(models.Model):
         return False
 
     @api.model
+    def log_client_event(self, source, level, message, extra=None):
+        """Bridge: lets browser-side JS push events into the SAME
+        server log (odoo.sh) as everything else. Call this from JS
+        whenever something goes wrong (or right) on the client —
+        camera denied, no face detected, GPS off, etc.
+        source  -> which screen, e.g. 'face_register', 'checkin_checkout'
+        level   -> 'info' | 'warning' | 'error'
+        message -> human-readable description
+        extra   -> optional small dict of extra context
+        """
+        employee = self.env.user.employee_id
+        who = f"employee_id={employee.id} ({employee.name})" if employee else f"uid={self.env.uid}"
+        line = "[CLIENT:%s] %s — %s | extra=%s" % (source, who, message, extra or {})
+
+        if level == 'error':
+            _logger.error(line)
+        elif level == 'warning':
+            _logger.warning(line)
+        else:
+            _logger.info(line)
+        return True
+
+    @api.model
     def ai_attendance_manual(self, employee_id):
         employee = self.sudo().browse(employee_id)
         open_attendance = self.env['hr.attendance'].sudo().search([
@@ -170,8 +220,23 @@ class HrEmployee(models.Model):
                     author_id=self.env.user.partner_id.id,
                     subtype_xmlid="mail.mt_note"
                 )
+                _logger.info(
+                    "[sudo_save_face_by_id] Face registered for employee_id=%s (%s) by uid=%s "
+                    "(is_admin=%s, is_own_profile=%s)",
+                    employee.id, employee.name, self.env.uid, is_admin, is_own_profile
+                )
                 return True
 
+            _logger.warning(
+                "[sudo_save_face_by_id] DENIED — uid=%s tried to register face for employee_id=%s (%s) "
+                "without permission (is_admin=%s, is_own_profile=%s)",
+                self.env.uid, employee.id, employee.name, is_admin, is_own_profile
+            )
+            return False
+
+        _logger.error(
+            "[sudo_save_face_by_id] employee_id=%s does not exist — cannot register face.", employee_id
+        )
         return False
 
 # ==========================================
@@ -254,5 +319,3 @@ class HrEmployeePublic(models.Model):
             'name': 'Register My Face',
             'context': {'default_employee_id': self.id},
         }
-
-
