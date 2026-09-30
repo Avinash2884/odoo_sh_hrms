@@ -2745,5 +2745,94 @@ class Employee(models.Model):
             },
         }
 
-
-
+    #     # ==========================================================================
+    #     # ADD THIS INSIDE class Employee(models.Model): in hr_employee_inherit.py
+    #     # Paste anywhere inside the class (e.g. right after _compute_tds_amount_new).
+    #     # Do NOT modify anything else. Decimal / ROUND_HALF_UP are already
+    #     # imported at the top of your file, so no new imports needed.
+    #     # ==========================================================================
+    #
+    # def _get_tds_slab_breakdown(self):
+    #         """
+    #         Returns the income-tax slab breakdown as a list of dicts, so the
+    #         TDS Sheet report can print the exact slab-wise split shown in
+    #         the official TDS worksheet (Section 12 in your screenshot).
+    #
+    #         Uses the SAME slab numbers as your existing
+    #         _compute_tds_amount_new() (new regime) and
+    #         _compute_tds_amount() (old regime) methods.
+    #
+    #         IMPORTANT: if those two methods' slab numbers ever change in
+    #         future (budget updates etc.), update the numbers here too -
+    #         this method does NOT read from them automatically, it mirrors
+    #         them, to avoid touching your existing tested calculation code.
+    #         """
+    #         self.ensure_one()
+    #
+    #         taxable_income = self.net_taxable_income or 0.0
+    #         lines = []
+    #
+    #         if self.tax_regime == 'new':
+    #
+    #             # Round to nearest 10 - same as _compute_tds_amount_new
+    #             rounded_income = float(
+    #                 Decimal(str(taxable_income)).quantize(
+    #                     Decimal('1E1'), rounding=ROUND_HALF_UP
+    #                 )
+    #             )
+    #
+    #             slabs = [
+    #                 (0, 400000, 0.05),  # displayed rate label per slab
+    #                 (400000, 800000, 0.05),
+    #                 (800000, 1200000, 0.10),
+    #                 (1200000, 1600000, 0.15),
+    #                 (1600000, 2000000, 0.20),
+    #                 (2000000, 2400000, 0.25),
+    #                 (2400000, None, 0.30),
+    #             ]
+    #             # First slab (0-4L) is always 0% tax - fix the rate:
+    #             slabs[0] = (0, 400000, 0.00)
+    #
+    #             for low, high, rate in slabs:
+    #                 if rounded_income <= low:
+    #                     break
+    #
+    #                 upper = min(rounded_income, high) if high else rounded_income
+    #                 slab_amount = max(upper - low, 0.0)
+    #                 tax_amount = round(slab_amount * rate, 2)
+    #
+    #                 lines.append({
+    #                     'range_from': low,
+    #                     'range_to': high,
+    #                     'rate': rate * 100,
+    #                     'tax_amount': tax_amount,
+    #                 })
+    #
+    #         elif self.tax_regime == 'old':
+    #
+    #             slabs = [
+    #                 (0, 250000, 0.00),
+    #                 (250000, 500000, 0.05),
+    #                 (500000, 1000000, 0.20),
+    #                 (1000000, None, 0.30),
+    #             ]
+    #
+    #             for low, high, rate in slabs:
+    #                 if taxable_income <= low:
+    #                     break
+    #
+    #                 upper = min(taxable_income, high) if high else taxable_income
+    #                 slab_amount = max(upper - low, 0.0)
+    #                 tax_amount = round(slab_amount * rate, 2)
+    #
+    #                 lines.append({
+    #                     'range_from': low,
+    #                     'range_to': high,
+    #                     'rate': rate * 100,
+    #                     'tax_amount': tax_amount,
+    #                 })
+    #
+    #         return lines
+    #
+    #
+    #
