@@ -4,30 +4,34 @@ from odoo import models, fields, api, _
 class HrVersion(models.Model):
     _inherit = "hr.version"
 
-    ls_employee_id = fields.Char(
-        related='employee_id.ls_employee_id',
-        string='Employee ID',
-        store=True,
-        readonly=True,
+    l10n_in_basic_salary_amount = fields.Monetary(
+        string="Basic Salary",
+        groups="base.group_user",
     )
 
 
     def _l10n_in_get_pf_selection(self):
         selection = super()._l10n_in_get_pf_selection()
+        # CHANGE 1: old "Restrict contribution to 15,000" ('fixed') option remove
+        selection = [s for s in selection if s[0] != 'fixed']
         selection.append(
             ('custom', _('Custom Wage'))
         )
+        selection.append(
+            ('restrict_25000', _('Restrict Contribution to ₹25,000.00 of PF Wage'))
+        )
         return selection
 
+    # CHANGE 2: default 'fixed' -> 'restrict_25000'
     l10n_in_pf_employee_type = fields.Selection(
         selection=_l10n_in_get_pf_selection,
-        default='fixed',
+        default='restrict_25000',
         groups="hr_payroll.group_hr_payroll_user"
     )
 
     l10n_in_pf_employer_type = fields.Selection(
         selection=_l10n_in_get_pf_selection,
-        default='fixed',
+        default='restrict_25000',
         groups="hr_payroll.group_hr_payroll_user"
     )
 
@@ -39,6 +43,7 @@ class HrVersion(models.Model):
         groups="hr_payroll.group_hr_payroll_user",
         help="Dearness Allowance (DA)"
     )
+
     conveyance_allowance = fields.Monetary(
         string="Conveyance Allowance",
         store=True,
@@ -48,37 +53,97 @@ class HrVersion(models.Model):
         help="Conveyance Allowance"
     )
 
-
-    @api.depends('l10n_in_basic_salary_amount',
-                 'l10n_in_pf_employee_type',
-                 'l10n_in_pf_employee_percentage',
-                 'wage', 'hourly_wage')
+    @api.depends(
+        'l10n_in_basic_salary_amount',
+        'l10n_in_pf_employee_type',
+        'l10n_in_pf_employee_percentage',
+        'wage',
+        'hourly_wage'
+    )
     def _compute_l10n_in_pf_employee_amount(self):
+
+        # ADDED: basic < 25000 -> '12.0% of actual PF wages' ('calculate')
+        #        basic >= 25000 -> 'Restrict Contribution to 25,000'
+        # 'custom' selected manually is never overridden
+        for version in self:
+            if version.l10n_in_pf_employee_type in ('calculate', 'restrict_25000'):
+                version.l10n_in_pf_employee_type = (
+                    'calculate'
+                    if (version.l10n_in_basic_salary_amount or 0.0) < 25000.0
+                    else 'restrict_25000'
+                )
 
         super()._compute_l10n_in_pf_employee_amount()
 
         for version in self:
             if version.l10n_in_pf_employee_type == 'custom':
                 version.l10n_in_pf_employee_amount = (
-                        version.l10n_in_basic_salary_amount *
-                        version.l10n_in_pf_employee_percentage
+                    version.l10n_in_basic_salary_amount *
+                    version.l10n_in_pf_employee_percentage
                 )
 
-    @api.depends('l10n_in_basic_salary_amount',
-                 'l10n_in_pf_employer_type',
-                 'l10n_in_pf_employer_percentage',
-                 'wage', 'hourly_wage')
+            if version.l10n_in_pf_employee_type == 'restrict_25000':
+                version.l10n_in_pf_employee_percentage = 0.12
 
+                # basic >= 25000 -> 3000 fixed, basic < 25000 -> 12% of actual basic
+                version.l10n_in_pf_employee_amount = (
+                        min(
+                            version.l10n_in_basic_salary_amount or 0.0,
+                            25000.0
+                        ) * 0.12
+                )
+
+                # ADDED: show actual share of basic (30000 basic -> 3000 -> 10%)
+                if version.l10n_in_basic_salary_amount:
+                    version.l10n_in_pf_employee_percentage = (
+                        version.l10n_in_pf_employee_amount /
+                        version.l10n_in_basic_salary_amount
+                    )
+
+    @api.depends(
+        'l10n_in_basic_salary_amount',
+        'l10n_in_pf_employer_type',
+        'l10n_in_pf_employer_percentage',
+        'wage',
+        'hourly_wage'
+    )
     def _compute_l10n_in_pf_employer_amount(self):
+
+        # ADDED: same auto switch for employer contribution type
+        for version in self:
+            if version.l10n_in_pf_employer_type in ('calculate', 'restrict_25000'):
+                version.l10n_in_pf_employer_type = (
+                    'calculate'
+                    if (version.l10n_in_basic_salary_amount or 0.0) < 25000.0
+                    else 'restrict_25000'
+                )
 
         super()._compute_l10n_in_pf_employer_amount()
 
         for version in self:
             if version.l10n_in_pf_employer_type == 'custom':
                 version.l10n_in_pf_employer_amount = (
-                        version.l10n_in_basic_salary_amount *
-                        version.l10n_in_pf_employer_percentage
+                    version.l10n_in_basic_salary_amount *
+                    version.l10n_in_pf_employer_percentage
                 )
+
+            if version.l10n_in_pf_employer_type == 'restrict_25000':
+                version.l10n_in_pf_employer_percentage = 0.12
+
+                # basic >= 25000 -> 3000 fixed, basic < 25000 -> 12% of actual basic
+                version.l10n_in_pf_employer_amount = (
+                        min(
+                            version.l10n_in_basic_salary_amount or 0.0,
+                            25000.0
+                        ) * 0.12
+                )
+
+                # ADDED: show actual share of basic (30000 basic -> 3000 -> 10%)
+                if version.l10n_in_basic_salary_amount:
+                    version.l10n_in_pf_employer_percentage = (
+                        version.l10n_in_pf_employer_amount /
+                        version.l10n_in_basic_salary_amount
+                    )
 
     l10n_in_fixed_allowance = fields.Monetary(
         string='Special Allowance',
@@ -90,6 +155,7 @@ class HrVersion(models.Model):
         help='The remaining variable amount is computed as the fixed allowance after all other allowances defined.\
         this will represents the portion of wages remaining after the total of all other allowances.'
     )
+
     l10n_in_gratuity_percentage = fields.Float(
         string="Gratuity Percentage",
         compute="_compute_l10n_in_gratuity_percentage",
@@ -105,7 +171,7 @@ class HrVersion(models.Model):
     @api.depends('employee_id')
     def _compute_years_of_service(self):
         for rec in self:
-            rec.years_of_service = rec.employee_id.years_of_service or 0.0
+            rec.years_of_service = rec.employee_id.sudo().years_of_service or 0.0
 
     l10n_in_gratuity = fields.Monetary(
         string="Gratuity",
@@ -122,22 +188,16 @@ class HrVersion(models.Model):
     )
     def _compute_l10n_in_gratuity(self):
         for version in self:
-            years = float(version.employee_id.years_of_service or 0.0)
+            years = float(version.employee_id.sudo().years_of_service or 0.0)
             basic = version.l10n_in_basic_salary_amount or 0.0
             da = version.dearness_allowance or 0.0
 
-            # 🔥 No condition → always calculate
             version.l10n_in_gratuity = ((basic + da) * 15 * years) / 26
 
     @api.depends('l10n_in_gratuity')
     def _compute_l10n_in_gratuity_percentage(self):
         for version in self:
-            # 🔥 Always safe value
             version.l10n_in_gratuity_percentage = 0.0
-
-    # ---------------------------------------
-    # HRA Calculation Based On Gross Wage
-    # ---------------------------------------
 
     @api.depends('wage', 'l10n_in_hra_percentage')
     def _compute_l10n_in_hra(self):
@@ -149,21 +209,17 @@ class HrVersion(models.Model):
         for version in self:
             hra_percentage = version.l10n_in_hra_percentage or 0.0
 
-            # Convert percentage entered as 30/40/50
-            # into Odoo decimal format 0.30/0.40/0.50
             if hra_percentage > 1.0:
                 hra_percentage = hra_percentage / 100.0
 
-            # Keep the actual field value within 0 to 1
             version.l10n_in_hra_percentage = min(
                 max(hra_percentage, 0.0),
                 1.0
             )
 
-            # HRA = Gross Wage × HRA Percentage
             version.l10n_in_hra = (
-                    version.wage *
-                    version.l10n_in_hra_percentage
+                version.wage *
+                version.l10n_in_hra_percentage
             )
 
     @api.depends('l10n_in_hra', 'wage')
@@ -174,10 +230,9 @@ class HrVersion(models.Model):
                 continue
 
             version.l10n_in_hra_percentage = (
-                    version.l10n_in_hra / version.wage
+                version.l10n_in_hra / version.wage
             )
 
-            # Safety: database constraint requires 0 <= percentage <= 1
             version.l10n_in_hra_percentage = min(
                 max(version.l10n_in_hra_percentage, 0.0),
                 1.0
@@ -193,9 +248,4 @@ class HrVersion(models.Model):
         'hourly_wage'
     )
     def _check_l10n_in_total_allowance_below_wage(self):
-        # Skip enterprise validation
         return
-
-
-
-
