@@ -77,10 +77,10 @@
                             <field name="detailed_reason" invisible="resignation_reason != 'other'" required = "resignation_reason == 'other'"
                             readonly="internal_state in ('submitted','manager_approved','manager_rejected','hr_approved','hr_rejected',
                             'handing_approved','handing_rejected','clearance_approved','clearance_rejected','exit_approved','exit_rejected','revoked')"/>
-                            <field name="last_working_date"/>
-<!--                                   readonly="not is_hr_head or internal_state in (False,'submitted','hr_approved',-->
-<!--                                   'hr_rejected','handing_approved','handing_rejected','clearance_approved',-->
-<!--                                   'clearance_rejected','exit_approved','exit_rejected','revoked')"/>-->
+                            <field name="last_working_date"
+                                   readonly="not is_hr_head or internal_state in (False,'submitted','hr_approved',
+                                   'hr_rejected','handing_approved','handing_rejected','clearance_approved',
+                                   'clearance_rejected','exit_approved','exit_rejected','revoked')"/>
                             <field name="replace"
                                     readonly="internal_state != 'submitted'" groups="separation.group_separation_reporting_manager"/>
                             <field name="reason_for_resignation" placeholder="Voluntary Resignation" invisible="1"/>
