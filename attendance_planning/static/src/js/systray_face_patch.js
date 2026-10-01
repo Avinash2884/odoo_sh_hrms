@@ -66,15 +66,37 @@ export class FaceVerificationDialog extends Component {
         this.scanInterval = null;
         this.hasPunched = false;
         this._capturedPhotoBase64 = null;
+        this._myDescriptorCache = null;
+        this._lastMatchDistance = null;
 
         onMounted(async () => {
-            await this.injectFaceApiScript();
-            await this.loadModels();
-            await this.startCamera();
+            // FIX #3: wrap the whole startup chain. If script/model load
+            // or the camera itself throws unexpectedly (anything not
+            // already caught inside startCamera()'s own try/catch), the
+            // dialog must not sit open forever holding the punch lock.
+            try {
+                await this.injectFaceApiScript();
+                await this.loadModels();
+                await this.startCamera();
+            } catch (e) {
+                this.orm.call("hr.employee", "log_client_event",
+                    ["checkin_checkout", "error", "Face verification dialog failed to start", { message: String(e) }]
+                ).catch(() => {});
+                this.state.statusMessage = "Something went wrong starting the camera. Please try again.";
+                this.stopCamera();
+                if (this.props.releaseLock) this.props.releaseLock();
+                setTimeout(() => this.props.close(), 1500);
+            }
         });
 
         onWillUnmount(() => {
             this.stopCamera();
+            // FIX #3: release the punch lock on ANY dismissal path (user
+            // closes the dialog manually, Escape key, clicking outside,
+            // etc.), not just the paths that already call releaseLock()
+            // explicitly below. Safe to call twice — it just clears a
+            // timeout and flips a flag.
+            if (this.props.releaseLock) this.props.releaseLock();
         });
     }
 
@@ -100,12 +122,86 @@ export class FaceVerificationDialog extends Component {
                 ["checkin_checkout", "error", "Camera access denied during punch", { name: err.name, message: err.message }]
             ).catch(() => {});
             this.state.statusMessage = "Camera access denied.";
+            // FIX #3: this used to just set a status message and leave the
+            // dialog open with the lock held for up to 60s. Now it closes
+            // cleanly like every other failure path.
+            this.stopCamera();
+            if (this.props.releaseLock) this.props.releaseLock();
+            setTimeout(() => this.props.close(), 1500);
         }
     }
 
-    startScanning() {
+    /**
+     * Reads a small 50x50 sample of the current video frame and returns
+     * an average brightness value from 0 (black) to 255 (white).
+     * Used only for diagnostic logging on a failed match — cheap to run,
+     * never blocks the scanning loop, and safely returns null on any error.
+     */
+    _estimateBrightness(videoEl) {
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 50;
+            canvas.height = 50;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoEl, 0, 0, 50, 50);
+            const data = ctx.getImageData(0, 0, 50, 50).data;
+            let total = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                total += (data[i] + data[i + 1] + data[i + 2]) / 3;
+            }
+            return Math.round(total / (data.length / 4));
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async startScanning() {
         if (this.scanInterval) return;
 
+        // Fetch the registered face descriptor ONCE, right when scanning
+        // starts. It never changes during a scan, so we cache it here and
+        // reuse it on every 200ms tick below, instead of re-fetching it
+        // from the server on every single tick (which was hammering the
+        // server on every failed match attempt).
+        this._myDescriptorCache = await this.orm.call("hr.employee", "get_my_face_descriptor", []);
+
+        if (!this._myDescriptorCache) {
+            this.orm.call("hr.employee", "log_client_event",
+                ["checkin_checkout", "warning", "Employee attempted punch with no face registered"]
+            ).catch(() => {});
+            this.state.statusMessage = "No face registered for your account. Please register your face first, or contact HR.";
+            this.stopCamera();
+            if (this.props.releaseLock) this.props.releaseLock();
+            setTimeout(() => this.props.close(), 2000);
+            return;
+        }
+
+        // The geo check runs independently, in parallel with face
+        // scanning. Without this, if geo fails quickly, the face scanner
+        // has no idea and keeps trying to match a face forever — wasting
+        // the employee's time/battery and flooding the log with
+        // "did not match" warnings for a punch that could never succeed
+        // anyway. As soon as geo resolves as blocked, stop scanning
+        // immediately instead of waiting for a (useless) face match first.
+        this.props.geoCheckPromise.then((geoResult) => {
+            if (this.hasPunched || this._geoFailHandled) return; // already handled via another path, ignore
+            if (!geoResult || !geoResult.allowed) {
+                this._geoFailHandled = true;
+                this.orm.call("hr.employee", "log_client_event",
+                    ["checkin_checkout", "warning", "Geo/location check blocked punch — stopped face scanning early",
+                     { message: geoResult?.message }]
+                ).catch(() => {});
+                this.state.statusMessage = " " + (geoResult?.message || "You are outside the allowed office location.");
+                this.stopCamera();
+                if (this.props.releaseLock) this.props.releaseLock();
+                setTimeout(() => this.props.close(), 1500);
+            }
+        }).catch(() => {});
+
+        // This interval just watches the camera locally, 5 times a second,
+        // to detect when a face appears in frame. This part is intentional
+        // and lightweight — it does NOT call the server on every tick
+        // (that part was removed above). Do not remove this interval.
         this.scanInterval = setInterval(async () => {
             if (this.state.isProcessing) return;
 
@@ -118,7 +214,7 @@ export class FaceVerificationDialog extends Component {
             try {
                 detection = await faceapi.detectSingleFace(
                     videoEl,
-                    new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
+                    new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })
                 ).withFaceLandmarks().withFaceDescriptor();
             } catch (e) {
                 console.warn("Face detection skipped this frame:", e);
@@ -193,9 +289,27 @@ export class FaceVerificationDialog extends Component {
                     }
                     return;
                 } else {
-                    this.orm.call("hr.employee", "log_client_event",
-                        ["checkin_checkout", "warning", "Live face did not match registered profile"]
-                    ).catch(() => {});
+                    // Throttle this log to once every 3 seconds. The scan
+                    // loop retries every ~200-400ms, so a genuine ongoing
+                    // mismatch (bad lighting, wrong angle, still adjusting)
+                    // would otherwise flood the log with 10-15 near-identical
+                    // lines per attempt. One line every few seconds is
+                    // enough to diagnose the issue without the noise.
+                    const now = Date.now();
+                    if (!this._lastMismatchLogAt || now - this._lastMismatchLogAt > 3000) {
+                        this._lastMismatchLogAt = now;
+                        const brightness = this._estimateBrightness(videoEl);
+                        this.orm.call("hr.employee", "log_client_event",
+                            ["checkin_checkout", "warning", "Live face did not match registered profile", {
+                                distance: this._lastMatchDistance,
+                                detectionConfidence: detection.detection.score,
+                                faceBoxWidth: Math.round(detection.detection.box.width),
+                                videoWidth: videoEl.videoWidth,
+                                videoHeight: videoEl.videoHeight,
+                                estimatedBrightness: brightness,
+                            }]
+                        ).catch(() => {});
+                    }
                     this.state.statusMessage = "❌ Face does not match profile.";
                     this.state.isProcessing = false;
                 }
@@ -205,8 +319,12 @@ export class FaceVerificationDialog extends Component {
 
     async verifyWithDatabase(liveDescriptor) {
         try {
-            const myDescriptor = await this.orm.call("hr.employee", "get_my_face_descriptor", []);
+            const myDescriptor = this._myDescriptorCache;
             if (!myDescriptor) {
+                // FIX: reset stale distance — otherwise the throttled
+                // mismatch log above could report a distance value left
+                // over from a previous tick/session as if it were current.
+                this._lastMatchDistance = null;
                 this.orm.call("hr.employee", "log_client_event",
                     ["checkin_checkout", "warning", "Employee attempted punch with no face registered"]
                 ).catch(() => {});
@@ -216,9 +334,31 @@ export class FaceVerificationDialog extends Component {
             const arr = new Float32Array(JSON.parse(myDescriptor));
             const labeledDescriptors = [new faceapi.LabeledFaceDescriptors("CurrentUser", [arr])];
             const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.45);
+
             const bestMatch = faceMatcher.findBestMatch(liveDescriptor);
-            return bestMatch.label === "CurrentUser";
+            const isMatch = bestMatch.label === "CurrentUser";
+
+            // Store the distance so the mismatch-logging block above can
+            // read it. This is the actual number behind the pass/fail
+            // decision (lower = more similar faces).
+            this._lastMatchDistance = bestMatch.distance;
+
+            // FIX #2: only log here on an actual SUCCESSFUL match (fires
+            // once per session, since `hasPunched` gates further attempts).
+            // The failure case used to log unconditionally on every single
+            // ~200ms tick — duplicating the already-throttled "Live face
+            // did not match registered profile" log above and defeating
+            // the whole point of that 3-second throttle. Mismatches are
+            // now only logged there.
+            if (isMatch) {
+                this.orm.call("hr.employee", "log_client_event",
+                    ["checkin_checkout", "info", "Face match distance", { distance: bestMatch.distance, matched: true }]
+                ).catch(() => {});
+            }
+            return isMatch;
         } catch (error) {
+            // FIX: reset stale distance on this error path too.
+            this._lastMatchDistance = null;
             this.orm.call("hr.employee", "log_client_event",
                 ["checkin_checkout", "error", "Face verification against DB failed", { message: String(error) }]
             ).catch(() => {});
@@ -281,9 +421,18 @@ if (ActualAttendanceMenu) {
 
         async signInOut() {
             if (this._punchInProgress) {
+                this.orm.call("hr.employee", "log_client_event",
+                    ["checkin_checkout", "warning", "Button clicked again while a punch was already in progress — ignored"]
+                ).catch(() => {});
                 return;
             }
             this._punchInProgress = true;
+
+            const stateBeforeClick = (this.employee && this.employee.attendance_state) || 'unknown';
+            this.orm.call("hr.employee", "log_client_event",
+                ["checkin_checkout", "info", "Check-in/Check-out button clicked",
+                 { state_before_click: stateBeforeClick }]
+            ).catch(() => {});
 
             // ── DATABASE SYNC 1: Read actual status before punch ──
             try {
