@@ -74,17 +74,19 @@ class InitiateSeparation(models.Model):
     payroll_head_id = fields.Many2one('hr.employee', 'Payroll Head',related='employee_id.payroll_head_id',tracking=True)
     joining_date_recruit = fields.Date(string="Date of Joining", copy=False,related='employee_id.joining_date_recruit', tracking=True)
     resignation_date = fields.Date(string="Resignation Date", default=fields.Date.context_today)
+
+    # Last Working Date - employee_id.confirmed_employee_notice_period maaranal auto-update aagum
     last_working_date = fields.Date(
         string="Last Working Date",
         compute="_compute_last_working_date",
-        store=True,
+        store=True,  # Database-il store aagum, employee notice period maarinaal automatic-a update aagum
         readonly=False
     )
+
     @api.depends('employee_id', 'employee_id.confirmed_employee_notice_period', 'resignation_date')
     def _compute_last_working_date(self):
         for rec in self:
             if rec.resignation_date and rec.employee_id and rec.employee_id.confirmed_employee_notice_period:
-                # Resignation date + Notice Period Days
                 notice_days = rec.employee_id.confirmed_employee_notice_period
                 rec.last_working_date = rec.resignation_date + timedelta(days=int(notice_days))
             else:
