@@ -73,41 +73,13 @@ class InitiateSeparation(models.Model):
     admin_head_id = fields.Many2one('hr.employee', 'Admin Head',related='employee_id.admin_head_id',tracking=True)
     payroll_head_id = fields.Many2one('hr.employee', 'Payroll Head',related='employee_id.payroll_head_id',tracking=True)
     joining_date_recruit = fields.Date(string="Date of Joining", copy=False,related='employee_id.joining_date_recruit', tracking=True)
-    resignation_date = fields.Date(string="Resignation Date", default=fields.Date.context_today)
-
-    # store=True matrum readonly=True (or without readonly=False) use pannunggal
     last_working_date = fields.Date(
         string="Last Working Date",
-        compute="_compute_last_working_date",
+        related='employee_id.last_working_date_employee',
         store=True,
-        readonly=False
+        readonly=True,
+        tracking=True
     )
-
-    @api.depends('employee_id', 'employee_id.confirmed_employee_notice_period', 'resignation_date')
-    def _compute_last_working_date(self):
-        for rec in self:
-            rec._recalculate_last_working_date()
-
-    # Form Screen Live Update (Onchange)
-    @api.onchange('employee_id', 'resignation_date')
-    def _onchange_employee_notice_period(self):
-        self._recalculate_last_working_date()
-
-    def _recalculate_last_working_date(self):
-        for rec in self:
-            if rec.resignation_date:
-                # Notice period field-il irundhu days-ai edukkirom
-                notice_days = rec.employee_id.confirmed_employee_notice_period if rec.employee_id else 0
-                try:
-                    notice_days = int(notice_days)
-                except (ValueError, TypeError):
-                    notice_days = 0
-
-                # Resignation date + Notice Period Days
-                rec.last_working_date = rec.resignation_date + timedelta(days=notice_days)
-            else:
-                rec.last_working_date = False
-
     replace = fields.Selection(
         [
             ('yes', 'Yes'),
