@@ -91,9 +91,9 @@ class InitiateSeparation(models.Model):
             else:
                 rec.last_working_date = False
 
-    # Form view-il Employee alladhu Notice period maarum podhu okamayana live update-irkku
+    # Form UI-il Employee alladhu Resignation Date maatinaal உடனே recalculate aagum
     @api.onchange('employee_id', 'resignation_date')
-    def _onchange_employee_notice_period(self):
+    def _onchange_last_working_date_deps(self):
         if self.employee_id and self.resignation_date:
             notice_days = self.employee_id.confirmed_employee_notice_period or 0
             self.last_working_date = self.resignation_date + timedelta(days=int(notice_days))
