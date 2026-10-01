@@ -22,5 +22,7 @@ from . import calendar_event_inherit
 from . import account_sync
 from . import mail_compose_message_inherit
 from . import hr_employee_public_education
+from . import base_document_layout
+from . import recruitment_hr_head_details
 
 from . import employee_configuration
