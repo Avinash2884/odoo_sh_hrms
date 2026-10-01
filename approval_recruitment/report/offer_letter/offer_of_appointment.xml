@@ -154,18 +154,18 @@
                         </p>
                         <t t-set="hr_head" t-value="env['recruitment.hr.head.details'].search([], limit=1)"/>
 
-                        <div t-if="hr_head.file" style="margin-top: 5px; margin-bottom: 5px;">
+                        <div t-if="hr_head and hr_head.file" style="margin-top: 5px; margin-bottom: 5px;">
                             <img t-att-src="image_data_uri(hr_head.file)"
                                  alt="HR Head Signature"
                                  style="max-width: 140px; max-height: 45px; object-fit: contain;"/>
                         </div>
 
                         <p style="margin: 0; padding: 0;">
-                            <t t-esc="hr_head.name.name or '-'"/>
+                            <t t-esc="hr_head and hr_head.name and hr_head.name.name or '-'"/>
                         </p>
 
                         <p style="margin: 0; padding: 0;">
-                            <t t-esc="hr_head.description or '-'"/>
+                            <t t-esc="hr_head and hr_head.description or '-'"/>
                         </p>
                     </div>
 
@@ -200,60 +200,60 @@
                                 <tr>
                                     <td>Basic Pay + DA</td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.basic_pay or '-'"/>
+                                        <t t-esc="'%.2f' % object.basic_pay if object.basic_pay else '-'"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.basic_pay_annual or '-'"/>
+                                        <t t-esc="'%.2f' % object.basic_pay_annual if object.basic_pay_annual else '-'"/>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td>HRA</td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.hra or '-'"/>
+                                        <t t-esc="'%.2f' % object.hra if object.hra else '-'"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.hra_annual or '-'"/>
+                                        <t t-esc="'%.2f' % object.hra_annual if object.hra_annual else '-'"/>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td>Special Allowance</td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.special_allowance or '-'"/>
+                                        <t t-esc="'%.2f' % object.special_allowance if object.special_allowance else '-'"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.special_allowance_annual or '-'"/>
+                                        <t t-esc="'%.2f' % object.special_allowance_annual if object.special_allowance_annual else '-'"/>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td><strong>Total Gross Pay</strong></td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.total_gross_pay or '-'"/>
+                                        <t t-esc="'%.2f' % object.total_gross_pay if object.total_gross_pay else '-'"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.total_gross_pay_annual or '-'"/>
+                                        <t t-esc="'%.2f' % object.total_gross_pay_annual if object.total_gross_pay_annual else '-'"/>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td>Employer PF (12%)</td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.employer_pf or '-'"/>
+                                        <t t-esc="'%.2f' % object.employer_pf if object.employer_pf else '-'"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.employer_pf_annual or '-'"/>
+                                        <t t-esc="'%.2f' % object.employer_pf_annual if object.employer_pf_annual else '-'"/>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td><strong>CTC</strong></td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.total_gross_pay or '-'"/>
+                                        <t t-esc="'%.2f' % (object.ctc / 12) if hasattr(object, 'ctc') and object.ctc else ('%.2f' % (object.final_yearly_costs / 12) if object.final_yearly_costs else '-')"/>
                                     </td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % object.total_gross_pay_annual or '-'"/>
+                                        <t t-esc="'%.2f' % object.final_yearly_costs if object.final_yearly_costs else '-'"/>
                                     </td>
                                 </tr>
                             </tbody>
