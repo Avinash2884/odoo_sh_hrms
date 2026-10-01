@@ -87,7 +87,7 @@
                         </p>
 
                         <p style="margin-bottom: 10px;">
-                            4. Compensation: Your Annual Compensation will be INR Total <strong>Rs.<t t-esc="'%.0f' % object.final_yearly_costs if object.final_yearly_costs or object.final_yearly_costs == 0 else '-'"/></strong> Per Annum, including a Variable Pay <strong>Rs.<t t-esc="'%.0f' % object.variable_pay_ctc if object.variable_pay_ctc or object.variable_pay_ctc == 0 else '-'"/></strong>. Annexure 1 outlines the detailed component-wise stack up.
+                            4. Compensation: Your Annual Compensation will be INR Total <strong>Rs.<t t-esc="('%.0f' % object.final_yearly_costs) if object.final_yearly_costs or object.final_yearly_costs == 0 else '-'"/></strong> Per Annum, including a Variable Pay <strong>Rs.<t t-esc="('%.0f' % object.variable_pay_ctc) if object.variable_pay_ctc or object.variable_pay_ctc == 0 else '-'"/></strong>. Annexure 1 outlines the detailed component-wise stack up.
                         </p>
 
                         <p>
