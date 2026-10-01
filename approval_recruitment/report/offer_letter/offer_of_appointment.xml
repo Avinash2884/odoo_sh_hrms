@@ -5,13 +5,13 @@
         <field name="default" eval="False"/>
         <field name="format">A4</field>
         <field name="orientation">Portrait</field>
-        <!-- Top & Header Spacing-a kammi pannirukom, ithu page overflow-a thadukkum -->
-        <field name="margin_top">25</field>
-        <field name="margin_bottom">20</field>
+        <!-- Margins tightened to give maximum vertical space -->
+        <field name="margin_top">15</field>
+        <field name="margin_bottom">15</field>
         <field name="margin_left">20</field>
         <field name="margin_right">20</field>
         <field name="header_line" eval="False"/>
-        <field name="header_spacing">20</field>
+        <field name="header_spacing">10</field>
         <field name="dpi">90</field>
     </record>
 
@@ -30,23 +30,23 @@
             <t t-foreach="docs" t-as="object">
                 <t t-call="approval_recruitment.custom_report_layout">
 
-                    <!-- First Page Wrapper: Strict Page Height and Padding Controls -->
-                    <div style="font-family: 'DM Sans', sans-serif !important; font-weight: 400; font-size: 13px; line-height: 1.5; page-break-after: always; max-height: 950px; overflow: hidden;">
+                    <!-- First Page: Line-height 1.35 and tight margins -->
+                    <div style="font-family: 'DM Sans', sans-serif !important; font-weight: 400; font-size: 13px; line-height: 1.35; page-break-after: always;">
 
                         <!-- Title -->
-                        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 15px; margin-top: 0px; font-size: 20px;">
+                        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 10px; margin-top: 0px; font-size: 18px;">
                             Offer Letter
                         </h2>
 
                         <!-- Date -->
-                        <p style="text-align:right; margin-bottom: 15px;">
+                        <p style="text-align:right; margin-bottom: 10px;">
                             Date: <t t-esc="time.strftime('%d-%m-%Y')"/>
                         </p>
 
                         <!-- Address -->
-                        <p style="margin-bottom: 3px;">To,</p>
+                        <p style="margin-bottom: 2px;">To,</p>
 
-                        <p style="margin-top: 0px; margin-bottom: 15px;">
+                        <p style="margin-top: 0px; margin-bottom: 10px;">
                             <strong><t t-esc="object.applicant_id.partner_name or '-'"/></strong><br/>
 
                             <t t-if="object.applicant_id.mailing_address">
@@ -58,11 +58,11 @@
                             </t>
                         </p>
 
-                        <p style="margin-bottom: 10px;">
+                        <p style="margin-bottom: 8px;">
                             Dear <strong><t t-esc="object.applicant_id.partner_name or '-'"/></strong>,
                         </p>
 
-                        <p style="text-align: justify; margin-bottom: 12px;">
+                        <p style="text-align: justify; margin-bottom: 8px;">
                             We are pleased to offer you a position with
                             <strong><t t-esc="object.company_id.name or '-'"/></strong>,
                             in its <t t-esc="object.company_id.street or '-'"/>
@@ -73,15 +73,15 @@
                             on the following terms and conditions:
                         </p>
 
-                        <p style="margin-bottom: 6px;">
+                        <p style="margin-bottom: 4px;">
                             1. <strong>Role:</strong> <t t-esc="object.applicant_id.job_id.name or '-'"/>
                         </p>
 
-                        <p style="margin-bottom: 6px;">
+                        <p style="margin-bottom: 4px;">
                             2. <strong>Designation:</strong> <t t-esc="object.designation.name or '-'"/>
                         </p>
 
-                        <p style="margin-bottom: 6px;">
+                        <p style="margin-bottom: 4px;">
                             3. We would appreciate you joining us on or before
                             <strong>Joining Date:</strong>
                             <t t-if="object.applicant_id.ls_date_of_joining">
@@ -90,23 +90,23 @@
                             <t t-else="">-</t>
                         </p>
 
-                        <p style="margin-bottom: 6px;">
+                        <p style="margin-bottom: 4px;">
                             4. Compensation: Your Annual Compensation will be INR Total <strong>Rs.<t t-esc="'%.0f' % object.final_yearly_costs if (object.final_yearly_costs or object.final_yearly_costs == 0) else '-'"/></strong> Per Annum, including a Variable Pay <strong>Rs.<t t-esc="'%.0f' % object.variable_pay_ctc if (object.variable_pay_ctc or object.variable_pay_ctc == 0) else '-'"/></strong>. Annexure 1 outlines the detailed component-wise stack up.
                         </p>
 
-                        <p style="margin-bottom: 8px;">
+                        <p style="margin-bottom: 6px;">
                             5. You will be deputed to <strong><t t-esc="object.offer_hospital_name or '-'"/></strong>, located at <strong><t t-esc="object.offer_hospital_city or '-'"/></strong> for this role.
                         </p>
-                        <p style="text-align: justify; margin-bottom: 8px;">
+                        <p style="text-align: justify; margin-bottom: 6px;">
                             The Company may, for business needs, change your reporting manager, or transfer you to any other office location or function of the Company in India or overseas or to any of its affiliates.
                         </p>
-                        <p style="text-align: justify; margin-bottom: 8px;">
+                        <p style="text-align: justify; margin-bottom: 6px;">
                             The offer stands automatically revoked, not joining as per the indicated timelines. Discussions or attempts to arrive at a revised joining date could be made, but in case no agreement on a date is arrived at, the date indicated in the offer (or last agreed in writing thereafter) would be considered as the date by which you should join, failing which the offer would automatically stand revoked. While you are at liberty to reject the offer by indicating in writing, the offer can also be revoked at the discretion of the management, before your date of joining.
                         </p>
-                        <p style="margin-bottom: 8px;">
+                        <p style="margin-bottom: 6px;">
                             Acceptance: Your formal acceptance of the terms &amp; conditions of this offer should be confirmed in writing (reply to email/countersigning this Offer Letter) within 3 calendar days.
                         </p>
-                        <p style="margin-bottom: 4px;">
+                        <p style="margin-bottom: 3px;">
                             <strong>Terms and Conditions of Association:</strong>
                         </p>
                         <p style="text-align: justify; margin-bottom: 0px;">
@@ -115,27 +115,27 @@
                     </div>
 
                     <!-- Page 2 -->
-                    <div style="font-family: 'DM Sans', sans-serif !important; font-weight: 400; font-size: 13px; line-height: 1.5; page-break-after: always;">
+                    <div style="font-family: 'DM Sans', sans-serif !important; font-weight: 400; font-size: 13px; line-height: 1.4; page-break-after: always;">
                         <strong>Probation, Confirmation, and Notice period</strong>
-                        <p>
+                        <p style="margin-bottom: 8px;">
                             You will be on probation for a period of 3 months. During this period, the Company may conduct evaluation(s) on functional and behavioral aspects of your role as deemed fit, to ascertain the suitability of the employment.
                         </p>
-                        <p>
+                        <p style="margin-bottom: 8px;">
                             During probation, the employment may be ended through a written notification, by giving <t t-esc="object.offer_letter_notice_period or '-'"/> days’ notice, on either side. The Company shall be entitled to terminate your employment at any time by paying you a salary in lieu of notice.
                         </p>
-                        <p>
+                        <p style="margin-bottom: 8px;">
                             As a confirmed employee, the employment can be terminated by giving <t t-esc="object.confirmed_notice_period or '-'"/> days’ notice, on either side. The Company shall be entitled to terminate your engagement at any time by paying you a salary in lieu of notice.
                         </p>
-                        <p>
+                        <p style="margin-bottom: 8px;">
                             A detailed agreement outlining the terms and conditions of your association with the Company will be issued as part of your joining formalities. During the course of employment with the company, you shall not enter the service or employment, consultancy, full or part time, for any other person or organization, nor shall you carry on or be interested in any business.
                         </p>
-                        <p>
+                        <p style="margin-bottom: 8px;">
                             You will be governed by the policies of the company as may be applicable from time to time. Your compensation details are personal and must be treated with absolute confidentiality.
                         </p>
-                        <p>
+                        <p style="margin-bottom: 6px;">
                             Documents: On the date of joining, please provide self-attested and dated copies of below (digital version accepted):
                         </p>
-                        <ul>
+                        <ul style="margin-bottom: 12px; padding-left: 20px;">
                             <li>Aadhar card</li>
                             <li>PAN card</li>
                             <li>Driving license (if available)</li>
@@ -145,19 +145,19 @@
                             <li>Passport-sized photographs</li>
                         </ul>
 
-                        <p>
+                        <p style="margin-bottom: 15px;">
                             Looking forward to having you on board and together creating a story!
                         </p>
 
-                        <p style="margin-top: 30px;">
+                        <p style="margin-top: 20px; margin-bottom: 5px;">
                             <strong>For <t t-esc="object.company_id.name or '-'"/></strong>
                         </p>
                         <t t-set="hr_head" t-value="env['recruitment.hr.head.details'].search([], limit=1)"/>
 
-                        <div t-if="hr_head.file" style="margin-top: 10px; margin-bottom: 5px;">
+                        <div t-if="hr_head.file" style="margin-top: 5px; margin-bottom: 5px;">
                             <img t-att-src="image_data_uri(hr_head.file)"
                                  alt="HR Head Signature"
-                                 style="max-width: 150px; max-height: 50px; object-fit: contain;"/>
+                                 style="max-width: 140px; max-height: 45px; object-fit: contain;"/>
                         </div>
 
                         <p style="margin: 0; padding: 0;">
@@ -170,27 +170,25 @@
                     </div>
 
                     <!-- Page 3: Annexure I -->
-                    <div style="font-family: 'DM Sans', sans-serif !important; font-weight: 400; font-size: 13px; line-height: 1.5;">
-                        <p style="text-align: center; text-decoration: underline; margin-bottom: 20px; font-size: 18px;">
+                    <div style="font-family: 'DM Sans', sans-serif !important; font-weight: 400; font-size: 13px; line-height: 1.4;">
+                        <p style="text-align: center; text-decoration: underline; margin-bottom: 15px; font-size: 18px;">
                             <strong>Annexure I</strong>
                         </p>
 
                         <!-- Employee Details -->
-                        <p style="margin-bottom: 4px;">Name: <t t-esc="object.applicant_id.partner_name or '-'"/></p>
-                        <p style="margin-bottom: 4px;">Designation: <t t-esc="object.designation.name or '-'"/></p>
-                        <p style="margin-bottom: 4px;">Band: <t t-esc="object.offer_band_id.name or '-'"/></p>
-                        <p style="margin-bottom: 4px;">Level: <t t-esc="object.offer_level_id.name or '-'"/></p>
-                        <p style="margin-bottom: 4px;">
+                        <p style="margin-bottom: 3px;">Name: <t t-esc="object.applicant_id.partner_name or '-'"/></p>
+                        <p style="margin-bottom: 3px;">Designation: <t t-esc="object.designation.name or '-'"/></p>
+                        <p style="margin-bottom: 3px;">Band: <t t-esc="object.offer_band_id.name or '-'"/></p>
+                        <p style="margin-bottom: 3px;">Level: <t t-esc="object.offer_level_id.name or '-'"/></p>
+                        <p style="margin-bottom: 10px;">
                             Date of joining:
                             <t t-esc="object.applicant_id.ls_date_of_joining and object.applicant_id.ls_date_of_joining.strftime('%d-%m-%Y') or '-'"/>
                         </p>
 
-                        <br/>
-
-                        <p>The breakup of the Salary is given below:</p>
+                        <p style="margin-bottom: 8px;">The breakup of the Salary is given below:</p>
 
                         <!-- Salary Table -->
-                        <table class="table table-bordered" style="width: 80%; margin-top: 10px; border-collapse: collapse;">
+                        <table class="table table-bordered" style="width: 80%; margin-top: 5px; border-collapse: collapse;">
                             <thead>
                                 <tr>
                                     <th class="text-start">Particulars</th>
@@ -260,10 +258,9 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <br/>
 
                         <!-- Notes -->
-                        <ul style="margin-top: 15px;">
+                        <ul style="margin-top: 10px; padding-left: 20px;">
                             <li>
                                 Taxation: The Income Tax Act as prevailing at the time of employment, will govern the taxation matters. The Company will deduct tax at source as per the prevailing income tax law.
                             </li>
