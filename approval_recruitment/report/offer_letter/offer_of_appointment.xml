@@ -250,7 +250,7 @@
                                 <tr>
                                     <td><strong>CTC</strong></td>
                                     <td class="text-center">
-                                        <t t-esc="'%.2f' % (object.ctc / 12) if hasattr(object, 'ctc') and object.ctc else ('%.2f' % (object.final_yearly_costs / 12) if object.final_yearly_costs else '-')"/>
+                                        <t t-esc="'%.2f' % (object.ctc / 12) if ('ctc' in object._fields and object.ctc) else ('%.2f' % (object.final_yearly_costs / 12) if object.final_yearly_costs else '-')"/>
                                     </td>
                                     <td class="text-center">
                                         <t t-esc="'%.2f' % object.final_yearly_costs if object.final_yearly_costs else '-'"/>
