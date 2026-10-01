@@ -34,7 +34,7 @@
                         }
                     </style>
 
-                    <div style="font-family: 'DM Sans', sans-serif !important; line-height: 1.5;">
+                    <div style="line-height: 1.5;">
 
                         <!-- Title -->
                         <h2 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
@@ -118,7 +118,7 @@
                             Verification: This offer may be subject to a positive reference check and background screening. In the event that background verification has not been completed to the satisfaction of the Company in its sole discretion or you have been found to have willfully suppressed or forged any piece of information during the course of the interview or employment, the Company reserves the right to cancel this offer letter and terminate any subsequent agreement with immediate effect with written notice to that effect.
                         </p>
                     </div>
-                    <div style="page-break-before: always; font-family: 'DM Sans', sans-serif !important;">
+                    <div style="page-break-before: always;">
                         <strong>Probation, Confirmation, and Notice period</strong>
                         <p>
                             You will be on probation for a period of 3 months. During this period, the Company may conduct evaluation(s) on functional and behavioral aspects of your role as deemed fit, to ascertain the suitability of the employment.
@@ -182,9 +182,9 @@
                             <t t-esc="hr_head.description or '-'"/>
                         </p>
                     </div>
-                    <div style="page-break-before: always; font-family: 'DM Sans', sans-serif !important;">
+                    <div style="page-break-before: always;">
 
-                        <div style="page-break-before: always; font-family: 'DM Sans', sans-serif !important; ">
+                        <div style="page-break-before: always;">
 
                             <p style="text-align: center; text-decoration: underline; margin-bottom: 20px;">
                                 <strong>Annexure I</strong>
