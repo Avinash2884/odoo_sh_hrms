@@ -75,22 +75,28 @@ class InitiateSeparation(models.Model):
     joining_date_recruit = fields.Date(string="Date of Joining", copy=False,related='employee_id.joining_date_recruit', tracking=True)
     resignation_date = fields.Date(string="Resignation Date", default=fields.Date.context_today)
 
-    # Last Working Date - employee_id.confirmed_employee_notice_period maaranal auto-update aagum
     last_working_date = fields.Date(
         string="Last Working Date",
         compute="_compute_last_working_date",
-        store=True,  # Database-il store aagum, employee notice period maarinaal automatic-a update aagum
+        store=True,
         readonly=False
     )
 
     @api.depends('employee_id', 'employee_id.confirmed_employee_notice_period', 'resignation_date')
     def _compute_last_working_date(self):
         for rec in self:
-            if rec.resignation_date and rec.employee_id and rec.employee_id.confirmed_employee_notice_period:
-                notice_days = rec.employee_id.confirmed_employee_notice_period
+            notice_days = rec.employee_id.confirmed_employee_notice_period if rec.employee_id else 0
+            if rec.resignation_date:
                 rec.last_working_date = rec.resignation_date + timedelta(days=int(notice_days))
             else:
-                rec.last_working_date = rec.resignation_date or False
+                rec.last_working_date = False
+
+    # Form view-il Employee alladhu Notice period maarum podhu okamayana live update-irkku
+    @api.onchange('employee_id', 'resignation_date')
+    def _onchange_employee_notice_period(self):
+        if self.employee_id and self.resignation_date:
+            notice_days = self.employee_id.confirmed_employee_notice_period or 0
+            self.last_working_date = self.resignation_date + timedelta(days=int(notice_days))
 
     replace = fields.Selection(
         [
