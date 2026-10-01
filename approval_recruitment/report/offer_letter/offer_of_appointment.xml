@@ -30,7 +30,7 @@
                     <style>
                         @font-face {
                             font-family: 'DM Sans';
-                            src: url('/approval_recruitment/static/src/fonts/DMSans-Bold.ttf') format('truetype');
+                            src: url('/approval_recruitment/static/src/fonts/DMSans-Regular.ttf') format('truetype');
                         }
                     </style>
 
