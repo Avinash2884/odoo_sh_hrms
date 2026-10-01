@@ -75,7 +75,7 @@ class InitiateSeparation(models.Model):
     joining_date_recruit = fields.Date(string="Date of Joining", copy=False,related='employee_id.joining_date_recruit', tracking=True)
     last_working_date = fields.Date(
         string="Last Working Date",
-        related='employee_id.last_working_date_employee',
+        related='employee_id.confirmed_employee_notice_period',
         store=True,
         readonly=True,
         tracking=True
