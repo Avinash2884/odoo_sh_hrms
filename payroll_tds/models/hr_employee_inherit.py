@@ -255,6 +255,17 @@ class Employee(models.Model):
         currency_field='currency_id',
     )
 
+    show_nps_contribution_details = fields.Boolean(
+        string="Show NPS Contribution Details",
+        default=False,
+    )
+
+    def action_toggle_nps_contribution_details(self):
+        for employee in self:
+            employee.show_nps_contribution_details = not employee.show_nps_contribution_details
+
+
+
     @api.depends(
         'l10n_in_nps_employer_type',
         'version_id.l10n_in_basic_salary_amount',
@@ -270,6 +281,201 @@ class Employee(models.Model):
             employee.l10n_in_nps_employer_amount = (
                     basic * percentage / 100
             )
+
+    show_pf_contribution_details = fields.Boolean(
+        string="Show PF Contribution Details",
+        default=False
+    )
+
+    def action_toggle_pf_contribution_details(self):
+        for employee in self:
+            employee.show_pf_contribution_details = not employee.show_pf_contribution_details
+        return True
+
+    show_esic_details = fields.Boolean(
+        string="Show ESIC Details",
+        default=False
+    )
+
+    def action_toggle_esic_details(self):
+        for employee in self:
+            employee.show_esic_details = not employee.show_esic_details
+        return True
+
+    show_other_deductions_details = fields.Boolean(
+        string="Show Other Deductions Details",
+        default=False
+    )
+
+    def action_toggle_other_deductions_details(self):
+        for employee in self:
+            employee.show_other_deductions_details = (
+                not employee.show_other_deductions_details
+            )
+        return True
+
+    show_lwf_details = fields.Boolean(
+        string="Show LWF Details",
+        default=False
+    )
+
+    def action_toggle_lwf_details(self):
+        for employee in self:
+            employee.show_lwf_details = not employee.show_lwf_details
+        return True
+
+    show_tax_deductions_details = fields.Boolean(
+        string="Show Tax Deductions Details",
+        default=False,
+    )
+
+    def action_toggle_tax_deductions_details(self):
+        for employee in self:
+            employee.show_tax_deductions_details = not employee.show_tax_deductions_details
+        return True
+
+
+
+    # =========================================================
+    # SALARY STRUCTURE - ANNUAL AMOUNTS
+    # =========================================================
+
+    basic_salary_annual = fields.Monetary(
+        string="Basic Salary (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    hra_annual = fields.Monetary(
+        string="HRA (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    conveyance_annual = fields.Monetary(
+        string="Conveyance Allowance (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    pf_employer_annual = fields.Monetary(
+        string="PF Employer Contribution (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    edli_employer_amount = fields.Monetary(
+        string="EDLI - Employer Contribution",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    edli_employer_annual = fields.Monetary(
+        string="EDLI Employer Contribution (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    epf_admin_amount = fields.Monetary(
+        string="EPF Admin Charges - Employer Contribution",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    epf_admin_annual = fields.Monetary(
+        string="EPF Admin Charges (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    # =========================================================
+    # GROSS EARNINGS
+    # =========================================================
+
+    salary_structure_gross_earnings = fields.Monetary(
+        string="Gross Earnings",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    salary_structure_gross_earnings_annual = fields.Monetary(
+        string="Gross Earnings (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    salary_structure_monthly_total = fields.Monetary(
+        string="Cost to Company",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    salary_structure_annual_total = fields.Monetary(
+        string="Annual Cost to Company",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    # =========================================================
+    # SALARY STRUCTURE CALCULATION
+    # =========================================================
+
+    @api.depends(
+        'l10n_in_basic_salary_amount',
+        'l10n_in_hra',
+        'conveyance_allowance',
+        'l10n_in_pf_employer_amount',
+    )
+    def _compute_salary_structure_amounts(self):
+
+        for employee in self:
+            # Basic
+            basic = employee.l10n_in_basic_salary_amount or 0.0
+            employee.basic_salary_annual = basic * 12
+
+            # HRA
+            hra = employee.l10n_in_hra or 0.0
+            employee.hra_annual = hra * 12
+
+            # Conveyance
+            conveyance = employee.conveyance_allowance or 0.0
+            employee.conveyance_annual = conveyance * 12
+
+            # =================================================
+            # GROSS EARNINGS
+            # Basic + HRA + Conveyance
+            # =================================================
+            gross_earnings = basic + hra + conveyance
+
+            employee.salary_structure_gross_earnings = gross_earnings
+            employee.salary_structure_gross_earnings_annual = gross_earnings * 12
+
+            # EPF Employer
+            pf_employer = employee.l10n_in_pf_employer_amount or 0.0
+            employee.pf_employer_annual = pf_employer * 12
+
+            # EDLI - Fixed ₹75 per month
+            edli = 75.0
+            employee.edli_employer_amount = edli
+            employee.edli_employer_annual = edli * 12
+
+            # EPF Admin Charges - Fixed ₹75 per month
+            epf_admin = 75.0
+            employee.epf_admin_amount = epf_admin
+            employee.epf_admin_annual = epf_admin * 12
+
+            # Cost to Company
+            monthly_total = (
+                    basic
+                    + hra
+                    + conveyance
+                    + pf_employer
+                    + edli
+                    + epf_admin
+            )
+
+            employee.salary_structure_monthly_total = monthly_total
+            employee.salary_structure_annual_total = monthly_total * 12
 
     tax_regime = fields.Selection([
         ('old', 'Old Regime'),
@@ -1886,6 +2092,24 @@ class Employee(models.Model):
 
         return res
 
+    show_employee_earnings_details = fields.Boolean(
+        string="Show Employee Earnings Details",
+        default=False,
+    )
+
+    def action_toggle_employee_earnings_details(self):
+        for employee in self:
+            employee.show_employee_earnings_details = not employee.show_employee_earnings_details
+
+    show_employee_deductions_details = fields.Boolean(
+        string="Show Employee Deductions Details",
+        default=False,
+    )
+
+    def action_toggle_employee_deductions_details(self):
+        for employee in self:
+            employee.show_employee_deductions_details = not employee.show_employee_deductions_details
+
     variable_pay = fields.Monetary(string="Variable Pay")
     variable_bonus = fields.Monetary(string="Bonus")
     basic_arrear = fields.Monetary(string="Basic Arrear")
@@ -2504,5 +2728,111 @@ class Employee(models.Model):
 
         return False
 
+    def action_open_salary_revision_wizard(self):
+        self.ensure_one()
 
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Create Revised Wage Details',
+            'res_model': 'salary.revision.wizard',
+            'view_mode': 'form',
+            'view_id': self.env.ref(
+                'payroll_tds.view_salary_revision_wizard_form'
+            ).id,
+            'target': 'new',
+            'context': {
+                'default_employee_id': self.id,
+            },
+        }
 
+    #     # ==========================================================================
+    #     # ADD THIS INSIDE class Employee(models.Model): in hr_employee_inherit.py
+    #     # Paste anywhere inside the class (e.g. right after _compute_tds_amount_new).
+    #     # Do NOT modify anything else. Decimal / ROUND_HALF_UP are already
+    #     # imported at the top of your file, so no new imports needed.
+    #     # ==========================================================================
+    #
+    # def _get_tds_slab_breakdown(self):
+    #         """
+    #         Returns the income-tax slab breakdown as a list of dicts, so the
+    #         TDS Sheet report can print the exact slab-wise split shown in
+    #         the official TDS worksheet (Section 12 in your screenshot).
+    #
+    #         Uses the SAME slab numbers as your existing
+    #         _compute_tds_amount_new() (new regime) and
+    #         _compute_tds_amount() (old regime) methods.
+    #
+    #         IMPORTANT: if those two methods' slab numbers ever change in
+    #         future (budget updates etc.), update the numbers here too -
+    #         this method does NOT read from them automatically, it mirrors
+    #         them, to avoid touching your existing tested calculation code.
+    #         """
+    #         self.ensure_one()
+    #
+    #         taxable_income = self.net_taxable_income or 0.0
+    #         lines = []
+    #
+    #         if self.tax_regime == 'new':
+    #
+    #             # Round to nearest 10 - same as _compute_tds_amount_new
+    #             rounded_income = float(
+    #                 Decimal(str(taxable_income)).quantize(
+    #                     Decimal('1E1'), rounding=ROUND_HALF_UP
+    #                 )
+    #             )
+    #
+    #             slabs = [
+    #                 (0, 400000, 0.05),  # displayed rate label per slab
+    #                 (400000, 800000, 0.05),
+    #                 (800000, 1200000, 0.10),
+    #                 (1200000, 1600000, 0.15),
+    #                 (1600000, 2000000, 0.20),
+    #                 (2000000, 2400000, 0.25),
+    #                 (2400000, None, 0.30),
+    #             ]
+    #             # First slab (0-4L) is always 0% tax - fix the rate:
+    #             slabs[0] = (0, 400000, 0.00)
+    #
+    #             for low, high, rate in slabs:
+    #                 if rounded_income <= low:
+    #                     break
+    #
+    #                 upper = min(rounded_income, high) if high else rounded_income
+    #                 slab_amount = max(upper - low, 0.0)
+    #                 tax_amount = round(slab_amount * rate, 2)
+    #
+    #                 lines.append({
+    #                     'range_from': low,
+    #                     'range_to': high,
+    #                     'rate': rate * 100,
+    #                     'tax_amount': tax_amount,
+    #                 })
+    #
+    #         elif self.tax_regime == 'old':
+    #
+    #             slabs = [
+    #                 (0, 250000, 0.00),
+    #                 (250000, 500000, 0.05),
+    #                 (500000, 1000000, 0.20),
+    #                 (1000000, None, 0.30),
+    #             ]
+    #
+    #             for low, high, rate in slabs:
+    #                 if taxable_income <= low:
+    #                     break
+    #
+    #                 upper = min(taxable_income, high) if high else taxable_income
+    #                 slab_amount = max(upper - low, 0.0)
+    #                 tax_amount = round(slab_amount * rate, 2)
+    #
+    #                 lines.append({
+    #                     'range_from': low,
+    #                     'range_to': high,
+    #                     'rate': rate * 100,
+    #                     'tax_amount': tax_amount,
+    #                 })
+    #
+    #         return lines
+    #
+    #
+    #

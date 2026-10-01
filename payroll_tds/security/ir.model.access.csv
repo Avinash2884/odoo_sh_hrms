@@ -20,3 +20,4 @@ access_hr_employee_investment_80u_user,employee.investment.80u.user,model_hr_emp
 access_hr_employee_other_allowance_user,employee.other.allowance.user,model_hr_employee_other_allowance,base.group_user,1,1,1,1
 access_hr_employee_investment_80d_user,employee.investment.80d.user,model_hr_employee_investment_80d,base.group_user,1,1,1,1
 access_hr_employee_other_income_user,employee.other.income.user,model_hr_employee_other_income,base.group_user,1,1,1,1
+access_salary_revision_wizard_user,salary.revision.wizard user,model_salary_revision_wizard,base.group_user,1,1,1,1

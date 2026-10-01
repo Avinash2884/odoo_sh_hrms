@@ -96,6 +96,9 @@ export class FaceVerificationDialog extends Component {
                 this.videoRef.el.addEventListener('play', () => this.startScanning());
             }
         } catch (err) {
+            this.orm.call("hr.employee", "log_client_event",
+                ["checkin_checkout", "error", "Camera access denied during punch", { name: err.name, message: err.message }]
+            ).catch(() => {});
             this.state.statusMessage = "Camera access denied.";
         }
     }
@@ -141,6 +144,10 @@ export class FaceVerificationDialog extends Component {
                         if (!geoResult || !geoResult.allowed) {
                             this.state.statusMessage = "❌ " + (geoResult?.message || "You are outside the allowed office location.");
                             console.warn('Geo check failed:', geoResult?.message);
+                            this.orm.call("hr.employee", "log_client_event",
+                                ["checkin_checkout", "warning", "Geo/location check blocked punch",
+                                 { message: geoResult?.message }]
+                            ).catch(() => {});
                             this.stopCamera();
                             if (this.props.releaseLock) this.props.releaseLock();
                             setTimeout(() => this.props.close(), 1500);
@@ -170,6 +177,9 @@ export class FaceVerificationDialog extends Component {
 
                                 if (!staged) {
                                     console.error("❌ Critical: Failed to stage photo after 2 attempts.");
+                                    this.orm.call("hr.employee", "log_client_event",
+                                        ["checkin_checkout", "error", "Photo staging failed after 2 retries — punch may be missing photo"]
+                                    ).catch(() => {});
                                 }
                             }
 
@@ -183,6 +193,9 @@ export class FaceVerificationDialog extends Component {
                     }
                     return;
                 } else {
+                    this.orm.call("hr.employee", "log_client_event",
+                        ["checkin_checkout", "warning", "Live face did not match registered profile"]
+                    ).catch(() => {});
                     this.state.statusMessage = "❌ Face does not match profile.";
                     this.state.isProcessing = false;
                 }
@@ -194,6 +207,9 @@ export class FaceVerificationDialog extends Component {
         try {
             const myDescriptor = await this.orm.call("hr.employee", "get_my_face_descriptor", []);
             if (!myDescriptor) {
+                this.orm.call("hr.employee", "log_client_event",
+                    ["checkin_checkout", "warning", "Employee attempted punch with no face registered"]
+                ).catch(() => {});
                 this.state.statusMessage = "No face registered for your account!";
                 return false;
             }
@@ -203,6 +219,9 @@ export class FaceVerificationDialog extends Component {
             const bestMatch = faceMatcher.findBestMatch(liveDescriptor);
             return bestMatch.label === "CurrentUser";
         } catch (error) {
+            this.orm.call("hr.employee", "log_client_event",
+                ["checkin_checkout", "error", "Face verification against DB failed", { message: String(error) }]
+            ).catch(() => {});
             return false;
         }
     }
@@ -315,6 +334,10 @@ if (ActualAttendanceMenu) {
                     latitude = position.coords.latitude;
                     longitude = position.coords.longitude;
                 } catch (e) {
+                    this.orm.call("hr.employee", "log_client_event",
+                        ["checkin_checkout", "warning", "Browser location/GPS denied or timed out",
+                         { code: e.code, message: e.message }]
+                    ).catch(() => {});
                     return {
                         allowed: false,
                         message: "Location access is required for attendance. Please allow location and try again.",
@@ -344,6 +367,10 @@ if (ActualAttendanceMenu) {
 
                     return { allowed: true, zone_id: zoneId };
                 } catch (e) {
+                    this.orm.call("hr.employee", "log_client_event",
+                        ["checkin_checkout", "error", "check_employee_geo_allowed RPC call failed",
+                         { message: String(e) }]
+                    ).catch(() => {});
                     return {
                         allowed: false,
                         message: "Could not verify your location. Please try again.",
@@ -369,8 +396,16 @@ if (ActualAttendanceMenu) {
                     // Trigger Native Punch securely
                     try {
                         await super.signInOut();
+                        this.orm.call("hr.employee", "log_client_event",
+                            ["checkin_checkout", "info", "Punch completed successfully",
+                             { previous_state: currentState }]
+                        ).catch(() => {});
                     } catch (e) {
                         console.error("Native punch failed:", e);
+                        this.orm.call("hr.employee", "log_client_event",
+                            ["checkin_checkout", "error", "Native attendance punch (super.signInOut) failed",
+                             { message: String(e) }]
+                        ).catch(() => {});
                         if (this.notificationService) {
                             this.notificationService.add(
                                 "Couldn't record your attendance — your session may already be open. Please refresh the page and try again.",

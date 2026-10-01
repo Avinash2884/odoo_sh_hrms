@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 import math
 import time as time_module
+import logging
 from odoo import models, fields, api
 from datetime import datetime, time, timedelta
 from odoo.exceptions import UserError, ValidationError
 import pytz
+
+_logger = logging.getLogger(__name__)
 
 
 class HrAttendance(models.Model):
@@ -574,16 +577,41 @@ class HrAttendance(models.Model):
         request/transaction, so there's no gap for a race to occur."""
         employee = self.env.user.employee_id
         if not employee:
+            _logger.warning(
+                "[face_punch_and_save_photo] No employee linked to user_id=%s (uid=%s)",
+                self.env.user.id, self.env.uid
+            )
             return {'success': False, 'error': 'No employee linked to your account.'}
 
         was_checked_in = employee.attendance_state == 'checked_in'
-        employee.sudo()._attendance_action_change()
+        _logger.info(
+            "[face_punch_and_save_photo] START employee_id=%s (%s) current_state=%s geo_zone_id=%s",
+            employee.id, employee.name, employee.attendance_state, geo_zone_id
+        )
+
+        try:
+            employee.sudo()._attendance_action_change()
+        except Exception:
+            _logger.exception(
+                "[face_punch_and_save_photo] _attendance_action_change() raised for employee_id=%s (%s)",
+                employee.id, employee.name
+            )
+            raise
+
         attendance = employee.sudo().last_attendance_id
 
         if not attendance:
+            _logger.error(
+                "[face_punch_and_save_photo] Punch failed, no attendance record created for employee_id=%s (%s)",
+                employee.id, employee.name
+            )
             return {'success': False, 'error': 'Punch failed — no attendance record was created.'}
 
         punch_type = 'checkout' if was_checked_in else 'checkin'
+        _logger.info(
+            "[face_punch_and_save_photo] Punch OK employee_id=%s attendance_id=%s punch_type=%s",
+            employee.id, attendance.id, punch_type
+        )
 
         try:
             self.env['attendance.photo'].sudo().create({
@@ -592,6 +620,11 @@ class HrAttendance(models.Model):
                 'punch_type': punch_type,
             })
         except Exception as e:
+            _logger.exception(
+                "[face_punch_and_save_photo] Photo save FAILED for attendance_id=%s employee_id=%s "
+                "punch_type=%s — attendance record itself was already created.",
+                attendance.id, employee.id, punch_type
+            )
             return {
                 'success': False, 'error': str(e),
                 'punch_succeeded': True,
@@ -602,6 +635,10 @@ class HrAttendance(models.Model):
             field = 'geo_restriction_id' if punch_type == 'checkin' else 'check_out_geo_restriction_id'
             attendance.sudo().write({field: geo_zone_id})
 
+        _logger.info(
+            "[face_punch_and_save_photo] SUCCESS employee_id=%s attendance_id=%s punch_type=%s",
+            employee.id, attendance.id, punch_type
+        )
         return {'success': True, 'attendance_id': attendance.id, 'punch_type': punch_type}
 
     @api.model
@@ -614,10 +651,20 @@ class HrAttendance(models.Model):
         """
         employee = self.env.user.employee_id
         if not employee:
+            _logger.warning(
+                "[save_attendance_photo] No employee linked to user_id=%s (uid=%s), attendance_id=%s",
+                self.env.user.id, self.env.uid, attendance_id
+            )
             return {'success': False, 'error': 'No employee linked to your account.'}
 
         attendance = self.browse(attendance_id).exists()
         if not attendance or attendance.employee_id.id != employee.id:
+            _logger.warning(
+                "[save_attendance_photo] Invalid/unauthorized attendance_id=%s for employee_id=%s "
+                "(record_exists=%s, owner_id=%s)",
+                attendance_id, employee.id, bool(attendance),
+                attendance.employee_id.id if attendance else None
+            )
             return {'success': False, 'error': 'Invalid or unauthorized attendance record.'}
 
         try:
@@ -627,6 +674,10 @@ class HrAttendance(models.Model):
                 'punch_type': punch_type,
             })
         except Exception as e:
+            _logger.exception(
+                "[save_attendance_photo] Photo save FAILED for attendance_id=%s employee_id=%s punch_type=%s",
+                attendance.id, employee.id, punch_type
+            )
             return {'success': False, 'error': str(e)}
 
         if geo_zone_id:
@@ -635,6 +686,10 @@ class HrAttendance(models.Model):
             elif punch_type == 'checkout':
                 attendance.sudo().write({'check_out_geo_restriction_id': geo_zone_id})
 
+        _logger.info(
+            "[save_attendance_photo] SUCCESS attendance_id=%s employee_id=%s punch_type=%s geo_zone_id=%s",
+            attendance.id, employee.id, punch_type, geo_zone_id
+        )
         return {'success': True, 'attendance_id': attendance.id}
 
 
@@ -666,13 +721,25 @@ class HrAttendance(models.Model):
 
         employee = self.env.user.employee_id
         if not employee:
+            _logger.warning(
+                "[check_employee_geo_allowed] No employee linked to user_id=%s (uid=%s)",
+                self.env.user.id, self.env.uid
+            )
             return {'allowed': False, 'message': 'No employee linked to your account.'}
 
         if employee.bypass_geo_restriction:
+            _logger.info(
+                "[check_employee_geo_allowed] employee_id=%s (%s) has geo-bypass enabled — allowed.",
+                employee.id, employee.name
+            )
             return {'allowed': True, 'zone_id': False}
 
         geo_locations = employee.geo_restriction_ids
         if not geo_locations:
+            _logger.warning(
+                "[check_employee_geo_allowed] employee_id=%s (%s) has NO geo zones configured — blocked.",
+                employee.id, employee.name
+            )
             return {'allowed': False, 'message': 'No office locations configured for you. Contact HR.'}
 
         for geo in geo_locations:
@@ -681,8 +748,17 @@ class HrAttendance(models.Model):
                 (latitude, longitude)
             ).meters
             if distance <= geo.allowed_distance:
+                _logger.info(
+                    "[check_employee_geo_allowed] employee_id=%s ALLOWED, matched zone_id=%s (%.1fm <= %.1fm)",
+                    employee.id, geo.id, distance, geo.allowed_distance
+                )
                 return {'allowed': True, 'zone_id': geo.id}
 
+        _logger.warning(
+            "[check_employee_geo_allowed] employee_id=%s (%s) BLOCKED — outside all %d configured zone(s). "
+            "employee_lat=%s employee_lng=%s",
+            employee.id, employee.name, len(geo_locations), latitude, longitude
+        )
         return {
             'allowed': False,
             'message': 'You are outside the allowed office radius. Check-in not permitted.'

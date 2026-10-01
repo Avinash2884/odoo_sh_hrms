@@ -20,14 +20,6 @@
                         class="btn-primary"
                         invisible="not line_ids"/>
 
-                 <!-- TDS Sheet -->
-                 <!-- TDS Sheet -->
-             <!--   <button string="TDS Sheet"
-                        name="action_print_tds_sheet"
-                        type="object"
-                        class="btn-primary"/> -->
-
-
             </xpath>
 
 
@@ -36,3 +28,4 @@
     </record>
 
 </odoo>
+

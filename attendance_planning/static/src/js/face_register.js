@@ -76,6 +76,9 @@ export class FaceRegister extends Component {
             return true;
         } catch (error) {
             console.error("Model load error:", error);
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "error", "AI model download failed/timeout", { message: String(error) }]
+            ).catch(() => {});
             this.state.statusMessage = "Network too slow to download AI models. Please use Wi-Fi and try again.";
             return false;
         }
@@ -104,6 +107,9 @@ export class FaceRegister extends Component {
             }
         } catch (err) {
             console.error("Camera error:", err);
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "error", "Camera access denied/unavailable", { name: err.name, message: err.message }]
+            ).catch(() => {});
             this.state.statusMessage = "Camera access denied. Please allow permissions in your browser settings.";
         }
     }
@@ -158,6 +164,9 @@ export class FaceRegister extends Component {
             }
         } catch (e) {
             console.warn("Face capture failed:", e);
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "error", "Hardware/detection error reading camera frame", { message: String(e) }]
+            ).catch(() => {});
             this.state.statusMessage = "Hardware error reading camera. Please try again.";
             this.state.isReady = true;
             videoEl.play(); // UNFREEZE on error
@@ -165,6 +174,10 @@ export class FaceRegister extends Component {
         }
 
         if (!detection) {
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "warning", "No face detected in captured frame",
+                 { videoWidth: videoEl.videoWidth, videoHeight: videoEl.videoHeight }]
+            ).catch(() => {});
             this.state.statusMessage = "No face detected! Make sure your face is clearly visible.";
             this.state.isReady = true;
             videoEl.play(); // UNFREEZE on error
@@ -176,6 +189,9 @@ export class FaceRegister extends Component {
 
         try {
             await this.orm.call("hr.employee", "sudo_save_face_by_id", [this.employeeId, descriptorString]);
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "info", "Face registered successfully"]
+            ).catch(() => {});
             this.state.statusMessage = "✅ Face Successfully Saved!";
 
             setTimeout(() => {
@@ -184,6 +200,9 @@ export class FaceRegister extends Component {
 
         } catch (error) {
             console.error("Database Error:", error);
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "error", "Failed to save face descriptor to DB", { message: String(error) }]
+            ).catch(() => {});
             this.state.statusMessage = "Error saving to database.";
             this.state.isReady = true;
             videoEl.play(); // UNFREEZE on error

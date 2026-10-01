@@ -31,6 +31,12 @@
         'views/employee_salary_revision_views.xml',
         'views/hr_employee_rented_house_form.xml',
         'views/hr_employee_investment.xml',
+        'views/hr_employee_salary_structure.xml',
+        'views/hide_contract_salary_fields.xml',
+        'views/hide_work_entry_source.xml',
+        'views/salary_revision_wizard_views.xml',
+        'views/hr_employee_pay_revise.xml',
+
 
         #'views/hr_salary_rule_ind_emp_data_views.xml', #Error
         'report/leave_report.xml',

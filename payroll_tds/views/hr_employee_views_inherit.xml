@@ -9,199 +9,678 @@
 
             <field name="arch" type="xml">
 
-                <!-- ================================================= -->
-                <!-- NPS CONTRIBUTION - BESIDE LWF -->
-                <!-- ================================================= -->
+               <!-- ================================================= -->
+<!-- ESIC - TOGGLE BUTTON -->
+<!-- ================================================= -->
 
-                <xpath expr="//group[.//field[@name='l10n_in_lwf_employer_contribution']]/parent::group"
-                       position="inside">
+<xpath expr="//field[@name='l10n_in_esic_employee_amount']/ancestor::group[1]"
+       position="inside">
 
-                    <group string="NPS Contribution">
+    <field name="show_esic_details"
+           invisible="1"/>
 
-                        <label for="l10n_in_nps_employer_amount"
-                               string="Employer"/>
+    <button name="action_toggle_esic_details"
+            type="object"
+            string="Click Details"
+            class="btn btn-primary"
+            invisible="show_esic_details"/>
 
-                        <div class="o_row">
+    <button name="action_toggle_esic_details"
+            type="object"
+            string="Hide Details"
+            class="btn btn-primary"
+            invisible="not show_esic_details"/>
 
-                            <field name="l10n_in_nps_employer_amount"
-                                   class="o_hr_narrow_field"
-                                   readonly="1"/>
+</xpath>
 
-                            <span>/ month</span>
+<!-- ================================================= -->
+<!-- ESIC EMPLOYEE LABEL -->
+<!-- ================================================= -->
 
-                            <field name="l10n_in_nps_employer_type"
-                                   nolabel="1"
-                                   class="o_hr_narrow_field"/>
+<xpath expr="//label[@for='l10n_in_esic_employee_amount']"
+       position="attributes">
+    <attribute name="invisible">
+        not show_esic_details
+    </attribute>
+</xpath>
 
-                            <span>%</span>
+<!-- ================================================= -->
+<!-- ESIC EMPLOYEE ROW (amount + / month + %) -->
+<!-- ================================================= -->
 
-                        </div>
+<xpath expr="//field[@name='l10n_in_esic_employee_amount']/ancestor::div[hasclass('o_row')][1]"
+       position="attributes">
+    <attribute name="invisible">
+        not show_esic_details
+    </attribute>
+</xpath>
 
-                    </group>
+<!-- ================================================= -->
+<!-- ESIC EMPLOYER LABEL -->
+<!-- ================================================= -->
 
-                </xpath>
+<xpath expr="//label[@for='l10n_in_esic_employer_amount']"
+       position="attributes">
+    <attribute name="invisible">
+        not show_esic_details
+    </attribute>
+</xpath>
 
+<!-- ================================================= -->
+<!-- ESIC EMPLOYER ROW (amount + / month + %) -->
+<!-- ================================================= -->
 
-                <!-- ================================================= -->
-                <!-- EXISTING EMPLOYEE EARNINGS / DEDUCTIONS -->
-                <!-- DO NOT CHANGE -->
-                <!-- ================================================= -->
+<xpath expr="//field[@name='l10n_in_esic_employer_amount']/ancestor::div[hasclass('o_row')][1]"
+       position="attributes">
+    <attribute name="invisible">
+        not show_esic_details
+    </attribute>
+</xpath>
+<!-- ================================================= -->
+<!-- PF CONTRIBUTION - TOGGLE BUTTON                   -->
+<!-- ================================================= -->
 
-                <xpath expr="//group[.//field[@name='l10n_in_lwf_employer_contribution']]"
-                       position="after">
+<xpath expr="//field[@name='l10n_in_pf_employee_amount']/ancestor::group[1]"
+       position="inside">
 
-                    <group col="2">
+    <field name="show_pf_contribution_details"
+           invisible="1"/>
 
-                        <group string="Employee Earnings">
+    <button name="action_toggle_pf_contribution_details"
+            type="object"
+            string="Click Details"
+            class="btn btn-primary"
+            invisible="show_pf_contribution_details"/>
 
-                            <label for="variable_pay"/>
-                            <div class="o_row">
-                                <field name="variable_pay"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
+    <button name="action_toggle_pf_contribution_details"
+            type="object"
+            string="Hide Details"
+            class="btn btn-primary"
+            invisible="not show_pf_contribution_details"/>
 
-                            <label for="variable_bonus"/>
-                            <div class="o_row">
-                                <field name="variable_bonus"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="basic_arrear"/>
-                            <div class="o_row">
-                                <field name="basic_arrear"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="hra_arrear"/>
-                            <div class="o_row">
-                                <field name="hra_arrear"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="special_allowance_arrear"/>
-                            <div class="o_row">
-                                <field name="special_allowance_arrear"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="fixed_stipend"/>
-                            <div class="o_row">
-                                <field name="fixed_stipend"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="stipend"/>
-                            <div class="o_row">
-                                <field name="stipend"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="stipend_arrear"/>
-                            <div class="o_row">
-                                <field name="stipend_arrear"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="employee_incentive"/>
-                            <div class="o_row">
-                                <field name="employee_incentive"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="referral_incentive"/>
-                            <div class="o_row">
-                                <field name="referral_incentive"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="notice_period"/>
-                            <div class="o_row">
-                                <field name="notice_period"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="salary_arrear"/>
-                            <div class="o_row">
-                                <field name="salary_arrear"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="leave_encashment"/>
-                            <div class="o_row">
-                                <field name="leave_encashment"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="hold_salary"/>
-                            <div class="o_row">
-                                <field name="hold_salary"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                            <label for="other_earnings"/>
-                            <div class="o_row">
-                                <field name="other_earnings"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
-
-                        </group>
+</xpath>
 
 
-                        <!-- Employee Deductions -->
+<!-- ================================================= -->
+<!-- PF EMPLOYEE LABEL - SHOW / HIDE                   -->
+<!-- ================================================= -->
 
-                        <group string="Employee Deductions">
+<xpath expr="//label[@for='l10n_in_pf_employee_amount']"
+       position="attributes">
 
-                            <label for="notice_pay_deduction"/>
-                            <div class="o_row">
-                                <field name="notice_pay_deduction"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
+    <attribute name="invisible">
+        not show_pf_contribution_details
+    </attribute>
 
-                            <label for="loan_deduction"/>
-                            <div class="o_row">
-                                <field name="loan_deduction"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
+</xpath>
 
-                            <label for="pf_arrear"/>
-                            <div class="o_row">
-                                <field name="pf_arrear"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
 
-                            <label for="other_deductions"/>
-                            <div class="o_row">
-                                <field name="other_deductions"
-                                       class="o_hr_narrow_field"/>
-                                <span>/ month</span>
-                            </div>
+<!-- ================================================= -->
+<!-- PF EMPLOYEE AMOUNT - SHOW / HIDE                  -->
+<!-- ================================================= -->
 
-                        </group>
+<xpath expr="//field[@name='l10n_in_pf_employee_amount']/ancestor::div[hasclass('o_row')][1]"
+       position="attributes">
 
-                    </group>
+    <attribute name="invisible">
+        not show_pf_contribution_details
+    </attribute>
 
-                </xpath>
+</xpath>
 
+
+<!-- ================================================= -->
+<!-- PF EMPLOYEE CONTRIBUTION TYPE - SHOW / HIDE       -->
+<!-- ================================================= -->
+
+<xpath expr="//field[@name='l10n_in_pf_employee_type']"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_pf_contribution_details
+    </attribute>
+
+</xpath>
+
+
+<!-- ================================================= -->
+<!-- PF EMPLOYER LABEL - SHOW / HIDE                   -->
+<!-- ================================================= -->
+
+<xpath expr="//label[@for='l10n_in_pf_employer_amount']"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_pf_contribution_details
+    </attribute>
+
+</xpath>
+
+
+<!-- ================================================= -->
+<!-- PF EMPLOYER AMOUNT - SHOW / HIDE                  -->
+<!-- ================================================= -->
+
+<xpath expr="//field[@name='l10n_in_pf_employer_amount']/ancestor::div[hasclass('o_row')][1]"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_pf_contribution_details
+    </attribute>
+
+</xpath>
+
+<!-- ================================================= -->
+<!-- PF EMPLOYER CONTRIBUTION TYPE - SHOW / HIDE       -->
+<!-- ================================================= -->
+
+<xpath expr="//field[@name='l10n_in_pf_employer_type']"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_pf_contribution_details
+    </attribute>
+
+</xpath>
+
+<!-- ================================================= -->
+<!-- OTHER DEDUCTIONS - BUTTON -->
+<!-- ================================================= -->
+
+<xpath expr="//field[@name='l10n_in_gratuity']/parent::div/parent::group"
+       position="inside">
+
+    <field name="show_other_deductions_details"
+           invisible="1"/>
+
+    <button name="action_toggle_other_deductions_details"
+            type="object"
+            string="Click Details"
+            class="btn btn-primary"
+            invisible="show_other_deductions_details"/>
+
+    <button name="action_toggle_other_deductions_details"
+            type="object"
+            string="Hide Details"
+            class="btn btn-primary"
+            invisible="not show_other_deductions_details"/>
+
+</xpath>
+
+
+<!-- ================================================= -->
+<!-- GRATUITY DETAILS - HIDE / SHOW -->
+<!-- ================================================= -->
+
+<xpath expr="//field[@name='l10n_in_gratuity']/ancestor::div[hasclass('o_row')]"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_other_deductions_details
+    </attribute>
+
+</xpath>
+
+
+<!-- ================================================= -->
+<!-- GRATUITY LABEL - HIDE / SHOW -->
+<!-- ================================================= -->
+
+<xpath expr="//label[@for='l10n_in_gratuity']"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_other_deductions_details
+    </attribute>
+
+</xpath>
+             <!-- ================================================= -->
+<!-- LABOUR WELFARE FUND (LWF) - BUTTON -->
+<!-- ================================================= -->
+
+<xpath expr="//field[@name='l10n_in_lwf_employee_contribution']/ancestor::group[1]"
+       position="inside">
+
+    <!-- Hidden technical field -->
+    <field name="show_lwf_details"
+           invisible="1"/>
+
+    <!-- Toggle Buttons -->
+    <button name="action_toggle_lwf_details"
+            type="object"
+            string="Click Details"
+            class="btn btn-primary"
+            invisible="show_lwf_details"/>
+
+    <button name="action_toggle_lwf_details"
+            type="object"
+            string="Hide Details"
+            class="btn btn-primary"
+            invisible="not show_lwf_details"/>
+
+</xpath>
+
+
+<!-- ================================================= -->
+<!-- LWF EMPLOYEE LABEL - SHOW / HIDE -->
+<!-- ================================================= -->
+
+<xpath expr="//label[@for='l10n_in_lwf_employee_contribution']"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_lwf_details
+    </attribute>
+
+</xpath>
+
+
+<!-- ================================================= -->
+<!-- LWF EMPLOYEE ROW - SHOW / HIDE -->
+<!-- Includes ₹ amount + / month -->
+<!-- ================================================= -->
+
+<xpath expr="//field[@name='l10n_in_lwf_employee_contribution']/ancestor::div[hasclass('o_row')][1]"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_lwf_details
+    </attribute>
+
+</xpath>
+
+
+<!-- ================================================= -->
+<!-- LWF EMPLOYER LABEL - SHOW / HIDE -->
+<!-- ================================================= -->
+
+<xpath expr="//label[@for='l10n_in_lwf_employer_contribution']"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_lwf_details
+    </attribute>
+
+</xpath>
+
+
+<!-- ================================================= -->
+<!-- LWF EMPLOYER ROW - SHOW / HIDE -->
+<!-- Includes ₹ amount + / month -->
+<!-- ================================================= -->
+
+<xpath expr="//field[@name='l10n_in_lwf_employer_contribution']/ancestor::div[hasclass('o_row')][1]"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_lwf_details
+    </attribute>
+
+</xpath>
+               <!-- ================================================= -->
+<!-- TAX DEDUCTIONS - BUTTON -->
+<!-- ================================================= -->
+
+<xpath expr="//field[@name='pt_rule_parameter_id']/ancestor::group[1]"
+       position="inside">
+
+    <!-- Hidden technical field -->
+    <field name="show_tax_deductions_details"
+           invisible="1"/>
+
+    <!-- Toggle Buttons -->
+    <button name="action_toggle_tax_deductions_details"
+            type="object"
+            string="Click Details"
+            class="btn btn-primary"
+            invisible="show_tax_deductions_details"/>
+
+    <button name="action_toggle_tax_deductions_details"
+            type="object"
+            string="Hide Details"
+            class="btn btn-primary"
+            invisible="not show_tax_deductions_details"/>
+
+</xpath>
+
+
+<!-- ================================================= -->
+<!-- PT RULE PARAMETER - SHOW / HIDE -->
+<!-- ================================================= -->
+
+<xpath expr="//field[@name='pt_rule_parameter_id']"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_tax_deductions_details or not l10n_in_pt
+    </attribute>
+
+</xpath>
+
+
+<!-- ================================================= -->
+<!-- TDS - SHOW / HIDE -->
+<!-- ================================================= -->
+
+<xpath expr="//field[@name='l10n_in_tds']"
+       position="attributes">
+
+    <attribute name="invisible">
+        not show_tax_deductions_details
+    </attribute>
+
+</xpath>
+
+              <!-- ================================================= -->
+<!-- NPS CONTRIBUTION - BESIDE LWF -->
+<!-- ================================================= -->
+
+<xpath expr="//group[.//field[@name='l10n_in_lwf_employer_contribution']]/parent::group"
+       position="inside">
+
+    <group string="NPS Contribution">
+
+        <!-- Hidden technical field -->
+        <field name="show_nps_contribution_details"
+               invisible="1"/>
+
+        <!-- NPS Employer field - shown/hidden by button below -->
+        <label for="l10n_in_nps_employer_amount"
+               string="Employer"
+               invisible="not show_nps_contribution_details"/>
+
+        <div class="o_row"
+             invisible="not show_nps_contribution_details">
+
+            <field name="l10n_in_nps_employer_amount"
+                   class="o_hr_narrow_field"
+                   readonly="1"/>
+
+            <span>/ month</span>
+
+            <field name="l10n_in_nps_employer_type"
+                   nolabel="1"
+                   class="o_hr_narrow_field"/>
+
+            <span>%</span>
+
+        </div>
+
+        <!-- Toggle Buttons -->
+        <button name="action_toggle_nps_contribution_details"
+                type="object"
+                string="Click Details"
+                class="btn btn-primary"
+                colspan="2"
+                invisible="show_nps_contribution_details"/>
+
+        <button name="action_toggle_nps_contribution_details"
+                type="object"
+                string="Hide Details"
+                class="btn btn-primary"
+                colspan="2"
+                invisible="not show_nps_contribution_details"/>
+
+    </group>
+
+</xpath>
+<!-- ================================================= -->
+<!-- EMPLOYEE EARNINGS / DEDUCTIONS -->
+<!-- ================================================= -->
+
+<xpath expr="//group[.//field[@name='l10n_in_lwf_employer_contribution']]"
+       position="after">
+
+    <group col="2">
+
+        <!-- ============================================= -->
+        <!-- EMPLOYEE EARNINGS -->
+        <!-- ============================================= -->
+
+        <group string="Employee Earnings">
+
+            <!-- Hidden technical field -->
+            <field name="show_employee_earnings_details"
+                   invisible="1"/>
+
+            <!-- ========================================= -->
+            <!-- EARNING FIELDS -->
+            <!-- ========================================= -->
+
+            <label for="variable_pay"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="variable_pay"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="variable_bonus"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="variable_bonus"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="basic_arrear"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="basic_arrear"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="hra_arrear"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="hra_arrear"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="special_allowance_arrear"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="special_allowance_arrear"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="fixed_stipend"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="fixed_stipend"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="stipend"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="stipend"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="stipend_arrear"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="stipend_arrear"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="employee_incentive"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="employee_incentive"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="referral_incentive"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="referral_incentive"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="notice_period"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="notice_period"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="salary_arrear"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="salary_arrear"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="leave_encashment"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="leave_encashment"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="hold_salary"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="hold_salary"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="other_earnings"
+                   invisible="not show_employee_earnings_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_earnings_details">
+                <field name="other_earnings"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+
+            <!-- ========================================= -->
+            <!-- BUTTON - AT THE BOTTOM -->
+            <!-- ========================================= -->
+
+            <button name="action_toggle_employee_earnings_details"
+                    type="object"
+                    string="Click Details"
+                    class="btn btn-primary"
+                    colspan="2"
+                    invisible="show_employee_earnings_details"/>
+
+            <button name="action_toggle_employee_earnings_details"
+                    type="object"
+                    string="Hide Details"
+                    class="btn btn-primary"
+                    colspan="2"
+                    invisible="not show_employee_earnings_details"/>
+
+        </group>
+
+
+        <!-- ============================================= -->
+        <!-- EMPLOYEE DEDUCTIONS -->
+        <!-- ============================================= -->
+
+        <group string="Employee Deductions">
+
+            <!-- Hidden technical field -->
+            <field name="show_employee_deductions_details"
+                   invisible="1"/>
+
+            <!-- ========================================= -->
+            <!-- DEDUCTION FIELDS -->
+            <!-- ========================================= -->
+
+            <label for="notice_pay_deduction"
+                   invisible="not show_employee_deductions_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_deductions_details">
+                <field name="notice_pay_deduction"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="loan_deduction"
+                   invisible="not show_employee_deductions_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_deductions_details">
+                <field name="loan_deduction"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="pf_arrear"
+                   invisible="not show_employee_deductions_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_deductions_details">
+                <field name="pf_arrear"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+            <label for="other_deductions"
+                   invisible="not show_employee_deductions_details"/>
+            <div class="o_row"
+                 invisible="not show_employee_deductions_details">
+                <field name="other_deductions"
+                       class="o_hr_narrow_field"/>
+                <span>/ month</span>
+            </div>
+
+
+            <!-- ========================================= -->
+            <!-- BUTTON - AT THE BOTTOM -->
+            <!-- ========================================= -->
+
+            <button name="action_toggle_employee_deductions_details"
+                    type="object"
+                    string="Click Details"
+                    class="btn btn-primary"
+                    colspan="2"
+                    invisible="show_employee_deductions_details"/>
+
+            <button name="action_toggle_employee_deductions_details"
+                    type="object"
+                    string="Hide Details"
+                    class="btn btn-primary"
+                    colspan="2"
+                    invisible="not show_employee_deductions_details"/>
+
+        </group>
+
+    </group>
+
+</xpath>
             </field>
         </record>
+
 
     </data>
 </odoo>
