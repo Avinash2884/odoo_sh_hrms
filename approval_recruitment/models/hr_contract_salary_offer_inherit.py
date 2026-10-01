@@ -190,11 +190,11 @@ class HrContractSalaryOffer(models.Model):
                 if not record.applicant_id.ls_date_of_joining:
                     missing_fields.append("Date of Joining")
 
-                if not record.applicant_id.job_id.hr_head_name:
-                    missing_fields.append("HR Head Name")
-
-                if not record.applicant_id.job_id.hr_description:
-                    missing_fields.append("HR Description")
+                # if not record.applicant_id.job_id.hr_head_name:
+                #     missing_fields.append("HR Head Name")
+                #
+                # if not record.applicant_id.job_id.hr_description:
+                #     missing_fields.append("HR Description")
 
             # Company Details
             if not record.company_id:
@@ -266,11 +266,11 @@ class HrContractSalaryOffer(models.Model):
                 if not record.applicant_id.ls_date_of_joining:
                     missing_fields.append("Date of Joining")
 
-                if not record.applicant_id.job_id.hr_head_name:
-                    missing_fields.append("HR Head Name")
-
-                if not record.applicant_id.job_id.hr_description:
-                    missing_fields.append("HR Description")
+                # if not record.applicant_id.job_id.hr_head_name:
+                #     missing_fields.append("HR Head Name")
+                #
+                # if not record.applicant_id.job_id.hr_description:
+                #     missing_fields.append("HR Description")
 
             # Company Details
             if not record.company_id:
@@ -348,11 +348,11 @@ class HrContractSalaryOffer(models.Model):
                 if not record.applicant_id.ls_date_of_joining:
                     missing_fields.append("Date of Joining")
 
-                if not record.applicant_id.job_id.hr_head_name:
-                    missing_fields.append("HR Head Name")
-
-                if not record.applicant_id.job_id.hr_description:
-                    missing_fields.append("HR Description")
+                # if not record.applicant_id.job_id.hr_head_name:
+                #     missing_fields.append("HR Head Name")
+                #
+                # if not record.applicant_id.job_id.hr_description:
+                #     missing_fields.append("HR Description")
 
             if not record.company_id:
                 missing_fields.append("Company")
@@ -415,11 +415,12 @@ class HrContractSalaryOffer(models.Model):
                 missing_fields.append("Job Position")
 
             else:
-                if not record.applicant_id.job_id.hr_head_name:
-                    missing_fields.append("HR Head Name")
-
-                if not record.applicant_id.job_id.hr_description:
-                    missing_fields.append("HR Description")
+                pass
+                # if not record.applicant_id.job_id.hr_head_name:
+                #     missing_fields.append("HR Head Name")
+                #
+                # if not record.applicant_id.job_id.hr_description:
+                #     missing_fields.append("HR Description")
 
             # Company Details
             if not record.company_id:
