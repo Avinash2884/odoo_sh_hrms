@@ -75,6 +75,7 @@ class InitiateSeparation(models.Model):
     joining_date_recruit = fields.Date(string="Date of Joining", copy=False,related='employee_id.joining_date_recruit', tracking=True)
     resignation_date = fields.Date(string="Resignation Date", default=fields.Date.context_today)
 
+    # store=True matrum readonly=True (or without readonly=False) use pannunggal
     last_working_date = fields.Date(
         string="Last Working Date",
         compute="_compute_last_working_date",
@@ -85,18 +86,27 @@ class InitiateSeparation(models.Model):
     @api.depends('employee_id', 'employee_id.confirmed_employee_notice_period', 'resignation_date')
     def _compute_last_working_date(self):
         for rec in self:
-            notice_days = rec.employee_id.confirmed_employee_notice_period if rec.employee_id else 0
+            rec._recalculate_last_working_date()
+
+    # Form Screen Live Update (Onchange)
+    @api.onchange('employee_id', 'resignation_date')
+    def _onchange_employee_notice_period(self):
+        self._recalculate_last_working_date()
+
+    def _recalculate_last_working_date(self):
+        for rec in self:
             if rec.resignation_date:
-                rec.last_working_date = rec.resignation_date + timedelta(days=int(notice_days))
+                # Notice period field-il irundhu days-ai edukkirom
+                notice_days = rec.employee_id.confirmed_employee_notice_period if rec.employee_id else 0
+                try:
+                    notice_days = int(notice_days)
+                except (ValueError, TypeError):
+                    notice_days = 0
+
+                # Resignation date + Notice Period Days
+                rec.last_working_date = rec.resignation_date + timedelta(days=notice_days)
             else:
                 rec.last_working_date = False
-
-    # Form UI-il Employee alladhu Resignation Date maatinaal உடனே recalculate aagum
-    @api.onchange('employee_id', 'resignation_date')
-    def _onchange_last_working_date_deps(self):
-        if self.employee_id and self.resignation_date:
-            notice_days = self.employee_id.confirmed_employee_notice_period or 0
-            self.last_working_date = self.resignation_date + timedelta(days=int(notice_days))
 
     replace = fields.Selection(
         [
