@@ -27,7 +27,7 @@
             <t t-foreach="docs" t-as="object">
                 <t t-call="approval_recruitment.custom_report_layout">
 
-                    <div style="font-family: 'DM Sans', sans-serif !important; font-weight: 400; font-size: 14px; line-height: 1.8;">
+                    <div style="font-family: 'DM Sans', sans-serif !important; font-weight: 400; font-size: 14px; line-height: 1.3;">
 
                         <!-- Title -->
                         <h2 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
