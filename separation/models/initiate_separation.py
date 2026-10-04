@@ -84,6 +84,12 @@ class InitiateSeparation(models.Model):
         store=True,
         readonly=True,
     )
+    confirmed_employee_notice_period = fields.Integer(
+        string="Confirmed Notice Period",
+        related='employee_id.confirmed_employee_notice_period',
+        readonly=True,
+        store=True
+    )
 
     @api.depends(
         'employee_id',
