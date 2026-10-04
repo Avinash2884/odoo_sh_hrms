@@ -48,7 +48,7 @@
             <xpath expr="//field[@name='department_id']" position="before">
                 <field name="appointment_letter_type" />
                 <field name="employee_notice_period" />
-                <field name="last_working_date_employee" invisible="1"/>
+<!--                <field name="last_working_date_employee" invisible="1"/>-->
                 <field name="entity_name_id" options='{"no_open": True, "no_create": True}'/>
                 <field name="ls_role_id" options='{"no_open": True, "no_create": True}'/>
                 <field name="band_id" options='{"no_open": True, "no_create": True}'/>
