@@ -41,22 +41,22 @@ class HrEmployeeInherit(models.Model):
     employee_notice_period = fields.Integer(string="Probation Notice Period",tracking=True)
     confirmed_employee_notice_period = fields.Integer(string="Confirmed Notice Period",tracking=True)
     probation_in_months = fields.Integer(string="Probation in Months",tracking=True)
-    last_working_date_employee = fields.Date(
-        string="Last Working Date",
-        compute="_compute_last_working_date",
-        store=True,
-        tracking=True
-    )
-
-    @api.depends('confirmed_employee_notice_period')
-    def _compute_last_working_date(self):
-        for rec in self:
-            if rec.confirmed_employee_notice_period:
-                rec.last_working_date_employee = fields.Date.today() + timedelta(
-                    days=rec.confirmed_employee_notice_period
-                )
-            else:
-                rec.last_working_date_employee = False
+    # last_working_date_employee = fields.Date(
+    #     string="Last Working Date",
+    #     compute="_compute_last_working_date",
+    #     store=True,
+    #     tracking=True
+    # )
+    #
+    # @api.depends('confirmed_employee_notice_period')
+    # def _compute_last_working_date(self):
+    #     for rec in self:
+    #         if rec.confirmed_employee_notice_period:
+    #             rec.last_working_date_employee = fields.Date.today() + timedelta(
+    #                 days=rec.confirmed_employee_notice_period
+    #             )
+    #         else:
+    #             rec.last_working_date_employee = False
 
     @api.depends('wage')
     def _compute_wage_appointment_letter(self):
