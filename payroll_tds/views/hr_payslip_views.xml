@@ -125,9 +125,12 @@
 <!--                  <field name="bank_name" string="Bank Name"/>-->
 <!--                    <field name="account_number" string="Account Number"/>-->
 <!--                    <field name="ifsc_code" string="IFSC"/>-->
+                    <field name="fixed_basic" string="Fixed Basic"/>
                     <field name="basic" string="Basic"/>
+                    <field name="fixed_hra" string="Fixed HRA"/>
                     <field name="hra" string="HRA"/>
                     <field name="special_allowance" string="Special Allowance"/>
+                    <field name="fixed_conveyance" string="Fixed Conveyance"/>
                     <field name="conveyance_allowance" string="Conveyance Allowance"/>
                     <field name="salary_arrear_amount"/>
                     <field name="stipend" string="Stipend"/>
@@ -163,6 +166,8 @@
                            />
                   <field name="leave_encashment" string="Leave Encashment" readonly="0"/>
                     <field name="notice_pay" string="Notice Pay"/>
+                    <field name="epf_total" string="EPF"/>
+                    <field name="ctc" string="CTC/Month"/>
                      <field name="epf_contribution"
                            string="EPF Contribution"/>
                     <field name="pt" string="PT" />
