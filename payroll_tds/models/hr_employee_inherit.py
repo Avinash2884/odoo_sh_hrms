@@ -358,6 +358,12 @@ class Employee(models.Model):
         currency_field="currency_id",
     )
 
+    stipend_annual = fields.Monetary(
+        string="Stipend (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
     pf_employer_annual = fields.Monetary(
         string="PF Employer Contribution (Annual)",
         compute="_compute_salary_structure_amounts",
@@ -444,6 +450,7 @@ class Employee(models.Model):
         'l10n_in_basic_salary_amount',
         'l10n_in_hra',
         'conveyance_allowance',
+        'stipend',
         'l10n_in_pf_employer_amount',
     )
     def _compute_salary_structure_amounts(self):
@@ -461,11 +468,15 @@ class Employee(models.Model):
             conveyance = employee.conveyance_allowance or 0.0
             employee.conveyance_annual = conveyance * 12
 
+            # Stipend
+            stipend = employee.stipend or 0.0
+            employee.stipend_annual = stipend * 12
+
             # =================================================
             # GROSS EARNINGS
             # Basic + HRA + Conveyance
             # =================================================
-            gross_earnings = basic + hra + conveyance
+            gross_earnings = basic + hra + conveyance + stipend
 
             employee.salary_structure_gross_earnings = gross_earnings
             employee.salary_structure_gross_earnings_annual = gross_earnings * 12
@@ -502,6 +513,7 @@ class Employee(models.Model):
                     basic
                     + hra
                     + conveyance
+                    + stipend
                     + pf_employer
                     + edli
                     + epf_admin

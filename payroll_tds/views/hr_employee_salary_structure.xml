@@ -140,6 +140,32 @@
 
                     </div>
 
+                                        <!-- STIPEND -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;">
+
+                        <div>
+                            Stipend
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="stipend"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="stipend_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+
 
                     <!-- GROSS EARNINGS -->
                     <div style="display:grid;

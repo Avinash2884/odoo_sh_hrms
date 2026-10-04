@@ -759,6 +759,12 @@ class EmployeePublic(models.Model):
         readonly=True,
     )
 
+    stipend_annual = fields.Monetary(
+        string="Stipend (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
     pf_employer_annual = fields.Monetary(
         related='employee_id.pf_employer_annual',
         string="PF Employer Contribution (Annual)",
