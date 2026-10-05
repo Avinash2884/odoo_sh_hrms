@@ -358,6 +358,12 @@ class Employee(models.Model):
         currency_field="currency_id",
     )
 
+    stipend_annual = fields.Monetary(
+        string="Stipend (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
     pf_employer_annual = fields.Monetary(
         string="PF Employer Contribution (Annual)",
         compute="_compute_salary_structure_amounts",
@@ -416,6 +422,26 @@ class Employee(models.Model):
         currency_field="currency_id",
     )
 
+    PF_WAGE_LIMIT = 25000.0
+    EDLI_ADMIN_RATE = 0.005
+
+    total_epf_amount = fields.Monetary(
+        string="Total EPF Contribution",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    total_epf_annual = fields.Monetary(
+        string="Total EPF Contribution (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    pf_wage_label = fields.Char(
+        string="PF Wage Label",
+        compute="_compute_salary_structure_amounts",
+    )
+
     # =========================================================
     # SALARY STRUCTURE CALCULATION
     # =========================================================
@@ -424,6 +450,7 @@ class Employee(models.Model):
         'l10n_in_basic_salary_amount',
         'l10n_in_hra',
         'conveyance_allowance',
+        'stipend',
         'l10n_in_pf_employer_amount',
     )
     def _compute_salary_structure_amounts(self):
@@ -441,11 +468,15 @@ class Employee(models.Model):
             conveyance = employee.conveyance_allowance or 0.0
             employee.conveyance_annual = conveyance * 12
 
+            # Stipend
+            stipend = employee.stipend or 0.0
+            employee.stipend_annual = stipend * 12
+
             # =================================================
             # GROSS EARNINGS
             # Basic + HRA + Conveyance
             # =================================================
-            gross_earnings = basic + hra + conveyance
+            gross_earnings = basic + hra + conveyance + stipend
 
             employee.salary_structure_gross_earnings = gross_earnings
             employee.salary_structure_gross_earnings_annual = gross_earnings * 12
@@ -454,21 +485,35 @@ class Employee(models.Model):
             pf_employer = employee.l10n_in_pf_employer_amount or 0.0
             employee.pf_employer_annual = pf_employer * 12
 
-            # EDLI - Fixed ₹75 per month
-            edli = 75.0
+            # PF wage (Basic + DA). DA field irundha inga serunga.
+            pf_wage = basic  # + (employee.da_amount or 0.0)
+            restricted_wage = min(pf_wage, self.PF_WAGE_LIMIT)
+
+            # EDLI & EPF Admin: 0.5% of restricted wage, only if EPF employer != 0
+            edli = restricted_wage * self.EDLI_ADMIN_RATE if pf_employer else 0.0
             employee.edli_employer_amount = edli
             employee.edli_employer_annual = edli * 12
 
-            # EPF Admin Charges - Fixed ₹75 per month
-            epf_admin = 75.0
+            epf_admin = restricted_wage * self.EDLI_ADMIN_RATE if pf_employer else 0.0
             employee.epf_admin_amount = epf_admin
             employee.epf_admin_annual = epf_admin * 12
+
+            # Total EPF Contribution = EPF Employer + EDLI + Admin
+            total_epf = pf_employer + edli + epf_admin
+            employee.total_epf_amount = total_epf
+            employee.total_epf_annual = total_epf * 12
+
+            # Label: "Restrict Contribution to ₹25,000.00 of PF Wage"
+            employee.pf_wage_label = "Restrict Contribution to ₹{:,.2f} of PF Wage".format(
+                self.PF_WAGE_LIMIT
+            )
 
             # Cost to Company
             monthly_total = (
                     basic
                     + hra
                     + conveyance
+                    + stipend
                     + pf_employer
                     + edli
                     + epf_admin
@@ -802,22 +847,22 @@ class Employee(models.Model):
                             + (emp.financial_year_incentive or 0.0)
                     )
 
-                    print("\n")
-                    print("=" * 70)
-                    print("GAP MONTH TOTAL INCOME")
-                    print("Employee:", emp.name)
-                    print("Employee ID:", emp.id)
-                    print("=" * 70)
-                    print("Gap FY Income:", gap_income)
-                    print(
-                        "Financial Year Incentive:",
-                        emp.financial_year_incentive
-                    )
-                    print(
-                        "Total Income:",
-                        emp.total_income
-                    )
-                    print("=" * 70)
+
+                    # print("=" * 70)
+                    # print("GAP MONTH TOTAL INCOME")
+                    # print("Employee:", emp.name)
+                    # print("Employee ID:", emp.id)
+                    # print("=" * 70)
+                    # print("Gap FY Income:", gap_income)
+                    # print(
+                    #     "Financial Year Incentive:",
+                    #     emp.financial_year_incentive
+                    # )
+                    # print(
+                    #     "Total Income:",
+                    #     emp.total_income
+                    # )
+                    # print("=" * 70)
 
             # =====================================================
             # BASIC VALIDATION

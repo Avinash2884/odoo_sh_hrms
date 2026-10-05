@@ -152,6 +152,13 @@ class HrPayslip(models.Model):
     #         rec.ifsc_code = bank.ls_ifsc_code if bank else ""
     #         rec.account_number = bank.acc_number if bank else ""
 
+    fixed_basic = fields.Monetary(
+        related='employee_id.l10n_in_basic_salary_amount',
+        string='Fixed Basic',
+        currency_field='currency_id',
+        readonly=True,
+    )
+
     basic = fields.Monetary(
         string="Basic",
         compute="_compute_basic_salary",
@@ -164,6 +171,13 @@ class HrPayslip(models.Model):
         for slip in self:
             basic_line = slip.line_ids.filtered(lambda l: l.code == 'BASIC')[:1]
             slip.basic = basic_line.total if basic_line else 0.0
+
+    fixed_hra = fields.Monetary(
+        related='employee_id.l10n_in_hra',
+        string='Fixed HRA',
+        currency_field='currency_id',
+        readonly=True,
+    )
 
     hra = fields.Monetary(
         string="HRA",
@@ -178,6 +192,8 @@ class HrPayslip(models.Model):
             hra_line = slip.line_ids.filtered(lambda l: l.code == 'HRA')[:1]
             slip.hra = hra_line.total if hra_line else 0.0
 
+
+
     special_allowance = fields.Monetary(
         string="Special Allowance",
         compute="_compute_special_allowance",
@@ -190,6 +206,13 @@ class HrPayslip(models.Model):
         for slip in self:
             special_line = slip.line_ids.filtered(lambda l: l.code == 'SPI')[:1]
             slip.special_allowance = special_line.total if special_line else 0.0
+
+    fixed_conveyance = fields.Monetary(
+        related='employee_id.conveyance_allowance',
+        string='Fixed Conveyance',
+        currency_field='currency_id',
+        readonly=True,
+    )
 
     conveyance_allowance = fields.Monetary(
         string="Conveyance Allowance",
@@ -351,6 +374,20 @@ class HrPayslip(models.Model):
         readonly=True
     )
 
+    epf_total = fields.Monetary(
+        related='employee_id.total_epf_amount',
+        string='EPF',
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    ctc = fields.Monetary(
+        related='employee_id.salary_structure_monthly_total',
+        string='CTC/Month',
+        currency_field='currency_id',
+        readonly=True,
+    )
+
     gross = fields.Monetary(
         related='employee_id.wage',
         string='Fixed Monthly Earnings',
@@ -501,17 +538,11 @@ class HrPayslip(models.Model):
         currency_field="currency_id",
     )
 
-    @api.depends(
-        'employee_id.tds_amount_new_month',
-        'employee_id.tds_amount_month'
-    )
+    @api.depends('line_ids.total', 'line_ids.code')
     def _compute_income_tax(self):
-        for rec in self:
-            rec.income_tax = (
-                    rec.employee_id.tds_amount_new_month
-                    or rec.employee_id.tds_amount_month
-                    or 0.0
-            )
+        for slip in self:
+            tds_line = slip.line_ids.filtered(lambda l: l.code == 'TDS')[:1]
+            slip.income_tax = abs(tds_line.total) if tds_line else 0.0
 
             # @api.onchange(
 

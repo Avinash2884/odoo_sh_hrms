@@ -140,6 +140,32 @@
 
                     </div>
 
+                                        <!-- STIPEND -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;">
+
+                        <div>
+                            Stipend
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="stipend"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="stipend_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+
 
                     <!-- GROSS EARNINGS -->
                     <div style="display:grid;
@@ -189,10 +215,7 @@
                                 EPF - Employer Contribution
                             </div>
 
-                            <span style="font-size:10px;
-                                         color:#6c757d;">
-                                (12.00% of Restricted PF Wages)
-                            </span>
+
 
                         </div>
 
@@ -277,6 +300,32 @@
 
                         <div style="text-align:right;">
                             <field name="epf_admin_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+                                        <!-- TOTAL EPF CONTRIBUTION -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;
+                                font-weight:600;">
+
+                        <div>
+                            Total EPF Contribution
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="total_epf_amount"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="total_epf_annual"
                                    nolabel="1"
                                    widget="monetary"
                                    readonly="1"/>
