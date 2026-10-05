@@ -53,7 +53,7 @@ class HrContractSalaryOffer(models.Model):
         store=True
     )
     special_allowance = fields.Float(
-        string="Special Allowances",
+        string="Conveyance Allowance",
         compute="_compute_salary_breakup",
         store=True
     )
@@ -81,7 +81,7 @@ class HrContractSalaryOffer(models.Model):
     )
 
     special_allowance_annual = fields.Float(
-        string="Special Allowance (Annual)",
+        string="Conveyance Allowance (Annual)",
         compute="_compute_salary_breakup",
         store=True
     )
