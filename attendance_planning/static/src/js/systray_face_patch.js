@@ -333,7 +333,7 @@ export class FaceVerificationDialog extends Component {
             }
             const arr = new Float32Array(JSON.parse(myDescriptor));
             const labeledDescriptors = [new faceapi.LabeledFaceDescriptors("CurrentUser", [arr])];
-            const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.45);
+            const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
 
             const bestMatch = faceMatcher.findBestMatch(liveDescriptor);
             const isMatch = bestMatch.label === "CurrentUser";
