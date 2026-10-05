@@ -81,7 +81,7 @@
                                    readonly="not is_hr_head or internal_state in (False,'submitted','hr_approved',
                                    'hr_rejected','handing_approved','handing_rejected','clearance_approved',
                                    'clearance_rejected','exit_approved','exit_rejected','revoked')"/>
-                            <field name="confirmed_employee_notice_period" invisible="0"/>
+                            <field name="confirmed_employee_notice_period" invisible="1"/>
                             <field name="replace"
                                     readonly="internal_state != 'submitted'" groups="separation.group_separation_reporting_manager"/>
                             <field name="reason_for_resignation" placeholder="Voluntary Resignation" invisible="1"/>
