@@ -108,9 +108,10 @@ class HrContractSalaryOffer(models.Model):
     @api.depends('final_yearly_costs')
     def _compute_salary_breakup(self):
         for rec in self:
-            ctc = rec.final_yearly_costs or 0.0
+            # final_yearly_costs is being used as Monthly CTC
+            monthly_ctc = rec.final_yearly_costs or 0.0
 
-            if not ctc:
+            if not monthly_ctc:
                 rec.basic_pay = 0.0
                 rec.hra = 0.0
                 rec.special_allowance = 0.0
@@ -125,46 +126,47 @@ class HrContractSalaryOffer(models.Model):
                 continue
 
             # ---------------------------------
-            # Monthly CTC
+            # Basic + DA
             # ---------------------------------
-            monthly_ctc = ctc / 12
+            basic_da = monthly_ctc * 0.50
+
+            if basic_da >= 21500:
+                basic_da = basic_da
+            else:
+                basic_da = 21075.0
 
             # ---------------------------------
             # Basic Pay
             # ---------------------------------
-            basic_50_percent = monthly_ctc * 0.50
-
-            if basic_50_percent >= 21500:
-                monthly_basic = basic_50_percent
-            else:
+            if basic_da >= 21500:
                 monthly_basic = 21075.0
+            else:
+                monthly_basic = basic_da
 
             # ---------------------------------
             # Employer PF
             # ---------------------------------
-            if monthly_basic >= 25000:
+            if basic_da >= 25000:
                 monthly_pf = 3250.0
             else:
-                monthly_pf = monthly_basic * 0.13
+                monthly_pf = basic_da * 0.13
 
             # ---------------------------------
-            # Gross Pay
+            # Gross
             # ---------------------------------
             monthly_gross = monthly_ctc - monthly_pf
 
             # ---------------------------------
             # HRA
             # ---------------------------------
-            hra_60_percent = monthly_basic * 0.60
-            gross_minus_basic = monthly_gross - monthly_basic
+            hra_60_percent = basic_da * 0.60
+            gross_minus_basic_da = monthly_gross - basic_da
 
-            # Take the lower value
             monthly_hra = min(
                 hra_60_percent,
-                gross_minus_basic
+                gross_minus_basic_da
             )
 
-            # Round HRA to nearest 10
             monthly_hra = round(monthly_hra / 10) * 10
 
             # ---------------------------------
@@ -172,15 +174,16 @@ class HrContractSalaryOffer(models.Model):
             # ---------------------------------
             monthly_conveyance = (
                     monthly_gross
-                    - monthly_basic
+                    - basic_da
                     - monthly_hra
             )
 
-            # Round Conveyance to nearest 10
-            monthly_conveyance = round(monthly_conveyance / 10) * 10
+            monthly_conveyance = round(
+                monthly_conveyance / 10
+            ) * 10
 
             # ---------------------------------
-            # Assign Monthly Values
+            # Monthly values
             # ---------------------------------
             rec.basic_pay = monthly_basic
             rec.hra = monthly_hra
@@ -189,7 +192,7 @@ class HrContractSalaryOffer(models.Model):
             rec.employer_pf = monthly_pf
 
             # ---------------------------------
-            # Annual Values
+            # Annual values
             # ---------------------------------
             rec.basic_pay_annual = monthly_basic * 12
             rec.hra_annual = monthly_hra * 12
