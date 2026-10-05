@@ -358,6 +358,12 @@ class Employee(models.Model):
         currency_field="currency_id",
     )
 
+    stipend_annual = fields.Monetary(
+        string="Stipend (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
     pf_employer_annual = fields.Monetary(
         string="PF Employer Contribution (Annual)",
         compute="_compute_salary_structure_amounts",
@@ -416,6 +422,26 @@ class Employee(models.Model):
         currency_field="currency_id",
     )
 
+    PF_WAGE_LIMIT = 25000.0
+    EDLI_ADMIN_RATE = 0.005
+
+    total_epf_amount = fields.Monetary(
+        string="Total EPF Contribution",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    total_epf_annual = fields.Monetary(
+        string="Total EPF Contribution (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    pf_wage_label = fields.Char(
+        string="PF Wage Label",
+        compute="_compute_salary_structure_amounts",
+    )
+
     # =========================================================
     # SALARY STRUCTURE CALCULATION
     # =========================================================
@@ -424,6 +450,7 @@ class Employee(models.Model):
         'l10n_in_basic_salary_amount',
         'l10n_in_hra',
         'conveyance_allowance',
+        'stipend',
         'l10n_in_pf_employer_amount',
     )
     def _compute_salary_structure_amounts(self):
@@ -441,11 +468,15 @@ class Employee(models.Model):
             conveyance = employee.conveyance_allowance or 0.0
             employee.conveyance_annual = conveyance * 12
 
+            # Stipend
+            stipend = employee.stipend or 0.0
+            employee.stipend_annual = stipend * 12
+
             # =================================================
             # GROSS EARNINGS
             # Basic + HRA + Conveyance
             # =================================================
-            gross_earnings = basic + hra + conveyance
+            gross_earnings = basic + hra + conveyance + stipend
 
             employee.salary_structure_gross_earnings = gross_earnings
             employee.salary_structure_gross_earnings_annual = gross_earnings * 12
@@ -454,21 +485,35 @@ class Employee(models.Model):
             pf_employer = employee.l10n_in_pf_employer_amount or 0.0
             employee.pf_employer_annual = pf_employer * 12
 
-            # EDLI - Fixed ₹75 per month
-            edli = 75.0
+            # PF wage (Basic + DA). DA field irundha inga serunga.
+            pf_wage = basic  # + (employee.da_amount or 0.0)
+            restricted_wage = min(pf_wage, self.PF_WAGE_LIMIT)
+
+            # EDLI & EPF Admin: 0.5% of restricted wage, only if EPF employer != 0
+            edli = restricted_wage * self.EDLI_ADMIN_RATE if pf_employer else 0.0
             employee.edli_employer_amount = edli
             employee.edli_employer_annual = edli * 12
 
-            # EPF Admin Charges - Fixed ₹75 per month
-            epf_admin = 75.0
+            epf_admin = restricted_wage * self.EDLI_ADMIN_RATE if pf_employer else 0.0
             employee.epf_admin_amount = epf_admin
             employee.epf_admin_annual = epf_admin * 12
+
+            # Total EPF Contribution = EPF Employer + EDLI + Admin
+            total_epf = pf_employer + edli + epf_admin
+            employee.total_epf_amount = total_epf
+            employee.total_epf_annual = total_epf * 12
+
+            # Label: "Restrict Contribution to ₹25,000.00 of PF Wage"
+            employee.pf_wage_label = "Restrict Contribution to ₹{:,.2f} of PF Wage".format(
+                self.PF_WAGE_LIMIT
+            )
 
             # Cost to Company
             monthly_total = (
                     basic
                     + hra
                     + conveyance
+                    + stipend
                     + pf_employer
                     + edli
                     + epf_admin
@@ -802,22 +847,22 @@ class Employee(models.Model):
                             + (emp.financial_year_incentive or 0.0)
                     )
 
-                    print("\n")
-                    print("=" * 70)
-                    print("GAP MONTH TOTAL INCOME")
-                    print("Employee:", emp.name)
-                    print("Employee ID:", emp.id)
-                    print("=" * 70)
-                    print("Gap FY Income:", gap_income)
-                    print(
-                        "Financial Year Incentive:",
-                        emp.financial_year_incentive
-                    )
-                    print(
-                        "Total Income:",
-                        emp.total_income
-                    )
-                    print("=" * 70)
+
+                    # print("=" * 70)
+                    # print("GAP MONTH TOTAL INCOME")
+                    # print("Employee:", emp.name)
+                    # print("Employee ID:", emp.id)
+                    # print("=" * 70)
+                    # print("Gap FY Income:", gap_income)
+                    # print(
+                    #     "Financial Year Incentive:",
+                    #     emp.financial_year_incentive
+                    # )
+                    # print(
+                    #     "Total Income:",
+                    #     emp.total_income
+                    # )
+                    # print("=" * 70)
 
             # =====================================================
             # BASIC VALIDATION
@@ -2745,5 +2790,94 @@ class Employee(models.Model):
             },
         }
 
-
-
+    #     # ==========================================================================
+    #     # ADD THIS INSIDE class Employee(models.Model): in hr_employee_inherit.py
+    #     # Paste anywhere inside the class (e.g. right after _compute_tds_amount_new).
+    #     # Do NOT modify anything else. Decimal / ROUND_HALF_UP are already
+    #     # imported at the top of your file, so no new imports needed.
+    #     # ==========================================================================
+    #
+    # def _get_tds_slab_breakdown(self):
+    #         """
+    #         Returns the income-tax slab breakdown as a list of dicts, so the
+    #         TDS Sheet report can print the exact slab-wise split shown in
+    #         the official TDS worksheet (Section 12 in your screenshot).
+    #
+    #         Uses the SAME slab numbers as your existing
+    #         _compute_tds_amount_new() (new regime) and
+    #         _compute_tds_amount() (old regime) methods.
+    #
+    #         IMPORTANT: if those two methods' slab numbers ever change in
+    #         future (budget updates etc.), update the numbers here too -
+    #         this method does NOT read from them automatically, it mirrors
+    #         them, to avoid touching your existing tested calculation code.
+    #         """
+    #         self.ensure_one()
+    #
+    #         taxable_income = self.net_taxable_income or 0.0
+    #         lines = []
+    #
+    #         if self.tax_regime == 'new':
+    #
+    #             # Round to nearest 10 - same as _compute_tds_amount_new
+    #             rounded_income = float(
+    #                 Decimal(str(taxable_income)).quantize(
+    #                     Decimal('1E1'), rounding=ROUND_HALF_UP
+    #                 )
+    #             )
+    #
+    #             slabs = [
+    #                 (0, 400000, 0.05),  # displayed rate label per slab
+    #                 (400000, 800000, 0.05),
+    #                 (800000, 1200000, 0.10),
+    #                 (1200000, 1600000, 0.15),
+    #                 (1600000, 2000000, 0.20),
+    #                 (2000000, 2400000, 0.25),
+    #                 (2400000, None, 0.30),
+    #             ]
+    #             # First slab (0-4L) is always 0% tax - fix the rate:
+    #             slabs[0] = (0, 400000, 0.00)
+    #
+    #             for low, high, rate in slabs:
+    #                 if rounded_income <= low:
+    #                     break
+    #
+    #                 upper = min(rounded_income, high) if high else rounded_income
+    #                 slab_amount = max(upper - low, 0.0)
+    #                 tax_amount = round(slab_amount * rate, 2)
+    #
+    #                 lines.append({
+    #                     'range_from': low,
+    #                     'range_to': high,
+    #                     'rate': rate * 100,
+    #                     'tax_amount': tax_amount,
+    #                 })
+    #
+    #         elif self.tax_regime == 'old':
+    #
+    #             slabs = [
+    #                 (0, 250000, 0.00),
+    #                 (250000, 500000, 0.05),
+    #                 (500000, 1000000, 0.20),
+    #                 (1000000, None, 0.30),
+    #             ]
+    #
+    #             for low, high, rate in slabs:
+    #                 if taxable_income <= low:
+    #                     break
+    #
+    #                 upper = min(taxable_income, high) if high else taxable_income
+    #                 slab_amount = max(upper - low, 0.0)
+    #                 tax_amount = round(slab_amount * rate, 2)
+    #
+    #                 lines.append({
+    #                     'range_from': low,
+    #                     'range_to': high,
+    #                     'rate': rate * 100,
+    #                     'tax_amount': tax_amount,
+    #                 })
+    #
+    #         return lines
+    #
+    #
+    #

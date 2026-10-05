@@ -2,7 +2,7 @@
 {
     'name': "Approval-Recruitment",
     'version': '1.0.0',
-    'depends': ['base','hr','mail','approvals','hr_recruitment','hr_skills','hr_appraisal','survey','hr_attendance','calendar',
+    'depends': ['base','hr','mail','web','approvals','hr_recruitment','hr_skills','hr_appraisal','survey','hr_attendance','calendar',
                 'hr_contract_salary','account','website_hr_recruitment','hr_appraisal_skills','hr_appraisal_survey',
                 'planning','documents'],
     'summary': "Approval-Man Power",
@@ -46,6 +46,8 @@
         'views/hr_employee_public.xml',
         'views/mail_compose_message_inherit.xml',
         'views/res_users.xml',
+        'views/base_document_layout_views.xml',
+        'views/recruitment_hr_head_details.xml',
 
         'report/evaluation_report_template.xml',
         # 'report/evaluation_report.xml',
@@ -59,6 +61,7 @@
         'report/appointment_letter/full_time_employee_appointment_letter.xml',
         'report/appointment_letter/hse_appointment_letter.xml',
 
+        'report/custom_template_report.xml',
         'report/probation_extension_letter.xml',
         'report/employment_confirmation_letter.xml',
         'report/experience_certificate.xml',

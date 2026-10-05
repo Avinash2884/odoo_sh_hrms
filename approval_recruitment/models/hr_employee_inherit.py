@@ -41,22 +41,22 @@ class HrEmployeeInherit(models.Model):
     employee_notice_period = fields.Integer(string="Probation Notice Period",tracking=True)
     confirmed_employee_notice_period = fields.Integer(string="Confirmed Notice Period",tracking=True)
     probation_in_months = fields.Integer(string="Probation in Months",tracking=True)
-    last_working_date_employee = fields.Date(
-        string="Last Working Date",
-        compute="_compute_last_working_date",
-        store=True,
-        tracking=True
-    )
-
-    @api.depends('confirmed_employee_notice_period')
-    def _compute_last_working_date(self):
-        for rec in self:
-            if rec.confirmed_employee_notice_period:
-                rec.last_working_date_employee = fields.Date.today() + timedelta(
-                    days=rec.confirmed_employee_notice_period
-                )
-            else:
-                rec.last_working_date_employee = False
+    # last_working_date_employee = fields.Date(
+    #     string="Last Working Date",
+    #     compute="_compute_last_working_date",
+    #     store=True,
+    #     tracking=True
+    # )
+    #
+    # @api.depends('confirmed_employee_notice_period')
+    # def _compute_last_working_date(self):
+    #     for rec in self:
+    #         if rec.confirmed_employee_notice_period:
+    #             rec.last_working_date_employee = fields.Date.today() + timedelta(
+    #                 days=rec.confirmed_employee_notice_period
+    #             )
+    #         else:
+    #             rec.last_working_date_employee = False
 
     @api.depends('wage')
     def _compute_wage_appointment_letter(self):
@@ -137,54 +137,54 @@ class HrEmployeeInherit(models.Model):
     ls_date_of_exit = fields.Date(string="Date of Exit", copy=False, tracking=True)
     ls_date_of_resignation = fields.Date(string="Date of Resignation", copy=False, tracking=True)
 
-    dependant_name_1 = fields.Char(string="Dependant Name 1")
-    dependant_dob_1 = fields.Char(string="Dependant DOB 1")
-    relationship_status_1 = fields.Char(string="Relationships Status 1")
+    dependant_name_1 = fields.Char(string="Dependant Name 1", tracking=True)
+    dependant_dob_1 = fields.Char(string="Dependant DOB 1", tracking=True)
+    relationship_status_1 = fields.Char(string="Relationships Status 1", tracking=True)
 
-    dependant_name_2 = fields.Char(string="Dependant Name 2")
-    dependant_dob_2 = fields.Char(string="Dependant DOB 2")
-    relationship_status_2 = fields.Char(string="Relationships Status 2")
+    dependant_name_2 = fields.Char(string="Dependant Name 2", tracking=True)
+    dependant_dob_2 = fields.Char(string="Dependant DOB 2", tracking=True)
+    relationship_status_2 = fields.Char(string="Relationships Status 2", tracking=True)
 
-    dependant_name_3 = fields.Char(string="Dependant Name 3")
-    dependant_dob_3 = fields.Char(string="Dependant DOB 3")
-    relationship_status_3 = fields.Char(string="Relationships Status 3")
+    dependant_name_3 = fields.Char(string="Dependant Name 3", tracking=True)
+    dependant_dob_3 = fields.Char(string="Dependant DOB 3", tracking=True)
+    relationship_status_3 = fields.Char(string="Relationships Status 3", tracking=True)
 
-    permanent_street = fields.Char(string="Street")
-    permanent_street2 = fields.Char(string="Street 2")
-    permanent_city = fields.Char(string="City")
+    permanent_street = fields.Char(string="Street", tracking=True)
+    permanent_street2 = fields.Char(string="Street 2", tracking=True)
+    permanent_city = fields.Char(string="City", tracking=True)
     permanent_state_id = fields.Many2one(
         'res.country.state',
-        string="State"
+        string="State", tracking=True
     )
-    permanent_zip = fields.Char(string="ZIP")
+    permanent_zip = fields.Char(string="ZIP", tracking=True)
     permanent_country_id = fields.Many2one(
         'res.country',
-        string="Country"
+        string="Country", tracking=True
     )
     probation_extension_count = fields.Integer(
         string="Probation Extension Count",
         default=0,
-        help="Number of times probation period has been extended"
+        help="Number of times probation period has been extended", tracking=True
     )
     education_ids = fields.One2many(
         'hr.employee.education',
         'employee_id',
     )
-    nominee_name = fields.Char(string="Nominee Name")
+    nominee_name = fields.Char(string="Nominee Name", tracking=True)
     relationship = fields.Selection([
         ('father', 'Father'),
         ('mother', 'Mother'),
         ('guardian', 'Guardian'),
-    ],string="Relationships")
-    pf_percentage = fields.Float(string="Percentage")
+    ],string="Relationships", tracking=True)
+    pf_percentage = fields.Float(string="Percentage", tracking=True)
     pf_payment_mode = fields.Selection([
         ('cheque', 'Cheque'),
         ('account_transfer', 'Account Transfer'),
         ('cash', 'Cash'),
-    ],string="Payment Mode")
+    ],string="Payment Mode", tracking=True)
     applicant_id = fields.Many2one(
         'hr.applicant',
-        string="Applicant"
+        string="Applicant", tracking=True
     )
     # account_id = fields.Many2one(
     #     'account.sync',
@@ -618,57 +618,57 @@ class HrEmployeeInherit(models.Model):
     basic_pay = fields.Float(
         string="Basic Pay",
         compute="_compute_salary_breakup",
-        store=True
+        store=True, tracking=True
     )
     hra = fields.Float(
         string="HRA",
         compute="_compute_salary_breakup",
-        store=True
+        store=True, tracking=True
     )
     special_allowance = fields.Float(
         string="Special Allowances",
         compute="_compute_salary_breakup",
-        store=True
+        store=True, tracking=True
     )
     total_gross_pay = fields.Float(
         string="Total Gross Pay",
         compute="_compute_salary_breakup",
-        store=True
+        store=True, tracking=True
     )
     employer_pf = fields.Float(
         string="Employer PF",
         compute="_compute_salary_breakup",
-        store=True
+        store=True, tracking=True
     )
 
     basic_pay_annual = fields.Float(
         string="Basic Pay (Annual)",
         compute="_compute_salary_breakup",
-        store=True
+        store=True, tracking=True
     )
 
     hra_annual = fields.Float(
         string="HRA (Annual)",
         compute="_compute_salary_breakup",
-        store=True
+        store=True, tracking=True
     )
 
     special_allowance_annual = fields.Float(
         string="Special Allowance (Annual)",
         compute="_compute_salary_breakup",
-        store=True
+        store=True, tracking=True
     )
 
     total_gross_pay_annual = fields.Float(
         string="Total Gross Pay (Annual)",
         compute="_compute_salary_breakup",
-        store=True
+        store=True, tracking=True
     )
 
     employer_pf_annual = fields.Float(
         string="Employer PF (Annual)",
         compute="_compute_employer_pf_annual",
-        store=True
+        store=True, tracking=True
     )
 
     @api.depends('wage')

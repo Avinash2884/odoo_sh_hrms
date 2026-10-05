@@ -2,6 +2,7 @@ from num2words import num2words
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+import math
 
 
 class HrContractSalaryOffer(models.Model):
@@ -52,7 +53,7 @@ class HrContractSalaryOffer(models.Model):
         store=True
     )
     special_allowance = fields.Float(
-        string="Special Allowances",
+        string="Conveyance Allowance",
         compute="_compute_salary_breakup",
         store=True
     )
@@ -80,7 +81,7 @@ class HrContractSalaryOffer(models.Model):
     )
 
     special_allowance_annual = fields.Float(
-        string="Special Allowance (Annual)",
+        string="Conveyance Allowance (Annual)",
         compute="_compute_salary_breakup",
         store=True
     )
@@ -105,44 +106,178 @@ class HrContractSalaryOffer(models.Model):
                 return num2words(rec.offer_letter_notice_period).capitalize()
             return '-'
 
+    @staticmethod
+    def _round_excel(value, digits=0):
+        factor = 10 ** digits
+
+        if value >= 0:
+            return math.floor(value * factor + 0.5) / factor
+        else:
+            return math.ceil(value * factor - 0.5) / factor
+
+    @staticmethod
+    def _rounddown_excel(value, digits=-1):
+        factor = 10 ** (-digits)
+
+        if value >= 0:
+            return math.floor(value / factor) * factor
+        else:
+            return math.ceil(value / factor) * factor
+
     @api.depends('final_yearly_costs')
     def _compute_salary_breakup(self):
-        for rec in self:
-            ctc = rec.final_yearly_costs or 0.0
 
-            if not ctc:
-                rec.basic_pay = 0.0
-                rec.hra = 0.0
-                rec.special_allowance = 0.0
-                rec.total_gross_pay = 0.0
-                rec.employer_pf = 0.0
-                continue
+            for rec in self:
 
-            # Monthly Gross
-            monthly_gross = ctc / 12
+                # ====================================================
+                # B7 - Fixed CTC / Month
+                #
+                # final_yearly_costs is treated as MONTHLY CTC
+                # ====================================================
+                monthly_ctc = rec.final_yearly_costs or 0.0
 
-            # Salary Breakup
-            monthly_basic = monthly_gross * 0.50
-            monthly_hra = monthly_gross * 0.30
-            monthly_special = monthly_gross * 0.20
+                # ====================================================
+                # If CTC is zero
+                # ====================================================
+                if not monthly_ctc:
+                    rec.basic_pay = 0.0
+                    rec.hra = 0.0
+                    rec.special_allowance = 0.0
+                    rec.total_gross_pay = 0.0
+                    rec.employer_pf = 0.0
 
-            # Employer PF
-            if monthly_basic > 15000:
-                monthly_pf = 1800.0
-            else:
-                monthly_pf = monthly_basic * 0.12
+                    rec.basic_pay_annual = 0.0
+                    rec.hra_annual = 0.0
+                    rec.special_allowance_annual = 0.0
+                    rec.total_gross_pay_annual = 0.0
+                    rec.employer_pf_annual = 0.0
 
-            rec.total_gross_pay = monthly_gross
-            rec.basic_pay = monthly_basic
-            rec.hra = monthly_hra
-            rec.special_allowance = monthly_special
-            rec.employer_pf = monthly_pf
+                    continue
 
-            rec.basic_pay_annual = monthly_basic * 12
-            rec.hra_annual = monthly_hra * 12
-            rec.special_allowance_annual = monthly_special * 12
-            rec.total_gross_pay_annual = monthly_gross * 12
-            rec.employer_pf_annual = monthly_pf * 12
+                # ====================================================
+                # B2 - Basic + DA
+                #
+                # Excel:
+                # =IF((B7*50%)>=21500,B7*50%,21075)
+                # ====================================================
+                basic_50_percent = monthly_ctc * 0.50
+
+                if basic_50_percent >= 21500:
+                    monthly_basic = basic_50_percent
+                else:
+                    monthly_basic = 21075.0
+
+                # ====================================================
+                # B6 - EPF
+                #
+                # Excel:
+                # =ROUND(
+                #     IF((B2*13%)>=3250,3250,B2*13%),
+                #     0
+                # )
+                # ====================================================
+                pf_calculated = monthly_basic * 0.13
+
+                if pf_calculated >= 3250:
+                    monthly_pf = 3250.0
+                else:
+                    monthly_pf = pf_calculated
+
+                # Excel ROUND(..., 0)
+                monthly_pf = self._round_excel(
+                    monthly_pf,
+                    0
+                )
+
+                # ====================================================
+                # B5 - Gross
+                #
+                # Excel:
+                # =ROUND(B7-B6,0)
+                # ====================================================
+                monthly_gross = monthly_ctc - monthly_pf
+
+                # Excel ROUND(..., 0)
+                monthly_gross = self._round_excel(
+                    monthly_gross,
+                    0
+                )
+
+                # ====================================================
+                # B3 - HRA
+                #
+                # Excel:
+                #
+                # =ROUND(
+                #     IF(
+                #         (B2*60%)>(B5-B2),
+                #         B5-B2,
+                #         B2*60%
+                #     ),
+                #     -1
+                # )
+                # ====================================================
+
+                hra_60_percent = monthly_basic * 0.60
+
+                gross_minus_basic = (
+                        monthly_gross - monthly_basic
+                )
+
+                if hra_60_percent > gross_minus_basic:
+                    monthly_hra = gross_minus_basic
+                else:
+                    monthly_hra = hra_60_percent
+
+                # Excel ROUND(..., -1)
+                # Round to nearest 10
+                monthly_hra = self._round_excel(
+                    monthly_hra,
+                    -1
+                )
+
+                # ====================================================
+                # B4 - Conveyance
+                #
+                # Excel:
+                #
+                # =ROUNDDOWN(
+                #     (B5-B2-B3),
+                #     -1
+                # )
+                # ====================================================
+
+                monthly_conveyance = (
+                        monthly_gross
+                        - monthly_basic
+                        - monthly_hra
+                )
+
+                # Excel ROUNDDOWN(..., -1)
+                monthly_conveyance = self._rounddown_excel(
+                    monthly_conveyance,
+                    -1
+                )
+
+                # ====================================================
+                # Assign Monthly Values
+                # ====================================================
+
+                rec.basic_pay = monthly_basic
+                rec.hra = monthly_hra
+                rec.special_allowance = monthly_conveyance
+                rec.total_gross_pay = monthly_gross
+                rec.employer_pf = monthly_pf
+
+                # ====================================================
+                # Annual Values
+                # ====================================================
+
+                rec.basic_pay_annual = monthly_basic * 12
+                rec.hra_annual = monthly_hra * 12
+                rec.special_allowance_annual = monthly_conveyance * 12
+                rec.total_gross_pay_annual = monthly_gross * 12
+                rec.employer_pf_annual = monthly_pf * 12
 
     def _check_offer_template(self, report_name):
         for rec in self:
@@ -190,11 +325,11 @@ class HrContractSalaryOffer(models.Model):
                 if not record.applicant_id.ls_date_of_joining:
                     missing_fields.append("Date of Joining")
 
-                if not record.applicant_id.job_id.hr_head_name:
-                    missing_fields.append("HR Head Name")
-
-                if not record.applicant_id.job_id.hr_description:
-                    missing_fields.append("HR Description")
+                # if not record.applicant_id.job_id.hr_head_name:
+                #     missing_fields.append("HR Head Name")
+                #
+                # if not record.applicant_id.job_id.hr_description:
+                #     missing_fields.append("HR Description")
 
             # Company Details
             if not record.company_id:
@@ -266,11 +401,11 @@ class HrContractSalaryOffer(models.Model):
                 if not record.applicant_id.ls_date_of_joining:
                     missing_fields.append("Date of Joining")
 
-                if not record.applicant_id.job_id.hr_head_name:
-                    missing_fields.append("HR Head Name")
-
-                if not record.applicant_id.job_id.hr_description:
-                    missing_fields.append("HR Description")
+                # if not record.applicant_id.job_id.hr_head_name:
+                #     missing_fields.append("HR Head Name")
+                #
+                # if not record.applicant_id.job_id.hr_description:
+                #     missing_fields.append("HR Description")
 
             # Company Details
             if not record.company_id:
@@ -348,11 +483,11 @@ class HrContractSalaryOffer(models.Model):
                 if not record.applicant_id.ls_date_of_joining:
                     missing_fields.append("Date of Joining")
 
-                if not record.applicant_id.job_id.hr_head_name:
-                    missing_fields.append("HR Head Name")
-
-                if not record.applicant_id.job_id.hr_description:
-                    missing_fields.append("HR Description")
+                # if not record.applicant_id.job_id.hr_head_name:
+                #     missing_fields.append("HR Head Name")
+                #
+                # if not record.applicant_id.job_id.hr_description:
+                #     missing_fields.append("HR Description")
 
             if not record.company_id:
                 missing_fields.append("Company")
@@ -415,11 +550,12 @@ class HrContractSalaryOffer(models.Model):
                 missing_fields.append("Job Position")
 
             else:
-                if not record.applicant_id.job_id.hr_head_name:
-                    missing_fields.append("HR Head Name")
-
-                if not record.applicant_id.job_id.hr_description:
-                    missing_fields.append("HR Description")
+                pass
+                # if not record.applicant_id.job_id.hr_head_name:
+                #     missing_fields.append("HR Head Name")
+                #
+                # if not record.applicant_id.job_id.hr_description:
+                #     missing_fields.append("HR Description")
 
             # Company Details
             if not record.company_id:

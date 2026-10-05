@@ -759,6 +759,12 @@ class EmployeePublic(models.Model):
         readonly=True,
     )
 
+    stipend_annual = fields.Monetary(
+        string="Stipend (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
     pf_employer_annual = fields.Monetary(
         related='employee_id.pf_employer_annual',
         string="PF Employer Contribution (Annual)",
@@ -820,5 +826,25 @@ class EmployeePublic(models.Model):
         string="Annual Cost to Company",
         currency_field='currency_id',
         readonly=True,
+    )
+
+    PF_WAGE_LIMIT = 25000.0
+    EDLI_ADMIN_RATE = 0.005
+
+    total_epf_amount = fields.Monetary(
+        string="Total EPF Contribution",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    total_epf_annual = fields.Monetary(
+        string="Total EPF Contribution (Annual)",
+        compute="_compute_salary_structure_amounts",
+        currency_field="currency_id",
+    )
+
+    pf_wage_label = fields.Char(
+        string="PF Wage Label",
+        compute="_compute_salary_structure_amounts",
     )
 

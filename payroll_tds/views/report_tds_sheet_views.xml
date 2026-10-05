@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================
+         BUTTON on Payslip form - next to F&F Report
+         ================================================================ -->
+    <record id="view_hr_payslip_form_inherit_tds_sheet_button" model="ir.ui.view">
+        <field name="name">hr.payslip.form.inherit.tds.sheet.button</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//button[@name='action_print_fnf_report']"
+                   position="after">
+                <button name="action_print_tds_sheet"
+                        string="TDS Sheet"
+                        type="object"
+                        invisible="not tax_regime"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ================================================================
+         REPORT ACTION
+         ================================================================ -->
+    <record id="action_report_tds_sheet" model="ir.actions.report">
+        <field name="name">TDS Sheet</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">payroll_tds.report_tds_sheet_document</field>
+        <field name="report_file">payroll_tds.report_tds_sheet_document</field>
+        <field name="print_report_name">'TDS Sheet - %s - %s' % (object.employee_id.name, object.date_from.strftime('%B %Y') if object.date_from else '')</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ================================================================
+         QWEB TEMPLATE
+         ================================================================ -->
+    <template id="report_tds_sheet_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="values" t-value="o.get_tds_sheet_values()"/>
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-size: 12px;">
+
+                        <h2 style="margin-bottom: 0;">TDS WORK SHEET</h2>
+                        <p>
+                            for the month of
+                            <span t-esc="o.date_from" t-options="{'widget': 'date', 'format': 'MMMM yyyy'}"/>
+                        </p>
+
+                        <table class="table table-sm" style="margin-bottom: 10px;">
+                            <tr>
+                                <td><strong>EMPLOYEE NAME</strong><br/>
+                                    <span t-esc="values['employee'].name"/>, <span t-esc="o.employee_id.barcode or o.employee_id.id"/>
+                                </td>
+                                <td><strong>PAN</strong><br/>
+                                    <span t-esc="o.pan or ''"/>
+                                </td>
+                                <td><strong>DESIGNATION</strong><br/>
+                                    <span t-esc="o.job_position_id.name or ''"/>
+                                </td>
+                                <td><strong>TAX REGIME</strong><br/>
+                                    <span t-if="values['employee'].tax_regime == 'new'">New Regime</span>
+                                    <span t-if="values['employee'].tax_regime == 'old'">Old Regime</span>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p><strong>Details of salary paid and any other income and tax deducted</strong></p>
+
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Particulars</th>
+                                    <th class="text-right">Actual</th>
+                                    <th class="text-right">Projection</th>
+                                    <th class="text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="4"><strong>1) Gross Earnings</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Basic</td>
+                                    <td class="text-right"><span t-esc="values['gross_earnings']['basic']['actual']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="values['gross_earnings']['basic']['projection']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="values['gross_earnings']['basic']['total']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td>House Rent Allowance</td>
+                                    <td class="text-right"><span t-esc="values['gross_earnings']['hra']['actual']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="values['gross_earnings']['hra']['projection']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="values['gross_earnings']['hra']['total']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Special Allowance</td>
+                                    <td class="text-right"><span t-esc="values['gross_earnings']['special_allowance']['actual']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="values['gross_earnings']['special_allowance']['projection']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="values['gross_earnings']['special_allowance']['total']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr style="font-weight: bold;">
+                                    <td>Total Income</td>
+                                    <td class="text-right"><span t-esc="values['total_income_row']['actual']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="values['total_income_row']['projection']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="values['total_income_row']['total']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+
+                                <tr>
+                                    <td colspan="3"><strong>2) Allowance to the extent exempt under Section 11</strong></td>
+                                    <td class="text-right"><span t-esc="values['section_10_exempt']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr style="font-weight: bold;">
+                                    <td colspan="3">3) Total After Exemption (1-2)</td>
+                                    <td class="text-right"><span t-esc="values['total_after_exemption']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+
+                                <tr>
+                                    <td colspan="4"><strong>4) Taxable Income under Previous employment</strong></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">i) Income After Exemptions</td>
+                                    <td class="text-right"><span t-esc="values['prev_income_after_exemption']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">ii) Less: Professional Tax</td>
+                                    <td class="text-right"><span t-esc="values['prev_professional_tax']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr style="font-weight: bold;">
+                                    <td colspan="3">Total taxable income under Previous employment</td>
+                                    <td class="text-right"><span t-esc="values['prev_employment_total']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+
+                                <tr style="font-weight: bold;">
+                                    <td colspan="3">5) Gross Total (3+4)</td>
+                                    <td class="text-right"><span t-esc="values['gross_total']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+
+                                <tr>
+                                    <td colspan="4"><strong>6) Under Section 19</strong></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">a) Entertainment allowance</td>
+                                    <td class="text-right"><span t-esc="values['entertainment_allowance']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">b) Tax on employment</td>
+                                    <td class="text-right"><span t-esc="values['tax_on_employment']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">c) Standard Deduction</td>
+                                    <td class="text-right"><span t-esc="values['standard_deduction']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr style="font-weight: bold;">
+                                    <td colspan="3">Total Under Section 19</td>
+                                    <td class="text-right"><span t-esc="values['section_19_total']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+
+                                <tr style="font-weight: bold;">
+                                    <td colspan="3">7) Income Chargeable Under the Head Salaries (5-6)</td>
+                                    <td class="text-right"><span t-esc="values['income_chargeable_salaries']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+
+                                <tr>
+                                    <td colspan="3">8) Any other income reported by the employee / Total Income From Other Sources</td>
+                                    <td class="text-right"><span t-esc="values['other_income']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+
+                                <tr style="font-weight: bold; background-color: #f2f2f2;">
+                                    <td colspan="3">9) Gross Total Income (7+8)</td>
+                                    <td class="text-right"><span t-esc="values['gross_total_income']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="table table-sm table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td colspan="2"><strong>10) Deductions under Chapter VIII</strong></td>
+                                </tr>
+                                <tr style="font-weight: bold;">
+                                    <td>Total Deductions under Chapter VIII</td>
+                                    <td class="text-right"><span t-esc="values['chapter_via_total']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr style="font-weight: bold; background-color: #f2f2f2;">
+                                    <td>11) Total Income (Round to Nearest 10 Rupees) (9-10)</td>
+                                    <td class="text-right"><span t-esc="values['net_taxable_income']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <p><strong>12) Tax Calculation</strong></p>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Taxable Income Range</th>
+                                    <th class="text-right">Tax Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="values['slab_lines']" t-as="slab">
+                                    <td>
+                                        For <span t-esc="slab['range_from']"/> to
+                                        <span t-if="slab['range_to']" t-esc="slab['range_to']"/>
+                                        <span t-if="not slab['range_to']">above</span>
+                                        (<span t-esc="slab['rate']"/>%)
+                                    </td>
+                                    <td class="text-right"><span t-esc="slab['tax_amount']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr style="font-weight: bold;">
+                                    <td>Tax on total income</td>
+                                    <td class="text-right"><span t-esc="values['tax_on_total_income']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Less: Rebate Under Section 156(a)</td>
+                                    <td class="text-right"><span t-esc="values['rebate_amount']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Less: Relief Under Section 156(b)</td>
+                                    <td class="text-right"><span t-esc="values['relief_amount']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="table table-sm table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td colspan="2"><strong>13) Total Tax on income</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Surcharge Amount</td>
+                                    <td class="text-right"><span t-esc="values['surcharge_amount']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Education Cess 4%</td>
+                                    <td class="text-right"><span t-esc="values['cess_amount']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr style="font-weight: bold; background-color: #f2f2f2;">
+                                    <td>14) Tax Payable including Education Cess minus Relief Under Section 157</td>
+                                    <td class="text-right"><span t-esc="values['tax_payable']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="table table-sm table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td colspan="2"><strong>15) Tax Deducted at Source</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>i) TDS till last month</td>
+                                    <td class="text-right"><span t-esc="values['tds_till_last_month']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        ii) TDS for
+                                        <span t-esc="o.date_from" t-options="{'widget': 'date', 'format': 'MMMM'}"/>
+                                    </td>
+                                    <td class="text-right"><span t-esc="values['tds_this_month']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td>iii) TDS by Previous Employer</td>
+                                    <td class="text-right"><span t-esc="values['tds_previous_employer']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr style="font-weight: bold;">
+                                    <td>A) Total Tax Deducted at Source (i+ii+iii)</td>
+                                    <td class="text-right"><span t-esc="values['total_tds_deducted']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr style="font-weight: bold;">
+                                    <td>Tax Payable / Refundable (14 - 15A)</td>
+                                    <td class="text-right"><span t-esc="values['tax_payable_refundable']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td>TDS per month for the next remaining months</td>
+                                    <td class="text-right"><span t-esc="values['tds_per_month_remaining']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr style="font-weight: bold; background-color: #f2f2f2;">
+                                    <td>
+                                        TDS for
+                                        <span t-esc="o.date_from" t-options="{'widget': 'date', 'format': 'MMMM'}"/>
+                                    </td>
+                                    <td class="text-right"><span t-esc="values['tds_this_month']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

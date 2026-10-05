@@ -139,10 +139,10 @@ class HrEmployeeInherits(models.Model):
         related='employee_id.appointment_letter_type',
         readonly=True
     )
-    last_working_date_employee = fields.Date(
-        related='employee_id.last_working_date_employee',
-        readonly=True
-    )
+    # last_working_date_employee = fields.Date(
+    #     related='employee_id.last_working_date_employee',
+    #     readonly=True
+    # )
 
     employee_notice_period = fields.Integer(
         related='employee_id.employee_notice_period',

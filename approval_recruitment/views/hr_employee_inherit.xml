@@ -105,7 +105,7 @@
                 <field name="employee_notice_period" />
                 <field name="confirmed_employee_notice_period" />
                 <field name="probation_in_months" />
-                <field name="last_working_date_employee" invisible="0"/>
+<!--                <field name="last_working_date_employee" invisible="0"/>-->
                 <field name="entity_name_id" />
                 <field name="ls_role_id" />
                 <field name="band_id" />

@@ -152,6 +152,13 @@ class HrPayslip(models.Model):
     #         rec.ifsc_code = bank.ls_ifsc_code if bank else ""
     #         rec.account_number = bank.acc_number if bank else ""
 
+    fixed_basic = fields.Monetary(
+        related='employee_id.l10n_in_basic_salary_amount',
+        string='Fixed Basic',
+        currency_field='currency_id',
+        readonly=True,
+    )
+
     basic = fields.Monetary(
         string="Basic",
         compute="_compute_basic_salary",
@@ -164,6 +171,13 @@ class HrPayslip(models.Model):
         for slip in self:
             basic_line = slip.line_ids.filtered(lambda l: l.code == 'BASIC')[:1]
             slip.basic = basic_line.total if basic_line else 0.0
+
+    fixed_hra = fields.Monetary(
+        related='employee_id.l10n_in_hra',
+        string='Fixed HRA',
+        currency_field='currency_id',
+        readonly=True,
+    )
 
     hra = fields.Monetary(
         string="HRA",
@@ -178,6 +192,8 @@ class HrPayslip(models.Model):
             hra_line = slip.line_ids.filtered(lambda l: l.code == 'HRA')[:1]
             slip.hra = hra_line.total if hra_line else 0.0
 
+
+
     special_allowance = fields.Monetary(
         string="Special Allowance",
         compute="_compute_special_allowance",
@@ -190,6 +206,13 @@ class HrPayslip(models.Model):
         for slip in self:
             special_line = slip.line_ids.filtered(lambda l: l.code == 'SPI')[:1]
             slip.special_allowance = special_line.total if special_line else 0.0
+
+    fixed_conveyance = fields.Monetary(
+        related='employee_id.conveyance_allowance',
+        string='Fixed Conveyance',
+        currency_field='currency_id',
+        readonly=True,
+    )
 
     conveyance_allowance = fields.Monetary(
         string="Conveyance Allowance",
@@ -351,6 +374,20 @@ class HrPayslip(models.Model):
         readonly=True
     )
 
+    epf_total = fields.Monetary(
+        related='employee_id.total_epf_amount',
+        string='EPF',
+        currency_field='currency_id',
+        readonly=True,
+    )
+
+    ctc = fields.Monetary(
+        related='employee_id.salary_structure_monthly_total',
+        string='CTC/Month',
+        currency_field='currency_id',
+        readonly=True,
+    )
+
     gross = fields.Monetary(
         related='employee_id.wage',
         string='Fixed Monthly Earnings',
@@ -501,17 +538,11 @@ class HrPayslip(models.Model):
         currency_field="currency_id",
     )
 
-    @api.depends(
-        'employee_id.tds_amount_new_month',
-        'employee_id.tds_amount_month'
-    )
+    @api.depends('line_ids.total', 'line_ids.code')
     def _compute_income_tax(self):
-        for rec in self:
-            rec.income_tax = (
-                    rec.employee_id.tds_amount_new_month
-                    or rec.employee_id.tds_amount_month
-                    or 0.0
-            )
+        for slip in self:
+            tds_line = slip.line_ids.filtered(lambda l: l.code == 'TDS')[:1]
+            slip.income_tax = abs(tds_line.total) if tds_line else 0.0
 
             # @api.onchange(
 
@@ -1188,3 +1219,257 @@ class HrPayslip(models.Model):
 
         return current_month_tds
 
+    # # ==========================================================================
+    # # TDS SHEET - added on top of existing code (nothing above this line
+    # # was changed). Visible only when the employee has a Tax Regime set.
+    # # ==========================================================================
+    #
+    # tax_regime = fields.Selection(
+    #     related='employee_id.tax_regime',
+    #     string='Tax Regime',
+    #     readonly=True,
+    # )
+    #
+    # def action_print_tds_sheet(self):
+    #     return self.env.ref(
+    #         'payroll_tds.action_report_tds_sheet'
+    #     ).report_action(self)
+    #
+    # def get_tds_sheet_values(self):
+    #     """
+    #     Build every value needed for the TDS Sheet report.
+    #
+    #     IMPORTANT: this method only READS already-computed / stored
+    #     fields from hr.employee and hr.payslip. It never recalculates
+    #     TDS from scratch. This guarantees the number printed on the
+    #     TDS Sheet always matches:
+    #       - payslip.income_tax        (what THIS payslip deducted)
+    #       - employee.tds_amount_new   (annual TDS - new regime)
+    #       - employee.tds_amount       (annual TDS - old regime)
+    #     """
+    #     self.ensure_one()
+    #
+    #     emp = self.employee_id
+    #
+    #     # -----------------------------------------------------
+    #     # Remaining months - SAME formula as
+    #     # employee._compute_tds_amount_new_month()
+    #     # -----------------------------------------------------
+    #     month = int(self.date_from.month) if self.date_from else 0
+    #
+    #     if month >= 4:
+    #         remaining_months = 16 - month
+    #     else:
+    #         remaining_months = 4 - month
+    #     remaining_months = max(remaining_months, 1)
+    #
+    #     # months still left AFTER this current payslip month
+    #     future_months = max(remaining_months - 1, 0)
+    #
+    #     # -----------------------------------------------------
+    #     # 1) GROSS EARNINGS  (Actual / Projection / Total)
+    #     # -----------------------------------------------------
+    #     basic_actual = self.basic or 0.0
+    #     hra_actual = self.hra or 0.0
+    #     sa_actual = self.special_allowance or 0.0
+    #
+    #     basic_projection = (emp.l10n_in_basic_salary_amount or 0.0) * future_months
+    #     hra_projection = (emp.l10n_in_hra or 0.0) * future_months
+    #     # NOTE: there is no separate "monthly Special Allowance" field
+    #     # stored on hr.employee today, so this assumes the current
+    #     # payslip's Special Allowance repeats every remaining month.
+    #     # Confirm this assumption / adjust if you have a better source.
+    #     sa_projection = sa_actual * future_months
+    #
+    #     gross_earnings = {
+    #         'basic': {
+    #             'actual': basic_actual,
+    #             'projection': basic_projection,
+    #             'total': basic_actual + basic_projection,
+    #         },
+    #         'hra': {
+    #             'actual': hra_actual,
+    #             'projection': hra_projection,
+    #             'total': hra_actual + hra_projection,
+    #         },
+    #         'special_allowance': {
+    #             'actual': sa_actual,
+    #             'projection': sa_projection,
+    #             'total': sa_actual + sa_projection,
+    #         },
+    #     }
+    #
+    #     total_income_row = {
+    #         'actual': basic_actual + hra_actual + sa_actual,
+    #         'projection': basic_projection + hra_projection + sa_projection,
+    #         'total': sum(v['total'] for v in gross_earnings.values()),
+    #     }
+    #
+    #     # -----------------------------------------------------
+    #     # 2) Allowance exempt under Section 10 - not tracked -> 0
+    #     #    (add a field later if you start tracking this)
+    #     # -----------------------------------------------------
+    #     section_10_exempt = 0.0
+    #     total_after_exemption = total_income_row['total'] - section_10_exempt
+    #
+    #     # -----------------------------------------------------
+    #     # 4) Previous employment income
+    #     # -----------------------------------------------------
+    #     prev_income_after_exemption = emp.previous_employment_income or 0.0
+    #     prev_professional_tax = emp.previous_employment_professional_tax or 0.0
+    #     prev_employment_total = prev_income_after_exemption + prev_professional_tax
+    #
+    #     # -----------------------------------------------------
+    #     # 5) Gross Total (3 + 4)
+    #     # -----------------------------------------------------
+    #     gross_total = total_after_exemption + prev_employment_total
+    #
+    #     # -----------------------------------------------------
+    #     # 6) Section 19 deductions
+    #     # -----------------------------------------------------
+    #     entertainment_allowance = emp.entertainment_allowance or 0.0
+    #     tax_on_employment = emp.tax_on_employment or 0.0
+    #     standard_deduction = emp.standard_deduction or 0.0
+    #     section_19_total = (
+    #         entertainment_allowance
+    #         + tax_on_employment
+    #         + standard_deduction
+    #     )
+    #
+    #     # -----------------------------------------------------
+    #     # 7) Income Chargeable Under Salaries (5 - 6)
+    #     # -----------------------------------------------------
+    #     income_chargeable_salaries = gross_total - section_19_total
+    #
+    #     # -----------------------------------------------------
+    #     # 8) Other income reported - not tracked -> 0
+    #     # -----------------------------------------------------
+    #     other_income = 0.0
+    #
+    #     # -----------------------------------------------------
+    #     # 9) Gross Total Income (7 + 8)
+    #     # -----------------------------------------------------
+    #     gross_total_income = income_chargeable_salaries + other_income
+    #
+    #     # -----------------------------------------------------
+    #     # 10) Chapter VI-A deductions (Old regime only)
+    #     # -----------------------------------------------------
+    #     chapter_via_total = 0.0
+    #     if emp.tax_regime == 'old':
+    #         chapter_via_total = (
+    #             (emp.section_80c or 0.0)
+    #             + (emp.section_80d or 0.0)
+    #             + (emp.section_80g or 0.0)
+    #             + (emp.nps or 0.0)
+    #             + (emp.section_123_80ccc or 0.0)
+    #             + (emp.section_124_1_80ccd_1 or 0.0)
+    #             + (emp.section_124_1b_80ccd_1b or 0.0)
+    #             + (emp.section_126_80d or 0.0)
+    #             + (emp.section_127_80dd or 0.0)
+    #             + (emp.section_128_80ddb or 0.0)
+    #             + (emp.section_129_80e or 0.0)
+    #             + (emp.section_130_80ee or 0.0)
+    #             + (emp.section_131_80eea or 0.0)
+    #             + (emp.section_132_80eeb or 0.0)
+    #             + (emp.section_133_80g or 0.0)
+    #             + (emp.section_134_80gg or 0.0)
+    #             + (emp.section_137_80ggc or 0.0)
+    #             + (emp.section_153_80tta or 0.0)
+    #             + (emp.section_154_80u or 0.0)
+    #             + min(emp.home_loan_interest or 0.0, 200000.0)
+    #         )
+    #
+    #     # -----------------------------------------------------
+    #     # 11) Total Income (9 - 10), rounded to nearest 10
+    #     #     -> this is ALREADY emp.net_taxable_income, reused
+    #     #        directly so nothing drifts from the real TDS calc.
+    #     # -----------------------------------------------------
+    #     net_taxable_income = emp.net_taxable_income or 0.0
+    #
+    #     # -----------------------------------------------------
+    #     # 12) Tax slab breakdown
+    #     # -----------------------------------------------------
+    #     slab_lines = emp._get_tds_slab_breakdown()
+    #     tax_on_total_income = sum(l['tax_amount'] for l in slab_lines)
+    #
+    #     rebate_amount = 0.0
+    #     if emp.tax_regime == 'new' and net_taxable_income <= 1200000:
+    #         rebate_amount = tax_on_total_income
+    #
+    #     # -----------------------------------------------------
+    #     # 13) Surcharge / Relief / Cess (already stored)
+    #     # -----------------------------------------------------
+    #     surcharge_amount = emp.surcharge_amount or 0.0
+    #     relief_amount = emp.relief_amount or 0.0
+    #     cess_amount = round(
+    #         (tax_on_total_income - rebate_amount + surcharge_amount) * 0.04,
+    #         2,
+    #     )
+    #
+    #     # -----------------------------------------------------
+    #     # 14) Tax Payable (already stored, annual)
+    #     # -----------------------------------------------------
+    #     if emp.tax_regime == 'new':
+    #         tax_payable = emp.tds_amount_new or 0.0
+    #     else:
+    #         tax_payable = emp.tds_amount or 0.0
+    #
+    #     # -----------------------------------------------------
+    #     # 15) Tax Deducted at Source
+    #     # -----------------------------------------------------
+    #     tds_till_last_month = emp.tds_till_last_month or 0.0
+    #
+    #     # SAME value the payslip itself deducted this month
+    #     # (hr_payslip._compute_income_tax) - guarantees match.
+    #     tds_this_month = self.income_tax or 0.0
+    #
+    #     tds_previous_employer = 0.0  # not tracked separately yet
+    #
+    #     total_tds_deducted = (
+    #         tds_till_last_month
+    #         + tds_this_month
+    #         + tds_previous_employer
+    #     )
+    #
+    #     tax_payable_refundable = tax_payable - total_tds_deducted
+    #
+    #     remaining_months_after_current = max(remaining_months - 1, 1)
+    #     tds_per_month_remaining = round(
+    #         (tax_payable - total_tds_deducted) / remaining_months_after_current,
+    #         2,
+    #     )
+    #
+    #     return {
+    #         'employee': emp,
+    #         'payslip': self,
+    #         'gross_earnings': gross_earnings,
+    #         'total_income_row': total_income_row,
+    #         'section_10_exempt': section_10_exempt,
+    #         'total_after_exemption': total_after_exemption,
+    #         'prev_income_after_exemption': prev_income_after_exemption,
+    #         'prev_professional_tax': prev_professional_tax,
+    #         'prev_employment_total': prev_employment_total,
+    #         'gross_total': gross_total,
+    #         'entertainment_allowance': entertainment_allowance,
+    #         'tax_on_employment': tax_on_employment,
+    #         'standard_deduction': standard_deduction,
+    #         'section_19_total': section_19_total,
+    #         'income_chargeable_salaries': income_chargeable_salaries,
+    #         'other_income': other_income,
+    #         'gross_total_income': gross_total_income,
+    #         'chapter_via_total': chapter_via_total,
+    #         'net_taxable_income': net_taxable_income,
+    #         'slab_lines': slab_lines,
+    #         'tax_on_total_income': tax_on_total_income,
+    #         'rebate_amount': rebate_amount,
+    #         'surcharge_amount': surcharge_amount,
+    #         'cess_amount': cess_amount,
+    #         'relief_amount': relief_amount,
+    #         'tax_payable': tax_payable,
+    #         'tds_till_last_month': tds_till_last_month,
+    #         'tds_this_month': tds_this_month,
+    #         'tds_previous_employer': tds_previous_employer,
+    #         'total_tds_deducted': total_tds_deducted,
+    #         'tax_payable_refundable': tax_payable_refundable,
+    #         'tds_per_month_remaining': tds_per_month_remaining,
+    #     }
