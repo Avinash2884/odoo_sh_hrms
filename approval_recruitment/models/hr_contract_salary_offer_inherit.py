@@ -108,7 +108,11 @@ class HrContractSalaryOffer(models.Model):
     @api.depends('final_yearly_costs')
     def _compute_salary_breakup(self):
         for rec in self:
-            # final_yearly_costs is being used as Monthly CTC
+
+            # ---------------------------------
+            # Fixed CTC / Month
+            # Excel B7
+            # ---------------------------------
             monthly_ctc = rec.final_yearly_costs or 0.0
 
             if not monthly_ctc:
@@ -126,65 +130,99 @@ class HrContractSalaryOffer(models.Model):
                 continue
 
             # ---------------------------------
-            # Basic + DA
-            # ---------------------------------
-            basic_da = monthly_ctc * 0.50
-
-            if basic_da >= 21500:
-                basic_da = basic_da
-            else:
-                basic_da = 21075.0
-
-            # ---------------------------------
             # Basic Pay
+            # Excel B2
+            #
+            # =IF((B7*50%)>=21500,B7*50%,21075)
             # ---------------------------------
-            if basic_da >= 21500:
-                monthly_basic = 21075.0
+            basic_50_percent = monthly_ctc * 0.50
+
+            if basic_50_percent >= 21500:
+                monthly_basic = basic_50_percent
             else:
-                monthly_basic = basic_da
+                monthly_basic = 21075.0
 
             # ---------------------------------
             # Employer PF
+            # Excel B6
+            #
+            # =ROUND(
+            #   IF((B2*13%)>=3250,3250,B2*13%),
+            #   0
+            # )
             # ---------------------------------
-            if basic_da >= 25000:
+            pf_calculated = monthly_basic * 0.13
+
+            if pf_calculated >= 3250:
                 monthly_pf = 3250.0
             else:
-                monthly_pf = basic_da * 0.13
+                monthly_pf = pf_calculated
+
+            # Excel ROUND(..., 0)
+            monthly_pf = math.floor(monthly_pf + 0.5)
 
             # ---------------------------------
             # Gross
+            # Excel B5
+            #
+            # =ROUND(B7-B6,0)
             # ---------------------------------
             monthly_gross = monthly_ctc - monthly_pf
 
+            # Excel ROUND(..., 0)
+            monthly_gross = math.floor(monthly_gross + 0.5)
+
             # ---------------------------------
             # HRA
+            # Excel B3
+            #
+            # =ROUND(
+            #   IF(
+            #      (B2*60%)>(B5-B2),
+            #      B5-B2,
+            #      B2*60%
+            #   ),
+            #   -1
+            # )
             # ---------------------------------
-            hra_60_percent = basic_da * 0.60
-            gross_minus_basic_da = monthly_gross - basic_da
 
-            monthly_hra = min(
-                hra_60_percent,
-                gross_minus_basic_da
-            )
+            hra_60_percent = monthly_basic * 0.60
+            gross_minus_basic = monthly_gross - monthly_basic
 
-            monthly_hra = round(monthly_hra / 10) * 10
+            if hra_60_percent > gross_minus_basic:
+                monthly_hra = gross_minus_basic
+            else:
+                monthly_hra = hra_60_percent
 
-            # ---------------------------------
-            # Conveyance Allowance
-            # ---------------------------------
-            monthly_conveyance = (
-                    monthly_gross
-                    - basic_da
-                    - monthly_hra
-            )
-
-            monthly_conveyance = round(
-                monthly_conveyance / 10
+            # Excel ROUND(..., -1)
+            # Nearest 10
+            monthly_hra = math.floor(
+                (monthly_hra / 10) + 0.5
             ) * 10
 
             # ---------------------------------
-            # Monthly values
+            # Conveyance
+            # Excel B4
+            #
+            # =ROUNDDOWN((B5-B2-B3),-1)
             # ---------------------------------
+
+            monthly_conveyance = (
+                    monthly_gross
+                    - monthly_basic
+                    - monthly_hra
+            )
+
+            # Excel ROUNDDOWN(..., -1)
+            # Always round DOWN to nearest 10
+            monthly_conveyance = (
+                    math.floor(monthly_conveyance / 10) * 10
+            )
+
+            # ---------------------------------
+            # Monthly Values
+            # ---------------------------------
+
             rec.basic_pay = monthly_basic
             rec.hra = monthly_hra
             rec.special_allowance = monthly_conveyance
@@ -192,8 +230,9 @@ class HrContractSalaryOffer(models.Model):
             rec.employer_pf = monthly_pf
 
             # ---------------------------------
-            # Annual values
+            # Annual Values
             # ---------------------------------
+
             rec.basic_pay_annual = monthly_basic * 12
             rec.hra_annual = monthly_hra * 12
             rec.special_allowance_annual = monthly_conveyance * 12
