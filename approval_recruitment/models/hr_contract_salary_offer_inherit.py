@@ -2,6 +2,7 @@ from num2words import num2words
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+import math
 
 
 class HrContractSalaryOffer(models.Model):
