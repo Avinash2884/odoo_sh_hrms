@@ -116,31 +116,84 @@ class HrContractSalaryOffer(models.Model):
                 rec.special_allowance = 0.0
                 rec.total_gross_pay = 0.0
                 rec.employer_pf = 0.0
+
+                rec.basic_pay_annual = 0.0
+                rec.hra_annual = 0.0
+                rec.special_allowance_annual = 0.0
+                rec.total_gross_pay_annual = 0.0
+                rec.employer_pf_annual = 0.0
                 continue
 
-            # Monthly Gross
-            monthly_gross = ctc / 12
+            # ---------------------------------
+            # Monthly CTC
+            # ---------------------------------
+            monthly_ctc = ctc / 12
 
-            # Salary Breakup
-            monthly_basic = monthly_gross * 0.50
-            monthly_hra = monthly_gross * 0.30
-            monthly_special = monthly_gross * 0.20
+            # ---------------------------------
+            # Basic Pay
+            # ---------------------------------
+            basic_50_percent = monthly_ctc * 0.50
 
-            # Employer PF
-            if monthly_basic > 15000:
-                monthly_pf = 1800.0
+            if basic_50_percent >= 21500:
+                monthly_basic = basic_50_percent
             else:
-                monthly_pf = monthly_basic * 0.12
+                monthly_basic = 21075.0
 
-            rec.total_gross_pay = monthly_gross
+            # ---------------------------------
+            # Employer PF
+            # ---------------------------------
+            if monthly_basic >= 25000:
+                monthly_pf = 3250.0
+            else:
+                monthly_pf = monthly_basic * 0.13
+
+            # ---------------------------------
+            # Gross Pay
+            # ---------------------------------
+            monthly_gross = monthly_ctc - monthly_pf
+
+            # ---------------------------------
+            # HRA
+            # ---------------------------------
+            hra_60_percent = monthly_basic * 0.60
+            gross_minus_basic = monthly_gross - monthly_basic
+
+            # Take the lower value
+            monthly_hra = min(
+                hra_60_percent,
+                gross_minus_basic
+            )
+
+            # Round HRA to nearest 10
+            monthly_hra = round(monthly_hra / 10) * 10
+
+            # ---------------------------------
+            # Conveyance Allowance
+            # ---------------------------------
+            monthly_conveyance = (
+                    monthly_gross
+                    - monthly_basic
+                    - monthly_hra
+            )
+
+            # Round Conveyance to nearest 10
+            monthly_conveyance = round(monthly_conveyance / 10) * 10
+
+            # ---------------------------------
+            # Assign Monthly Values
+            # ---------------------------------
             rec.basic_pay = monthly_basic
             rec.hra = monthly_hra
-            rec.special_allowance = monthly_special
+            rec.special_allowance = monthly_conveyance
+            rec.total_gross_pay = monthly_gross
             rec.employer_pf = monthly_pf
 
+            # ---------------------------------
+            # Annual Values
+            # ---------------------------------
             rec.basic_pay_annual = monthly_basic * 12
             rec.hra_annual = monthly_hra * 12
-            rec.special_allowance_annual = monthly_special * 12
+            rec.special_allowance_annual = monthly_conveyance * 12
             rec.total_gross_pay_annual = monthly_gross * 12
             rec.employer_pf_annual = monthly_pf * 12
 
