@@ -52,6 +52,7 @@
                         <p style="margin-bottom: 5px;">To,</p>
 
                         <p style="margin-top: 0px;">
+                            <p>To,</p>
                             <strong><t t-esc="object.applicant_id.partner_name or '-'"/></strong><br/>
 
                             <t t-if="object.applicant_id.mailing_address">
