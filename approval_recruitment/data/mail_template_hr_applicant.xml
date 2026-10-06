@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<odoo>6
     <data>
         <record id="mail_template_offer_letter_release_notification" model="mail.template">
             <field name="name">Offer Letter : Release Notification</field>
@@ -157,3 +157,5 @@
         </record>
     </data>
 </odoo>
+
+

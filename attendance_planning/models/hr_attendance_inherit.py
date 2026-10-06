@@ -111,42 +111,6 @@ class HrAttendance(models.Model):
                 emp.resource_calendar_id or self.env.company.resource_calendar_id
         )
 
-    # def _get_shift_times(self):
-    #     self.ensure_one()
-    #     cal = self._get_shift_calendar()
-    #     if not cal or not self.check_in:
-    #         return False, False
-    #
-    #     tz = pytz.timezone(cal.tz or self.employee_id.tz or 'UTC')
-    #     check_in_local = fields.Datetime.context_timestamp(self, self.check_in)
-    #     weekday = str(check_in_local.weekday())
-    #
-    #     shifts = cal.attendance_ids.filtered(
-    #         lambda a: a.dayofweek == weekday and a.day_period != 'lunch'
-    #     )
-    #     if not shifts:
-    #         return False, False
-    #
-    #     first_shift = min(shifts, key=lambda s: s.hour_from)
-    #     last_shift = max(shifts, key=lambda s: s.hour_to)
-    #
-    #     shift_start_local = tz.localize(datetime.combine(
-    #         check_in_local.date(),
-    #         time(int(first_shift.hour_from), int((first_shift.hour_from % 1) * 60))
-    #     ))
-    #     shift_end_local = tz.localize(datetime.combine(
-    #         check_in_local.date(),
-    #         time(int(last_shift.hour_to), int((last_shift.hour_to % 1) * 60))
-    #     ))
-    #
-    #     if last_shift.hour_to < first_shift.hour_from:
-    #         shift_end_local += timedelta(days=1)
-    #
-    #     return (
-    #         shift_start_local.astimezone(pytz.UTC).replace(tzinfo=None),
-    #         shift_end_local.astimezone(pytz.UTC).replace(tzinfo=None),
-    #     )
-
     def _get_shift_times(self):
         self.ensure_one()
 
@@ -710,6 +674,151 @@ class HrAttendance(models.Model):
 
 
 
+    # ==========================================================
+    # AUTO-CHECKOUT REMINDER (post-shift nudge popup)
+    # ==========================================================
+    @api.model
+    def get_open_session_reminder_info(self):
+        """Called every minute by the client-side reminder timer.
+        Tells the JS whether the employee is still checked in, and if so,
+        what the shift-end time is (UTC ISO string) so the JS can decide
+        locally when to start/keep popping the reminder. Read-only —
+        never mutates anything.
+
+        TEST MODE: if the system parameter
+        'attendance_planning.auto_checkout_test_mode' is set to 'True',
+        the real shift-end calculation is bypassed and "shift end" is
+        treated as (check_in + 1 minute), and the JS is told to use a
+        much shorter grace/ignore window — purely so this feature can be
+        tested in a couple of minutes instead of waiting for a real
+        shift to end. Leave this OFF ('False' or unset) in production —
+        it does not change anything else about the module."""
+        employee = self.env.user.employee_id
+        if not employee:
+            return False
+
+        att = self.search([
+            ('employee_id', '=', employee.id),
+            ('check_out', '=', False),
+        ], order='check_in desc', limit=1)
+
+        if not att:
+            return False
+
+        test_mode = self.env['ir.config_parameter'].sudo().get_param(
+            'attendance_planning.auto_checkout_test_mode', 'False'
+        ) == 'True'
+
+        if test_mode:
+            shift_end = att.check_in + timedelta(minutes=1)
+        else:
+            _, shift_end = att._get_shift_times()
+
+        if not shift_end:
+            return False
+
+        return {
+            'attendance_id': att.id,
+            'shift_end': fields.Datetime.to_string(shift_end),
+            'server_now': fields.Datetime.to_string(fields.Datetime.now()),
+            'test_mode': test_mode,
+        }
+
+    @api.model
+    def keep_working_ping(self, attendance_id):
+        """Called when the employee taps 'Yes' on the reminder popup.
+        Purely a heartbeat for now — kept as its own endpoint in case you
+        later want to log every 'still working' confirmation."""
+        att = self.browse(attendance_id).exists()
+        if not att or att.employee_id.id != self.env.user.employee_id.id:
+            return False
+        return True
+
+    @api.model
+    def checkout_now_explicit_no(self, attendance_id):
+        """Called when the employee actively taps 'No, check me out' on the
+        reminder popup. This IS a response, so it does NOT get the NR flag
+        — it's just a normal checkout, and goes through the same
+        extra_hours / late_checkout_state logic as any other checkout."""
+        employee = self.env.user.employee_id
+        if not employee:
+            return {'success': False, 'error': 'No employee linked to your account.'}
+
+        att = self.browse(attendance_id).exists()
+        if not att or att.employee_id.id != employee.id:
+            return {'success': False, 'error': 'Invalid or unauthorized attendance record.'}
+
+        if att.check_out:
+            return {'success': True, 'already_checked_out': True}
+
+        att.sudo().write({'check_out': fields.Datetime.now()})
+        return {'success': True, 'attendance_id': att.id}
+
+    @api.model
+    def send_checkout_push_reminder(self, attendance_id, stage):
+        """Sends a real phone push notification (via Odoo Enterprise
+        mobile app's inbox notification channel / configured Firebase Web
+        Push for browser users) alongside the in-browser popup.
+        Fire-and-forget from the JS side — never raises, so a push
+        failure can't break the reminder/checkout flow itself.
+
+        stage: 'shift_end' (phase 1, every 1 min) or 'ot_cap' (phase 2,
+        every 3 min during the post-4h grace nudges).
+        """
+        att = self.sudo().browse(attendance_id).exists()
+        if not att or not att.employee_id.user_id or not att.employee_id.user_id.partner_id:
+            return False
+
+        if stage == 'ot_cap':
+            subject = "Maximum extra hours reached"
+            body = "You've reached the 4-hour extra-time limit. Please check out now."
+        else:
+            subject = "You haven't checked out"
+            body = "Your shift has ended. Are you working extra hours? Please respond or check out."
+
+        try:
+            self.env['mail.thread'].sudo().message_notify(
+                partner_ids=[att.employee_id.user_id.partner_id.id],
+                subject=subject,
+                body=body,
+            )
+        except Exception:
+            # Never let a push failure interrupt the checkout/reminder flow.
+            return False
+        return True
+
+    @api.model
+    def force_auto_checkout_no_response(self, attendance_id):
+        """Called by the client after ~15 minutes of the reminder popup
+        being ignored. Checks the employee out immediately (no face
+        verification — this is a silent system-triggered checkout) and
+        stamps the record as 'no_response' instead of 'draft'/'approved'
+        so it never silently counts toward P+OT pay. It shows up as its
+        own NR legend entry on the attendance sheet for manager review."""
+        employee = self.env.user.employee_id
+        if not employee:
+            return {'success': False, 'error': 'No employee linked to your account.'}
+
+        att = self.browse(attendance_id).exists()
+        if not att or att.employee_id.id != employee.id:
+            return {'success': False, 'error': 'Invalid or unauthorized attendance record.'}
+
+        if att.check_out:
+            # Already checked out by some other path (e.g. employee clicked
+            # the real checkout button meanwhile) — nothing to do.
+            return {'success': True, 'already_checked_out': True}
+
+        att.sudo().write({
+            'check_out': fields.Datetime.now(),
+            'late_checkout_state': 'no_response',
+            'was_auto_checkout_no_response': True,
+            'late_checkout_reason': 'Auto checked-out by system — employee did not respond '
+                                     'to the "working extra hours?" reminder.',
+        })
+
+        att._send_late_checkout_email()
+        return {'success': True, 'attendance_id': att.id}
+
     @api.model
     def check_employee_geo_allowed(self, latitude, longitude):
         """
@@ -857,35 +966,50 @@ class HrAttendance(models.Model):
         ('draft', 'Pending'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
+        ('no_response', 'No Response'),
     ], string="Late Checkout Status", default='draft', tracking=True)
+
+    # Sticky marker: stays True forever once this record was force-checked-out
+    # by the no-response flow, even after late_checkout_state later moves on
+    # to 'approved'/'rejected'. Used only to scope the P->P/A->A downgrade-on-
+    # reject penalty to NR-originated records, so it never touches the
+    # pre-existing normal late-checkout approve/reject flow.
+    was_auto_checkout_no_response = fields.Boolean(default=False, copy=False)
+
+    def _can_review_late_checkout(self):
+        """True if the current user is allowed to approve/reject this
+        record's late-checkout / no-response entry: HR OT-admin, or any
+        manager anywhere up this employee's reporting chain (not just the
+        direct manager). Runs fully under sudo so that just checking this
+        doesn't itself get blocked by hr.attendance's normal 'only see your
+        own record' access rights/rules — we're intentionally replacing
+        that with our own hierarchy-based check here."""
+        self.ensure_one()
+        rec = self.sudo()
+        if self.env.user.has_group('hr_attendance.group_hr_attendance_manager'):
+            return True
+        manager = rec.employee_id.parent_id
+        seen = set()
+        while manager and manager.id not in seen:
+            if manager.user_id.id == self.env.user.id:
+                return True
+            seen.add(manager.id)
+            manager = manager.parent_id
+        return False
 
     def action_approve_late_checkout(self):
         for rec in self:
-            rec.write({'late_checkout_state': 'approved'})
+            rec_sudo = rec.sudo()
+            if not rec_sudo._can_review_late_checkout():
+                raise UserError("You don't have permission to approve this employee's attendance.")
+            rec_sudo.write({'late_checkout_state': 'approved'})
 
     def action_reject_late_checkout(self):
         for rec in self:
-            rec.write({'late_checkout_state': 'rejected'})
-
-    # @api.model
-    # def save_late_reason(self, reason):
-    #     employee = self.env.user.employee_id
-    #     if not employee:
-    #         raise UserError("No employee linked to this user.")
-    #     attendance = self.search([
-    #         ('employee_id', '=', employee.id),
-    #         ('check_out', '!=', False),
-    #     ], order="check_out desc", limit=1)
-    #     if not attendance:
-    #         raise UserError("No attendance found.")
-    #     if attendance.employee_id.id != employee.id:
-    #         raise UserError("Not allowed.")
-    #     attendance.sudo().write({
-    #         'late_checkout_reason': reason,
-    #         'late_checkout_state': 'draft',
-    #     })
-    #     attendance._send_late_checkout_email()
-    #     return True
+            rec_sudo = rec.sudo()
+            if not rec_sudo._can_review_late_checkout():
+                raise UserError("You don't have permission to reject this employee's attendance.")
+            rec_sudo.write({'late_checkout_state': 'rejected'})
 
     @api.model
     def save_late_reason(self, reason):
@@ -903,7 +1027,7 @@ class HrAttendance(models.Model):
         if attendance.employee_id.id != employee.id:
             raise UserError("Not allowed.")
 
-        # 🟢 THE FIX: Only trigger approval logic if OT is 4 hours or more
+        #  THE FIX: Only trigger approval logic if OT is 4 hours or more
         if attendance.extra_hours >= 4.0:
             attendance.sudo().write({
                 'late_checkout_reason': reason,
@@ -926,15 +1050,17 @@ class HrAttendance(models.Model):
         store=True,
     )
 
-    # @api.depends('extra_hours', 'late_checkout_state')
-    # def _compute_approved_extra_hours(self):
-    #     for att in self:
-    #         att.approved_extra_hours = (att.extra_hours if att.late_checkout_state == 'approved' else 0.0)
-
     @api.depends('extra_hours', 'late_checkout_state')
     def _compute_approved_extra_hours(self):
         for att in self:
-            # 🟢 NEW: Auto-approve small OT, strictly block 4+ hours!
+            # NR (No Response) is a hold state — never auto-pay OT for it,
+            # no matter how small extra_hours is. A manager must review and
+            # explicitly approve/reject it first.
+            if att.late_checkout_state == 'no_response':
+                att.approved_extra_hours = 0.0
+                continue
+
+            #  NEW: Auto-approve small OT, strictly block 4+ hours!
             if att.extra_hours > 0 and att.extra_hours < 4.0:
                 att.approved_extra_hours = att.extra_hours
             else:
@@ -1046,12 +1172,6 @@ class HrAttendance(models.Model):
 
             # ==================================================
             # TRACK B: ROTATIONAL SHIFT EMPLOYEES
-            # Weekend checkboxes are completely ignored. Every
-            # day is judged purely by whether a published shift
-            # exists in the Planning app. No shift = week-off.
-            # An EDP is just a published planning.slot too, so
-            # the same lookup covers both "normal" workdays and
-            # EDP-approved off-day work.
             # ==================================================
             if emp.shift_type == 'rotational':
                 has_slot = self.env['planning.slot'].sudo().search_count([
@@ -1073,7 +1193,6 @@ class HrAttendance(models.Model):
 
             # ==================================================
             # TRACK A: REGULAR SHIFT EMPLOYEES (unchanged logic)
-            # Follows the global Sunday / Nth-Saturday checkboxes.
             # ==================================================
 
             # 3. Bulletproof Checkbox Reader

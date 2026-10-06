@@ -73,6 +73,9 @@
                 <button class="btn btn-secondary btn-sm" t-on-click="prevMonth"><i class="fa fa-chevron-left"/></button>
                 <button class="btn btn-secondary btn-sm" t-on-click="nextMonth"><i class="fa fa-chevron-right"/></button>
                 <button class="btn btn-outline-primary btn-sm" t-on-click="goToday">Today</button>
+                <button class="btn btn-success ms-3" t-on-click="exportExcel">
+                    <i class="fa fa-file-excel-o me-1"/>
+                    Export Excel</button>
                 <h5 class="mb-0 me-2" t-esc="this.monthLabel"/>
                 <span class="text-muted small" t-if="state.loading">Loading…</span>
 
@@ -163,6 +166,8 @@
                     <small>Week Off</small>
                     <span class="o_amc_badge o_amc_HO">HO</span>
                     <small>Holiday</small>
+                    <span class="o_amc_badge o_amc_P o_amc_needs_review">P</span>
+                    <small>Needs manager review (pink ring/dot — badge colour unchanged)</small>
                     <span class="o_amc_badge o_amc_leave_badge o_amc_draft" style="background:#6366f1">Leave</span>
                     <small>Approval (Pending)</small>
                     <t t-foreach="Object.entries(state.leaveTypeColors)" t-as="entry" t-key="entry[0]">
@@ -182,7 +187,8 @@
                             <th rowspan="2" class="o_sticky_id align-middle text-left">Employee ID</th>
                             <th rowspan="2" class="o_sticky_name align-middle text-left">Employee Name</th>
                             <th rowspan="2" class="align-middle text-left" style="min-width: 160px;">Email ID</th>
-                            <th rowspan="2" class="align-middle text-left" style="min-width: 110px;">Date of Joining</th>
+                            <th rowspan="2" class="align-middle text-left"
+                                style="min-width: 110px;">Date of Joining</th>
                             <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Reporting To</th>
                             <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Department</th>
                             <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Designation</th>
@@ -277,7 +283,7 @@
             <td class="align-middle text-left text-muted small">
                 <t t-esc="emp.work_email"/>
             </td>
-             <td class="align-middle text-left text-muted small fw-bold">
+            <td class="align-middle text-left text-muted small fw-bold">
                 <t t-esc="emp.joining_date_recruit"/>
             </td>
             <td class="align-middle text-left text-muted small">
@@ -297,7 +303,7 @@
                 <td t-att-class="dataCellClass(emp.id, day)"
                     t-on-click="() => this.onCellClick(emp.id, emp.name, day)">
                     <t t-foreach="cellCodes(emp.id, day)" t-as="code" t-key="code">
-                        <div t-att-class="badgeClass(code)"
+                        <div t-att-class="badgeClass(code, cellNeedsReview(emp.id, day), cellPendingOt(emp.id, day))"
                              t-att-style="leaveBadgeStyle(code)"
                              t-esc="displayCode(code)"/>
                     </t>
@@ -546,6 +552,63 @@
                         <tr><th>Status</th>
                             <td><span class="badge bg-success" t-esc="props.detail.edp.state"/></td></tr>
                     </table>
+                </t>
+
+                <!-- No Response: review right here instead of opening the record -->
+                <t t-if="props.detail.no_response">
+                    <hr/>
+                    <div class="o_amc_nr_review mb-2">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="o_amc_badge o_amc_NR">NR</span>
+                            <strong>No Response — auto checked-out by system</strong>
+                        </div>
+                        <p class="text-muted small mb-2">
+                            Employee did not respond to the extra-hours reminder. Extra hours are
+                            held out of auto-pay until you approve or reject this entry.
+                        </p>
+                        <t t-if="props.detail.can_approve_late_checkout">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success btn-sm" t-on-click="() => props.onApproveNr()">
+                                    Approve
+                                </button>
+                                <button class="btn btn-danger btn-sm" t-on-click="() => props.onRejectNr()">
+                                    Reject
+                                </button>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <span class="text-muted small">Only this employee's manager or an HR admin can approve/reject.</span>
+                        </t>
+                    </div>
+                </t>
+
+                <!-- Plain 4+ hour pending OT (not no-response): same inline
+                     Approve/Reject, so a manager never has to leave the sheet. -->
+                <t t-if="props.detail.pending_ot_review">
+                    <hr/>
+                    <div class="o_amc_ot_review mb-2">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="o_amc_badge o_amc_OT">OT</span>
+                            <strong>Extra hours pending approval</strong>
+                        </div>
+                        <p class="text-muted small mb-2">
+                            4+ hours of extra time on this day. Held out of auto-pay until you
+                            approve or reject it.
+                        </p>
+                        <t t-if="props.detail.can_approve_late_checkout">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success btn-sm" t-on-click="() => props.onApproveOt()">
+                                    Approve
+                                </button>
+                                <button class="btn btn-danger btn-sm" t-on-click="() => props.onRejectOt()">
+                                    Reject
+                                </button>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <span class="text-muted small">Only this employee's manager or an HR admin can approve/reject.</span>
+                        </t>
+                    </div>
                 </t>
 
             </div>
