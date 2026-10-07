@@ -144,6 +144,55 @@
 .o_amc_HO  { background-color: #ea580c; color: #ffffff; border: 1px solid #c2410c; }
 /* WO — Week Off */
 .o_amc_WO  { background-color: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; }
+.o_amc_NR  { background-color: #ffe4e6; color: #9f1239; border: 1px solid #fda4af; font-weight: 700; }
+.o_amc_nr_review {
+    background: #fff1f2;
+    border: 1px solid #fda4af;
+    border-radius: 8px;
+    padding: 12px 14px;
+}
+.o_amc_ot_review {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 8px;
+    padding: 12px 14px;
+}
+/* Marks a day as "needs manager review" WITHOUT changing its normal P/P-A/A
+   colour (so it never collides with the existing red-for-Absent look) — a
+   bright magenta ring + a small dot, distinct from every other badge colour
+   used in this report (green/yellow/red/blue/amber/orange/purple). */
+.o_amc_needs_review {
+    position: relative;
+    box-shadow: 0 0 0 2px #db2777;
+}
+.o_amc_needs_review::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #db2777;
+    border: 1.5px solid #ffffff;
+}
+/* Lighter marker for plain pending-OT (not no-response) — amber, since
+   this is routine sign-off, not "they went silent" urgency. */
+.o_amc_pending_ot {
+    position: relative;
+    box-shadow: 0 0 0 2px #d97706;
+}
+.o_amc_pending_ot::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d97706;
+    border: 1.5px solid #ffffff;
+}
 
 /* Shift name (rotational planned) */
 .o_amc_shift_name { background-color: #e0f2fe; color: #0369a1; font-style: italic; }

@@ -3,6 +3,9 @@ from odoo import api, models
 from datetime import date, timedelta, datetime
 import calendar as cal_module
 import pytz
+import io
+import base64
+import xlsxwriter
 
 INDIA_TZ = pytz.timezone('Asia/Kolkata')
 
@@ -152,6 +155,19 @@ class AttendanceMatrixReport(models.AbstractModel):
         except Exception:
             pass
 
+    def _get_recursive_subordinate_ids(self, manager_employee):
+        Employee = self.env['hr.employee'].sudo()
+        subordinate_ids = set()
+        frontier = [manager_employee.id]
+        while frontier:
+            children = Employee.search([('parent_id', 'in', frontier)])
+            new_ids = [c.id for c in children if c.id not in subordinate_ids]
+            if not new_ids:
+                break
+            subordinate_ids.update(new_ids)
+            frontier = new_ids
+        return subordinate_ids
+
     @api.model
     def get_matrix_data(self, year, month, employee_ids=None, department_id=None):
 
@@ -159,13 +175,25 @@ class AttendanceMatrixReport(models.AbstractModel):
         domain = []
 
         is_officer = self.env.user.has_group('hr_attendance.group_hr_attendance_officer')
+        is_ot_admin = self.env.user.has_group('hr_attendance.group_hr_attendance_manager')
+
+        viewer_employee = Employee.search([('user_id', '=', self.env.user.id)], limit=1)
+        subordinate_ids = self._get_recursive_subordinate_ids(viewer_employee) if viewer_employee else set()
+
         if not is_officer:
-            domain.append(('user_id', '=', self.env.user.id))
-        else:
-            if employee_ids:
-                domain.append(('id', 'in', employee_ids))
-            if department_id:
-                domain.append(('department_id', '=', department_id))
+            if subordinate_ids:
+                domain.append('|')
+                domain.append(('user_id', '=', self.env.user.id))
+                domain.append(('id', 'in', list(subordinate_ids)))
+            else:
+                domain.append(('user_id', '=', self.env.user.id))
+
+        if is_officer and department_id:
+            domain.append(('department_id', '=', department_id))
+
+        # 🟢 THE FIX: Always restrict the domain to specific employee IDs if passed by JS export
+        if employee_ids:
+            domain.append(('id', 'in', employee_ids))
 
         employees = Employee.search(domain, order='ls_employee_id asc, name asc')
 
@@ -386,7 +414,6 @@ class AttendanceMatrixReport(models.AbstractModel):
                 daily_perm_hrs = sum(a.permission_credit_applied or 0.0 for a in day_atts)
                 effective_hrs = daily_worked_hrs + daily_perm_hrs
 
-                # --- 🟢 NEW SPLIT OT LOGIC ---
                 daily_actual_extra = sum(a.extra_hours or 0.0 for a in day_atts)
                 daily_approved_extra = sum(a.approved_extra_hours or 0.0 for a in day_atts)
                 capped_ot = min(daily_actual_extra, 4.0)
@@ -405,38 +432,70 @@ class AttendanceMatrixReport(models.AbstractModel):
                     rep_att = max(day_atts, key=lambda a: a.check_in)
 
                     if is_public_holiday:
-                        if actual_duration >= 6.0:
-                            codes.append('P')
-                            detail['absence_status'] = 'full_present'
+                        base_status = 'P' if actual_duration >= 6.0 else None
                     else:
                         if effective_hrs >= 8.0:
-                            codes.append('P')
-                            detail['absence_status'] = 'full_present'
+                            base_status = 'P'
                         elif effective_hrs >= 4.0:
-                            codes.append('P/A')
-                            detail['absence_status'] = 'half_absent'
-                            detail['half_day_type'] = getattr(rep_att, 'half_day_type', 'second') or 'second'
+                            base_status = 'P/A'
                         elif not is_weekoff:
-                            codes.append('A')
-                            detail['absence_status'] = 'full_absent'
+                            base_status = 'A'
+                        else:
+                            base_status = None
+
+                    is_nr_rejected = any(
+                        a.was_auto_checkout_no_response and (a.late_checkout_state or '') == 'rejected'
+                        for a in day_atts
+                    )
+                    if is_nr_rejected and base_status:
+                        base_status = {'P': 'P/A', 'P/A': 'A'}.get(base_status, base_status)
+
+                    if base_status == 'P':
+                        codes.append('P')
+                        detail['absence_status'] = 'full_present'
+                    elif base_status == 'P/A':
+                        codes.append('P/A')
+                        detail['absence_status'] = 'half_absent'
+                        detail['half_day_type'] = getattr(rep_att, 'half_day_type', 'second') or 'second'
+                    elif base_status == 'A':
+                        codes.append('A')
+                        detail['absence_status'] = 'full_absent'
+                    if is_nr_rejected:
+                        detail['nr_rejected_downgrade'] = True
 
                     if shift_name:
                         detail['shift_name'] = shift_name
                     detail['shift_status'] = 'done'
 
+                    if any((a.late_checkout_state or '') == 'no_response' for a in day_atts):
+                        detail['no_response'] = True
+                        nr_atts = [a for a in day_atts if (a.late_checkout_state or '') == 'no_response']
+                        detail['no_response_attendance_ids'] = [a.id for a in nr_atts]
+                        detail['can_approve_late_checkout'] = bool(
+                            is_ot_admin or emp.id in subordinate_ids or
+                            (emp.parent_id and emp.parent_id.user_id.id == self.env.user.id)
+                        )
+
                 if has_checkout and not is_public_holiday:
                     if effective_hrs > 0 and capped_ot > 0:
-
-                        # 🟢 THE CLEANED UP 4-HOUR RULE
                         if capped_ot >= 4.0:
-                            # 4+ Hours: Waits for Approval. Only show the 'OT' badge
-                            # AND count it once a manager has actually approved it.
                             if daily_approved_extra > 0:
                                 codes.append('OT')
                                 c_ot_hours += daily_approved_extra
                                 c_ot_days += 1
+                            elif not detail.get('no_response'):
+                                pending_atts = [
+                                    a for a in day_atts
+                                    if (a.late_checkout_state or 'draft') not in ('approved', 'rejected')
+                                ]
+                                if pending_atts:
+                                    detail['pending_ot_review'] = True
+                                    detail['pending_ot_attendance_ids'] = [a.id for a in pending_atts]
+                                    detail['can_approve_late_checkout'] = bool(
+                                        is_ot_admin or emp.id in subordinate_ids or
+                                        (emp.parent_id and emp.parent_id.user_id.id == self.env.user.id)
+                                    )
                         else:
-                            # < 4 Hours: Goes to Red Column (Auto-Accumulates)
                             c_ot_hours_less += capped_ot
 
                 if is_public_holiday:
@@ -496,7 +555,7 @@ class AttendanceMatrixReport(models.AbstractModel):
                     for a in sorted(day_atts, key=lambda x: x.check_in):
                         if is_public_holiday or is_weekoff:
                             worked = (
-                                             a.check_out - a.check_in).total_seconds() / 3600.0 if a.check_in and a.check_out else 0.0
+                                                 a.check_out - a.check_in).total_seconds() / 3600.0 if a.check_in and a.check_out else 0.0
                         else:
                             worked = a.worked_hours_custom or 0.0
 
@@ -524,28 +583,30 @@ class AttendanceMatrixReport(models.AbstractModel):
                     codes.append('A')
                     detail['absence_status'] = 'full_absent'
 
-                # ── WYSIWYG COUNTERS ──
+                is_nr_pending = bool(detail.get('no_response'))
+
                 if not is_weekoff and not is_public_holiday:
                     c_working_days += 1
 
-                    if 'P' in codes:
-                        c_present_full += 1
-
-                    if 'P/A' in codes:
-                        c_present_half += 1
-
-                    for c in codes:
-                        if c == 'LV:CO':
+                    if not is_nr_pending:
+                        if 'P' in codes:
                             c_present_full += 1
-                        elif c == 'LV:CO½':
-                            c_present_half += 1
-                        elif c.startswith('LV:P/'):
-                            c_present_half += 1
-                            if 'CO' in c:
-                                c_present_half += 1
 
-                    if 'A' in codes:
-                        c_absent += 1
+                        if 'P/A' in codes:
+                            c_present_half += 1
+
+                        for c in codes:
+                            if c == 'LV:CO':
+                                c_present_full += 1
+                            elif c == 'LV:CO½':
+                                c_present_half += 1
+                            elif c.startswith('LV:P/'):
+                                c_present_half += 1
+                                if 'CO' in c:
+                                    c_present_half += 1
+
+                        if 'A' in codes:
+                            c_absent += 1
 
                 emp_row[day_key] = {'codes': codes, 'detail': detail}
 
@@ -603,3 +664,158 @@ class AttendanceMatrixReport(models.AbstractModel):
             'all_leave_codes': all_leave_codes,
         }
 
+    # ==========================================================
+    # EXCEL EXPORT
+    # ==========================================================
+    @api.model
+    def export_matrix_xlsx(self, year, month, employee_ids=None, department_id=None):
+        data = self.get_matrix_data(year, month, employee_ids, department_id)
+        employees = data['employees']
+        days = data['days']
+        matrix = data['matrix']
+        consolidation = data['consolidation']
+        all_leave_codes = data.get('all_leave_codes', [])
+
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        sheet = workbook.add_worksheet('Attendance Sheet')
+
+        # ── Cell formats ──
+        header_fmt = workbook.add_format({
+            'bold': True, 'bg_color': '#f1f3f5', 'border': 1,
+            'align': 'center', 'valign': 'vcenter', 'text_wrap': True,
+        })
+        name_fmt = workbook.add_format({'bold': True, 'border': 1, 'valign': 'vcenter'})
+        plain_fmt = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter'})
+        num_fmt = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter'})
+
+        def day_fmt(bg, fg, needs_review=False):
+            props = {
+                'border': 1, 'align': 'center', 'valign': 'vcenter',
+                'bold': True, 'bg_color': bg, 'font_color': fg,
+            }
+            if needs_review:
+                props['border_color'] = '#db2777'
+                props['border'] = 2
+            return workbook.add_format(props)
+
+        COLORS = {
+            'P': ('#d1e7dd', '#0f5132'),
+            'P/A': ('#fef9c3', '#713f12'),
+            'A': ('#fee2e2', '#991b1b'),
+            'CHK': ('#cfe2ff', '#084298'),
+            'OT': ('#fff3cd', '#664d03'),
+            'EDP': ('#cfe2ff', '#084298'),
+            'HO': ('#ffe5d0', '#7c2d12'),
+            'WO': ('#f3e8ff', '#7e22ce'),
+            'LV': ('#e0e7ff', '#3730a3'),
+        }
+        DEFAULT_COLOR = ('#ffffff', '#212529')
+
+        def pick_color(codes):
+            for key in ('P', 'P/A', 'A', 'WO', 'HO', 'EDP', 'CHK', 'OT'):
+                if key in codes:
+                    return COLORS[key]
+            for c in codes:
+                if c.startswith('LV:'):
+                    return COLORS['LV']
+            return DEFAULT_COLOR
+
+        def clean_codes_for_display(codes):
+            shown = []
+            for c in codes:
+                if c.startswith('SH:'):
+                    continue
+                shown.append(c.replace(':DRAFT', '').replace('LV:', ''))
+            return ' + '.join(shown) if shown else ''
+
+        # ── Header row ──
+        static_headers = [
+            'Employee ID', 'Employee Name', 'Email ID', 'Date of Joining',
+            'Reporting To', 'Department', 'Designation'
+        ]
+        for col, title in enumerate(static_headers):
+            sheet.write(0, col, title, header_fmt)
+
+        day_col_start = len(static_headers)
+        for i, day_key in enumerate(days):
+            d = datetime.strptime(day_key, '%Y-%m-%d').date()
+            sheet.write(0, day_col_start + i, f"{d.day}\n{d.strftime('%a')}", header_fmt)
+
+        totals_col_start = day_col_start + len(days)
+        totals_headers = [
+            'Total Calendar Days in the Month',
+            'Total Number of Working Days',
+            'Total Number of Days Worked',
+            'Total Number of EDP Days',
+            'Total Number of OT Hrs (Non-Payable)',
+            'Total Number of Extra Worked Hours (OT Hours)',
+            'Total Number of Extra Duty (OT) Days',
+            'Total Number of Days Worked on Holidays',
+        ]
+        totals_headers.extend(all_leave_codes)
+
+        for i, title in enumerate(totals_headers):
+            sheet.write(0, totals_col_start + i, title, header_fmt)
+
+        # ── Data rows ──
+        row = 1
+        for emp in employees:
+            emp_id = emp['id']
+            sheet.write(row, 0, emp.get('ls_employee_id', ''), plain_fmt)
+            sheet.write(row, 1, emp.get('name', ''), name_fmt)
+            sheet.write(row, 2, emp.get('work_email', ''), plain_fmt)
+            sheet.write(row, 3, emp.get('joining_date_recruit', ''), plain_fmt)
+            sheet.write(row, 4, emp.get('parent_id', ''), plain_fmt)
+            sheet.write(row, 5, emp.get('department_id', ''), plain_fmt)
+            sheet.write(row, 6, emp.get('job_id', ''), plain_fmt)
+
+            emp_row = matrix.get(emp_id, {})
+            for i, day_key in enumerate(days):
+                cell = emp_row.get(day_key)
+                codes = cell['codes'] if cell else []
+                detail = cell['detail'] if cell else {}
+                text = clean_codes_for_display(codes)
+                bg, fg = pick_color(codes)
+                fmt = day_fmt(bg, fg, needs_review=bool(detail.get('no_response')))
+                sheet.write(row, day_col_start + i, text, fmt)
+
+            cons = consolidation.get(emp_id, {})
+            totals_values = [
+                cons.get('calendar_days', 0),
+                cons.get('working_days', 0),
+                cons.get('effective_present', 0),
+                cons.get('edp_days', 0),
+                cons.get('ot_hours_less_fmt', '0:00'),
+                cons.get('ot_hours_fmt', '0:00'),
+                cons.get('ot_days', 0),
+                cons.get('ph_worked', 0),
+            ]
+
+            leave_counts = cons.get('leave_counts_full', {})
+            for lc in all_leave_codes:
+                totals_values.append(leave_counts.get(lc, 0))
+
+            for i, val in enumerate(totals_values):
+                sheet.write(row, totals_col_start + i, val, num_fmt)
+
+            row += 1
+
+        # ── Sizing ──
+        sheet.set_column(0, 0, 12)
+        sheet.set_column(1, 1, 20)
+        sheet.set_column(2, 2, 24)
+        sheet.set_column(3, 6, 16)
+        sheet.set_column(day_col_start, day_col_start + len(days) - 1, 6)
+        sheet.set_column(totals_col_start, totals_col_start + len(totals_headers) - 1, 14)
+        # sheet.freeze_panes(1, len(static_headers))
+        sheet.freeze_panes(1, 2)
+
+        workbook.close()
+        output.seek(0)
+        content = base64.b64encode(output.read()).decode('utf-8')
+
+        d = datetime(year, month, 1)
+        filename = f"Attendance_Sheet_{d.strftime('%B_%Y')}.xlsx"
+
+        return {'content': content, 'filename': filename}

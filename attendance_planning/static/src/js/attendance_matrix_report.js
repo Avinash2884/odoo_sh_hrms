@@ -6,10 +6,7 @@ import { useService } from "@web/core/utils/hooks";
 import { Dialog } from "@web/core/dialog/dialog";
 
 // ── Badge code sets ────────────────────────────────────────────────────────────
-// SH: = shift name prefix (rotational planned)
-// LV: = leave prefix
-// :DRAFT suffix = pending leave
-const FIXED_CODES = new Set(['P', 'P/A', 'A', 'CHK', 'OT', 'EDP', 'HO', 'WO']);
+const FIXED_CODES = new Set(['P', 'P/A', 'A', 'CHK', 'OT', 'EDP', 'HO', 'WO', 'NR']);
 
 const KNOWN_LEAVE_CODES = {
     'Privilege Leave': 'PL',
@@ -37,7 +34,7 @@ const KNOWN_LEAVE_CODES = {
 class AttendanceDayDetailDialog extends Component {
     static template = "attendance_planning.AttendanceDayDetailDialog";
     static components = { Dialog };
-    static props = ["close", "employeeName", "day", "codes", "detail", "badgeClass", "leaveBadgeStyle", "displayCode"];
+    static props = ["close", "employeeName", "day", "codes", "detail", "badgeClass", "leaveBadgeStyle", "displayCode", "onApproveNr", "onRejectNr", "onApproveOt", "onRejectOt"];
 }
 
 // ─── Main grid component ───────────────────────────────────────────────────────
@@ -102,6 +99,36 @@ export class AttendanceMatrixReport extends Component {
         this.state.loading = false;
     }
 
+    async exportXlsx() {
+        // This grabs exactly the IDs currently shown on screen after filters!
+        const ids = this.filteredEmployees.map((e) => e.id);
+        try {
+            const result = await this.orm.call(
+                "attendance.matrix.report", "export_matrix_xlsx",
+                [this.state.year, this.state.month, ids, false],
+            );
+            const byteChars = atob(result.content);
+            const byteNumbers = new Array(byteChars.length);
+            for (let i = 0; i < byteChars.length; i++) {
+                byteNumbers[i] = byteChars.charCodeAt(i);
+            }
+            const blob = new Blob([new Uint8Array(byteNumbers)], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = result.filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Export failed:', err);
+            alert('Could not export the sheet: ' + (err?.data?.message || err?.message || err));
+        }
+    }
+
     // ── Navigation ─────────────────────────────────────────────────────────────
     get monthLabel() {
         return new Date(this.state.year, this.state.month - 1, 1)
@@ -120,6 +147,11 @@ export class AttendanceMatrixReport extends Component {
         this.state.year  = t.getFullYear();
         this.state.month = t.getMonth() + 1;
         this.loadData();
+    }
+
+    exportExcel() {
+        // Trigger the internal excel download function
+        return this.exportXlsx();
     }
 
     // ── Filters ────────────────────────────────────────────────────────────────
@@ -158,14 +190,10 @@ export class AttendanceMatrixReport extends Component {
 
         const q = this.state.searchText.trim().toLowerCase();
         if (q) {
+            // STRICT FILTER: Only checks Employee Name and ID so "Reporting To" doesn't cause false matches!
             list = list.filter(e =>
                 (e.name || '').toLowerCase().includes(q) ||
-                (e.ls_employee_id || '').toLowerCase().includes(q) ||
-                (e.work_email || '').toLowerCase().includes(q) ||
-                (e.parent_id || '').toLowerCase().includes(q) ||
-                (e.department_id || '').toLowerCase().includes(q) ||
-                (e.job_id || '').toLowerCase().includes(q) ||
-                (e.joining_date_recruit || '').toLowerCase().includes(q)
+                (e.ls_employee_id || '').toLowerCase().includes(q)
             );
         }
         return list;
@@ -224,6 +252,18 @@ export class AttendanceMatrixReport extends Component {
         });
     }
 
+    cellNeedsReview(empId, dayKey) {
+        const row  = this.state.matrix[empId];
+        const cell = row ? row[dayKey] : null;
+        return !!(cell && cell.detail && cell.detail.no_response);
+    }
+
+    cellPendingOt(empId, dayKey) {
+        const row  = this.state.matrix[empId];
+        const cell = row ? row[dayKey] : null;
+        return !!(cell && cell.detail && cell.detail.pending_ot_review);
+    }
+
     // ── Badge classification ───────────────────────────────────────────────────
     isDraft(code)       { return code.endsWith(':DRAFT'); }
     isLeave(code)       { return code.startsWith('LV:'); }
@@ -232,7 +272,7 @@ export class AttendanceMatrixReport extends Component {
 
     _cleanCode(code)    { return code.replace(':DRAFT', '').replace('LV:', '').replace('SH:', ''); }
 
-    badgeClass(code) {
+    badgeClass(code, needsReview, pendingOt) {
         const isDraft = this.isDraft(code);
         const base    = code.replace(':DRAFT', '');
         let cls = 'o_amc_badge';
@@ -243,6 +283,8 @@ export class AttendanceMatrixReport extends Component {
         else                             cls += ' o_amc_shift_name';
 
         if (isDraft) cls += ' o_amc_draft';
+        if (needsReview) cls += ' o_amc_needs_review';
+        if (pendingOt) cls += ' o_amc_pending_ot';
         return cls;
     }
 
@@ -314,7 +356,7 @@ export class AttendanceMatrixReport extends Component {
         const row  = this.state.matrix[empId];
         const cell = row ? row[dayKey] : null;
         if (!cell || !cell.codes.length) return;
-        this.dialog.add(AttendanceDayDetailDialog, {
+        const close = this.dialog.add(AttendanceDayDetailDialog, {
             employeeName: empName,
             day:          dayKey,
             codes:        cell.codes,
@@ -322,7 +364,26 @@ export class AttendanceMatrixReport extends Component {
             badgeClass:   (c) => this.badgeClass(c),
             leaveBadgeStyle: (c) => this.leaveBadgeStyle(c),
             displayCode:  (c) => this.displayCode(c),
+            onApproveNr:  () => this.reviewAttendanceIds(cell.detail.no_response_attendance_ids, 'approve', close),
+            onRejectNr:   () => this.reviewAttendanceIds(cell.detail.no_response_attendance_ids, 'reject', close),
+            onApproveOt:  () => this.reviewAttendanceIds(cell.detail.pending_ot_attendance_ids, 'approve', close),
+            onRejectOt:   () => this.reviewAttendanceIds(cell.detail.pending_ot_attendance_ids, 'reject', close),
         });
+    }
+
+    async reviewAttendanceIds(ids, decision, closeDialog) {
+        if (!ids || !ids.length) return;
+
+        const method = decision === 'approve' ? 'action_approve_late_checkout' : 'action_reject_late_checkout';
+        try {
+            await this.orm.call("hr.attendance", method, [ids]);
+            if (closeDialog) closeDialog();
+            await this.loadData();
+        } catch (err) {
+            console.error('Attendance review failed:', err);
+            const msg = err?.data?.message || err?.message?.data?.message || err?.message || String(err);
+            alert('Could not update this record: ' + msg);
+        }
     }
 }
 

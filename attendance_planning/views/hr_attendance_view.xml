@@ -29,15 +29,15 @@
                 <header>
                     <button name="action_approve_late_checkout"
                             type="object"
-                            string="Approve Extra Hours"
+                            string="Approve"
                             class="btn btn-success me-2"
-                            invisible="not can_approve_late_checkout or late_checkout_state != 'draft' or extra_hours &lt; 4"/>
+                            invisible="not can_approve_late_checkout or late_checkout_state not in ('draft', 'no_response') or extra_hours &lt; 4"/>
                     <button name="action_reject_late_checkout"
                             type="object"
-                            string="Reject Extra Hours"
+                            string="Reject"
                             class="btn btn-danger"
-                            invisible="not can_approve_late_checkout or late_checkout_state != 'draft' or extra_hours &lt; 4"/>
-                    <field name="late_checkout_state" widget="statusbar" statusbar_visible="draft,approved,rejected"/>
+                            invisible="not can_approve_late_checkout or late_checkout_state not in ('draft', 'no_response') or extra_hours &lt; 4"/>
+                    <field name="late_checkout_state" widget="statusbar" statusbar_visible="draft,no_response,approved,rejected"/>
                 </header>
             </xpath>
 

@@ -43,6 +43,11 @@
             "attendance_planning/static/src/js/late_checkout_popup.js",
             "attendance_planning/static/src/css/late_checkout.css",
 
+            # Pre-checkout reminder: nudges employees still checked in past
+            # shift end, auto checks-out (flagged NR) if fully ignored.
+            "attendance_planning/static/src/js/auto_checkout_reminder.js",
+            "attendance_planning/static/src/css/auto_checkout_reminder.css",
+
             # 1. The AI Brain (Name matched perfectly to your downloaded file!)
             'attendance_planning/static/src/lib/face-api.js',
 
