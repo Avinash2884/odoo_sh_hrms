@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_approval_employee" model="res.groups">
+        <field name="name">Employee</field>
+        <field name="sequence">5</field>
+        <field name="privilege_id" ref="approvals.res_groups_privilege_approvals"/>
+        <field name="comment">User can have limited access.</field>
+    </record>
+    <record id="group_manpower_user" model="res.groups">
+        <field name="name">HeadCount Requisition</field>
+        <field name="sequence">5</field>
+        <field name="privilege_id" ref="approvals.res_groups_privilege_approvals"/>
+        <field name="comment">User can access only Manpower Requests.</field>
+    </record>
+    <record id="rule_employee_categories" model="ir.rule">
+        <field name="name">Employee Categories</field>
+        <field name="model_id" ref="approvals.model_approval_category"/>
+        <field name="groups" eval="[(4, ref('approval_recruitment.group_approval_employee'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="0"/>
+        <field name="domain_force">
+        [('name', '!=', 'HeadCount Requisition')]
+    </field>
+    </record>
+    <record id="rule_manpower_user_categories" model="ir.rule">
+        <field name="name">HeadCount User Categories</field>
+        <field name="model_id" ref="approvals.model_approval_category"/>
+        <field name="groups" eval="[(4, ref('approval_recruitment.group_manpower_user'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="0"/>
+    </record>
+</odoo>

@@ -3,4 +3,9 @@ access_planning_department_wizard,access_planning_department_wizard,model_planni
 access_planning_wizard_line,access_planning_wizard_line,model_planning_wizard_line,base.group_user,1,1,1,1
 access_hr_attendance_permission_user,hr.attendance.permission.user,model_hr_attendance_permission,base.group_user,1,1,1,0
 access_hr_attendance_permission_manager,hr.attendance.permission.manager,model_hr_attendance_permission,hr_attendance.group_hr_attendance_manager,1,1,1,1
-
+access_hr_edp_request,hr.edp.request,model_hr_edp_request,base.group_user,1,1,1,1
+access_attendance_photo,attendance.photo,model_attendance_photo,base.group_user,1,1,1,0
+access_planning_matrix_import,planning.matrix.import,model_planning_matrix_import,base.group_user,1,1,1,1
+access_attendance_matrix_report,attendance.matrix.report,model_attendance_matrix_report,hr_attendance.group_hr_attendance_officer,1,0,0,0
+access_planning_matrix_import_warning,planning.matrix.import.warning,model_planning_matrix_import_warning,base.group_user,1,1,1,1
+access_attendance_matrix_report_own,attendance.matrix.report.own,model_attendance_matrix_report,attendance_planning.group_attendance_sheet_own,1,0,0,0

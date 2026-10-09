@@ -9,6 +9,19 @@
             <xpath expr="//field[@name='manager_approval']" position="after">
                 <field name="hr_department_id" string="Department"/>
             </xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="readonly">
+                    name == 'HeadCount Requisition'
+                </attribute>
+            </xpath>
+            <xpath expr="//field[@name='automated_sequence']" position="attributes">
+                <attribute name="invisible">
+                    1
+                </attribute>
+            </xpath>
+            <xpath expr="//field[@name='manager_approval']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
 
             <xpath expr="//field[@name='has_location']" position="after">
                 <field name="has_total_no_of_positions"

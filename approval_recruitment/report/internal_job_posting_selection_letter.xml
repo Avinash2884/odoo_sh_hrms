@@ -19,7 +19,7 @@
             <t t-foreach="docs" t-as="object">
                 <t t-call="web.external_layout">
 
-                    <div style="margin: 30px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+                    <div style="margin: 30px; font-family: 'DM Sans'; font-weight:normal; font-size: 14px; line-height: 1.8;">
 
                         <h3 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">
                             Internal Job Posting Selection Letter
@@ -70,8 +70,8 @@
                         </p>
                         <br></br>
 
-                        <p style="margin: 2px 0; line-height: 1.5;">Koushalya R</p>
-                        <p style="margin: 2px 0; line-height: 1.5;">Head – Human Resources </p>
+                        <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
+                        <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
 
                     </div>
 

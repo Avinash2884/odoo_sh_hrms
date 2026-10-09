@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="your_module.FaceRegisterScreen" owl="1">
+    <t t-name="attendance_planning.FaceRegisterScreen" owl="1">
         <div class="o_face_register_container d-flex flex-column align-items-center justify-content-center h-100 w-100" style="background-color: #1a1a1a; color: white; min-height: 100vh;">
 
             <h2 class="mb-3 text-info">Face Registration</h2>

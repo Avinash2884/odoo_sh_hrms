@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="module_category_attendance_planning" model="ir.module.category">
+        <field name="name">Attendance and Schedule</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="privilege_schedule_management" model="res.groups.privilege">
+        <field name="name">Schedule Tab</field>
+        <field name="category_id" ref="module_category_attendance_planning"/>
+    </record>
+
+    <record id="group_employee_schedule_manager" model="res.groups">
+        <field name="name">Employee Schedule Manager</field>
+        <field name="privilege_id" ref="privilege_schedule_management"/>
+    </record>
+
+    <!-- ==================================================================== -->
+    <!-- YOUR CUSTOM CHECKBOX (Now fully disconnected from the Officer group) -->
+    <!-- ==================================================================== -->
+    <record id="privilege_attendance_sheet_access" model="res.groups.privilege">
+        <field name="name">Attendance Sheet Access</field>
+        <field name="category_id" ref="module_category_attendance_planning"/>
+    </record>
+
+    <record id="group_attendance_sheet_own" model="res.groups">
+        <field name="name">Attendance Sheet - Own Record Only</field>
+        <field name="privilege_id" ref="privilege_attendance_sheet_access"/>
+        <!-- This safely grants basic internal access WITHOUT triggering Officer rights -->
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- The Security Rule to hide other employees' punches -->
+    <record id="rule_attendance_own_record_only" model="ir.rule">
+        <field name="name">Attendance Sheet: employee sees only own attendance</field>
+        <field name="model_id" ref="hr_attendance.model_hr_attendance"/>
+        <field name="domain_force">[('employee_id.user_id','=',user.id)]</field>
+        <field name="groups" eval="[(4, ref('attendance_planning.group_attendance_sheet_own'))]"/>
+    </record>
+
+</odoo>

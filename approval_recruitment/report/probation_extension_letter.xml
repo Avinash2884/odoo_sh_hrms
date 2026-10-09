@@ -19,7 +19,7 @@
             <t t-foreach="docs" t-as="object">
                 <t t-call="web.external_layout">
 
-                    <div style="margin: 30px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;">
+                    <div style="margin: 30px; font-family: 'DM Sans'; font-weight:normal; font-size: 14px; line-height: 1.8;">
 
                         <!-- Header -->
                         <p>
@@ -75,10 +75,8 @@
                                 <div style="height: 60px;"></div>
 
                                 <!-- HR Name -->
-                                <div>
-                                    <strong>Koushalya R</strong><br/>
-                                    Head – Human Resources
-                                </div>
+                                <p style="margin-top: 10px;"><t t-esc="object.applicant_id.job_id.hr_head_name.name"/></p>
+                                <p style="margin-top: 0px;"><t t-esc="object.applicant_id.job_id.hr_description"/></p>
 
                             </div>
 

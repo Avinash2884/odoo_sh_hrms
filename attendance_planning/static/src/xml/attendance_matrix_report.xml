@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="attendance_planning.AttendanceMatrixReport" owl="1">
+        <div class="o_attendance_matrix_report h-100 d-flex flex-column">
+
+            <!-- ── CSS Fixes (Moved inline to bypass Odoo caching) ── -->
+            <style>
+                /* ── Table layout ── */
+                .o_attendance_matrix_table {
+                    border-collapse: separate !important;
+                    border-spacing: 0;
+                }
+
+                /* ── Restore Grid Borders ── */
+                .o_attendance_matrix_table th,
+                .o_attendance_matrix_table td {
+                    border-bottom: 1px solid #dee2e6;
+                    border-right: 1px solid #dee2e6;
+                }
+                .o_attendance_matrix_table thead tr:first-child th {
+                    border-top: 1px solid #dee2e6;
+                }
+
+                /* ── Vertical Sticky Headers (Staggered for 2 rows) ── */
+                .o_attendance_matrix_table thead th {
+                    background-clip: padding-box;
+                    background-color: #f8f9fa;
+                }
+                .o_attendance_matrix_table thead tr:first-child th {
+                    position: sticky;
+                    top: 0;
+                    z-index: 20;
+                    height: 75px;
+                    vertical-align: middle;
+                }
+                .o_attendance_matrix_table thead tr:nth-child(2) th {
+                    position: sticky;
+                    top: 74px !important;
+                    z-index: 20 !important;
+                }
+
+                /* ── Horizontal Sticky Columns (ID and Name) ── */
+                .o_sticky_id {
+                    position: sticky !important;
+                    left: 0 !important;
+                    min-width: 100px !important;
+                    max-width: 100px !important;
+                    background-color: #ffffff !important;
+                    z-index: 10 !important;
+                }
+
+                .o_sticky_name {
+                    position: sticky !important;
+                    left: 100px !important;
+                    min-width: 200px !important;
+                    max-width: 200px !important;
+                    background-color: #ffffff !important;
+                    z-index: 10 !important;
+                    border-right: 2px solid #dee2e6 !important;
+                }
+
+                /* Header intersections stay above EVERYTHING */
+                .o_attendance_matrix_table thead th.o_sticky_id,
+                .o_attendance_matrix_table thead th.o_sticky_name {
+                    z-index: 40 !important;
+                    background-color: #f8f9fa !important;
+                }
+            </style>
+
+            <!-- ── Toolbar ─────────────────────────────────────────────── -->
+            <div class="d-flex align-items-center p-2 border-bottom bg-light flex-wrap gap-2">
+                <button class="btn btn-secondary btn-sm" t-on-click="prevMonth"><i class="fa fa-chevron-left"/></button>
+                <button class="btn btn-secondary btn-sm" t-on-click="nextMonth"><i class="fa fa-chevron-right"/></button>
+                <button class="btn btn-outline-primary btn-sm" t-on-click="goToday">Today</button>
+                <button class="btn btn-success ms-3" t-on-click="exportExcel">
+                    <i class="fa fa-file-excel-o me-1"/>
+                    Export Excel</button>
+                <h5 class="mb-0 me-2" t-esc="this.monthLabel"/>
+                <span class="text-muted small" t-if="state.loading">Loading…</span>
+
+                <!-- Search + filter bar -->
+                <div class="o_amc_searchbar_wrap position-relative ms-2" t-ref="filterRoot">
+                    <div class="o_amc_search_box d-flex align-items-center flex-wrap" t-on-click="toggleFilters">
+                        <i class="fa fa-search text-muted mx-2"/>
+                        <span t-foreach="chips" t-as="chip" t-key="chip.key" class="o_amc_chip">
+                            <i t-att-class="'fa ' + chip.icon"/>
+                            <span t-esc="chip.label"/>
+                            <i class="fa fa-times o_amc_chip_x" t-on-click.stop="() => this.removeChip(chip.key)"/>
+                        </span>
+                        <input type="text" class="o_amc_search_input flex-grow-1"
+                               placeholder="Search employee..."
+                               t-att-value="state.searchText"
+                               t-on-click.stop=""
+                               t-on-input="setSearchText"/>
+                        <i class="fa fa-caret-down o_amc_caret"/>
+                    </div>
+
+                    <div t-if="state.filtersOpen" class="o_amc_filters_dropdown shadow" t-on-click.stop="">
+                        <div class="o_amc_filters_col">
+                            <div class="o_amc_filters_col_title">Shift Type</div>
+                            <div class="o_amc_filter_item" t-on-click="() => this.setShiftFilter('all')">
+                                <i t-att-class="state.shiftFilter==='all' ? 'fa fa-check' : ''"/>
+                                <span>All</span>
+                            </div>
+                            <div class="o_amc_filter_item" t-on-click="() => this.setShiftFilter('regular')">
+                                <i t-att-class="state.shiftFilter==='regular' ? 'fa fa-check' : ''"/>
+                                <span>Regular</span>
+                            </div>
+                            <div class="o_amc_filter_item" t-on-click="() => this.setShiftFilter('rotational')">
+                                <i t-att-class="state.shiftFilter==='rotational' ? 'fa fa-check' : ''"/>
+                                <span>Rotational</span>
+                            </div>
+
+                            <div class="o_amc_filters_col_title mt-2">Day Status</div>
+                            <div class="o_amc_filter_item" t-on-click="() => this.setCodeFilter('all')">
+                                <i t-att-class="state.codeFilter==='all' ? 'fa fa-check' : ''"/>
+                                <span>All</span>
+                            </div>
+                            <div class="o_amc_filter_item" t-on-click="() => this.setCodeFilter('P')">
+                                <i t-att-class="state.codeFilter==='P' ? 'fa fa-check' : ''"/>
+                                <span>Present (P)</span>
+                            </div>
+                            <div class="o_amc_filter_item" t-on-click="() => this.setCodeFilter('P/A')">
+                                <i t-att-class="state.codeFilter==='P/A' ? 'fa fa-check' : ''"/>
+                                <span>Half Day (P/A)</span>
+                            </div>
+                            <div class="o_amc_filter_item" t-on-click="() => this.setCodeFilter('A')">
+                                <i t-att-class="state.codeFilter==='A' ? 'fa fa-check' : ''"/>
+                                <span>Absent (A)</span>
+                            </div>
+                            <div class="o_amc_filter_item" t-on-click="() => this.setCodeFilter('OT')">
+                                <i t-att-class="state.codeFilter==='OT' ? 'fa fa-check' : ''"/>
+                                <span>Overtime (OT)</span>
+                            </div>
+                            <div class="o_amc_filter_item" t-on-click="() => this.setCodeFilter('EDP')">
+                                <i t-att-class="state.codeFilter==='EDP' ? 'fa fa-check' : ''"/>
+                                <span>Extra Duty (EDP)</span>
+                            </div>
+                        </div>
+                        <div class="o_amc_filters_col">
+                            <div class="o_amc_filters_col_title">Group By</div>
+                            <div class="o_amc_filter_item" t-on-click="() => this.setGroupBy('shift_type')">
+                                <i t-att-class="state.groupBy==='shift_type' ? 'fa fa-check' : ''"/>
+                                <span>Shift Type</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="ms-auto d-flex align-items-center gap-2 o_amc_legend flex-wrap">
+                    <span class="o_amc_badge o_amc_CHK">CHK</span>
+                    <small>Checked In</small>
+                    <span class="o_amc_badge o_amc_P">P</span>
+                    <small>Present</small>
+                    <span class="o_amc_badge o_amc_P_A">P/A</span>
+                    <small>Half Day</small>
+                    <span class="o_amc_badge o_amc_A">A</span>
+                    <small>Absent</small>
+                    <span class="o_amc_badge o_amc_OT">OT</span>
+                    <small>Overtime</small>
+                    <span class="o_amc_badge o_amc_EDP">EDP</span>
+                    <small>Extra Duty</small>
+                    <span class="o_amc_badge o_amc_WO">WO</span>
+                    <small>Week Off</small>
+                    <span class="o_amc_badge o_amc_HO">HO</span>
+                    <small>Holiday</small>
+                    <span class="o_amc_badge o_amc_P o_amc_needs_review">P</span>
+                    <small>Needs manager review (pink ring/dot — badge colour unchanged)</small>
+                    <span class="o_amc_badge o_amc_leave_badge o_amc_draft" style="background:#6366f1">Leave</span>
+                    <small>Approval (Pending)</small>
+                    <t t-foreach="Object.entries(state.leaveTypeColors)" t-as="entry" t-key="entry[0]">
+                        <span class="o_amc_badge o_amc_leave_badge"
+                              t-att-style="'background:' + entry[1] + ';color:#fff'"
+                              t-esc="leaveShortCodeForName(entry[0])"/>
+                        <small t-esc="entry[0]"/>
+                    </t>
+                </div>
+            </div>
+
+            <!-- ── Grid ────────────────────────────────────────────────── -->
+            <div class="flex-grow-1 overflow-auto w-100" style="max-width: 100%;">
+                <table class="table table-bordered table-sm o_attendance_matrix_table mb-0">
+                    <thead class="o_attendance_matrix_head">
+                        <tr>
+                            <th rowspan="2" class="o_sticky_id align-middle text-left">Employee ID</th>
+                            <th rowspan="2" class="o_sticky_name align-middle text-left">Employee Name</th>
+                            <th rowspan="2" class="align-middle text-left" style="min-width: 160px;">Email ID</th>
+                            <th rowspan="2" class="align-middle text-left"
+                                style="min-width: 110px;">Date of Joining</th>
+                            <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Reporting To</th>
+                            <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Department</th>
+                            <th rowspan="2" class="align-middle text-left" style="min-width: 140px;">Designation</th>
+
+                            <t t-foreach="state.days" t-as="day" t-key="day">
+                                <th rowspan="2" t-att-class="headerCellClass(day) + ' align-middle'">
+                                    <div class="o_amc_day_num" t-esc="dayNumber(day)"/>
+                                    <div class="o_amc_day_dow" t-esc="dayLabel(day)"/>
+                                    <div t-if="isPublicHoliday(day)" class="o_amc_ph_label" t-esc="holidayName(day)"/>
+                                </th>
+                            </t>
+                            <!-- Flat summary columns -->
+                            <th rowspan="2" class="align-middle text-center text-wrap"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Calendar Days in the Month</th>
+                            <th rowspan="2" class="align-middle text-center text-wrap"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Working Days</th>
+                            <th rowspan="2" class="align-middle text-center text-wrap"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Days Worked</th>
+                            <th rowspan="2" class="align-middle text-center text-wrap"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of EDP Days</th>
+
+                            <!-- ── MOVED OT & HOLIDAY SUMMARIES HERE ── -->
+                            <th rowspan="2" class="align-middle text-center text-wrap text-danger"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of OT Hrs
+                                (Non-Payable)</th>
+                            <th rowspan="2" class="align-middle text-center text-wrap"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Extra Worked Hours (OT Hours)</th>
+                            <th rowspan="2" class="align-middle text-center text-wrap"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Extra Duty (OT) Days</th>
+                            <th rowspan="2" class="align-middle text-center text-wrap"
+                                style="font-size: 10px; min-width: 90px; max-width: 100px;">Total Number of Days Worked on Holidays</th>
+
+                            <!-- ── MOVED LEAVE DETAILS TO THE END ── -->
+                            <th t-att-colspan="state.allLeaveCodes.length" class="text-center align-middle"
+                                style="background-color: #fef9c3; font-size: 10px; letter-spacing: 0.05em;">Month Leave Details</th>
+                        </tr>
+                        <tr>
+                            <t t-foreach="state.allLeaveCodes" t-as="lc" t-key="lc">
+                                <th class="text-center align-middle"
+                                    style="background-color: #fef9c3; font-size: 10px; min-width: 45px;" t-esc="lc"/>
+                            </t>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <!-- ── Flat rows ── -->
+                        <t t-if="!groupedEmployees">
+                            <t t-foreach="filteredEmployees" t-as="emp" t-key="emp.id">
+                                <t t-call="attendance_planning.EmpRow">
+                                    <t t-set="emp" t-value="emp"/>
+                                </t>
+                            </t>
+                        </t>
+
+                        <!-- ── Grouped rows ── -->
+                        <t t-if="groupedEmployees">
+                            <t t-foreach="groupedEmployees" t-as="grp" t-key="grp.key">
+                                <tr class="o_amc_group_header_row">
+                                    <td t-att-colspan="state.days.length + state.allLeaveCodes.length + 15"
+                                        class="o_amc_group_header">
+                                        <t t-esc="grp.label"/>
+                                        <span class="text-muted ms-1">(<t t-esc="grp.employees.length"/>)</span>
+                                    </td>
+                                </tr>
+                                <t t-foreach="grp.employees" t-as="emp" t-key="emp.id">
+                                    <t t-call="attendance_planning.EmpRow">
+                                        <t t-set="emp" t-value="emp"/>
+                                    </t>
+                                </t>
+                            </t>
+                        </t>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </t>
+
+    <!-- ── Reusable employee row ──────────────────────────────────────── -->
+    <t t-name="attendance_planning.EmpRow" owl="1">
+        <tr>
+            <td class="o_sticky_id align-middle text-left fw-bold">
+                <t t-esc="emp.ls_employee_id"/>
+            </td>
+
+            <td class="o_sticky_name align-middle text-left fw-bold">
+                <t t-esc="emp.name"/>
+                <span t-if="emp.shift_type === 'rotational'" class="o_amc_shift_pill o_amc_shift_rot ms-1">R</span>
+                <span t-else="" class="o_amc_shift_pill o_amc_shift_reg ms-1">F</span>
+            </td>
+
+            <td class="align-middle text-left text-muted small">
+                <t t-esc="emp.work_email"/>
+            </td>
+            <td class="align-middle text-left text-muted small fw-bold">
+                <t t-esc="emp.joining_date_recruit"/>
+            </td>
+            <td class="align-middle text-left text-muted small">
+                <t t-esc="emp.parent_id"/>
+            </td>
+
+            <td class="align-middle text-left text-muted small">
+                <t t-esc="emp.department_id"/>
+            </td>
+
+            <td class="align-middle text-left text-muted small">
+                <t t-esc="emp.job_id"/>
+            </td>
+
+            <!-- Day cells -->
+            <t t-foreach="state.days" t-as="day" t-key="day">
+                <td t-att-class="dataCellClass(emp.id, day)"
+                    t-on-click="() => this.onCellClick(emp.id, emp.name, day)">
+                    <t t-foreach="cellCodes(emp.id, day)" t-as="code" t-key="code">
+                        <div t-att-class="badgeClass(code, cellNeedsReview(emp.id, day), cellPendingOt(emp.id, day))"
+                             t-att-style="leaveBadgeStyle(code)"
+                             t-esc="displayCode(code)"/>
+                    </t>
+                    <t t-if="!cellCodes(emp.id, day).length">
+                        <t t-if="isPublicHoliday(day)">
+                            <div class="o_amc_badge o_amc_HO">HO</div>
+                        </t>
+                        <t t-elif="isWeekoff(emp.id, day)">
+                            <div class="o_amc_badge o_amc_WO">WO</div>
+                        </t>
+                    </t>
+                </td>
+            </t>
+
+            <t t-set="cons" t-value="getConsolidation(emp.id)"/>
+
+            <td class="text-center align-middle fw-bold">
+                <t t-esc="cons.calendar_days"/>
+            </td>
+            <td class="text-center align-middle">
+                <t t-esc="cons.working_days"/>
+            </td>
+            <td class="text-center align-middle text-primary fw-bold">
+                <t t-esc="cons.effective_present"/>
+            </td>
+            <td class="text-center align-middle">
+                <t t-esc="cons.edp_days"/>
+            </td>
+
+            <!-- ── MOVED OT & HOLIDAY SUMMARIES HERE ── -->
+            <td class="text-center align-middle text-danger fw-bold">
+                <t t-esc="cons.ot_hours_less_fmt"/>
+            </td>
+            <td class="text-center align-middle text-warning text-dark fw-bold">
+                <t t-esc="cons.ot_hours_fmt"/>
+            </td>
+            <td class="text-center align-middle text-info fw-bold">
+                <t t-esc="cons.ot_days"/>
+            </td>
+            <td class="text-center align-middle text-success fw-bold">
+                <t t-esc="cons.ph_worked"/>
+            </td>
+
+            <!-- ── MOVED LEAVE DETAILS TO THE END ── -->
+            <t t-foreach="state.allLeaveCodes" t-as="lc" t-key="lc">
+                <td class="text-center align-middle"
+                    t-att-class="leaveCountFor(emp.id, lc) === 0 ? 'text-muted' : 'text-danger fw-bold'">
+                    <t t-esc="leaveCountFor(emp.id, lc)"/>
+                </td>
+            </t>
+        </tr>
+    </t>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         DAY-DETAIL POPUP
+    ═══════════════════════════════════════════════════════════════════ -->
+    <t t-name="attendance_planning.AttendanceDayDetailDialog" owl="1">
+        <Dialog title="props.employeeName + ' — ' + props.day" size="'md'">
+            <div class="o_attendance_day_detail">
+
+                <!-- Badges (large) + status label -->
+                <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
+                    <t t-foreach="props.codes" t-as="code" t-key="code">
+                        <span t-att-class="'o_amc_badge o_amc_badge_lg ' + props.badgeClass(code).replace('o_amc_badge ', '')"
+                              t-att-style="props.leaveBadgeStyle(code)"
+                              t-esc="props.displayCode(code)"/>
+                    </t>
+                    <span t-if="props.detail.shift_status === 'planned'"
+                          class="badge bg-secondary ms-1">Not Checked In</span>
+                    <span t-if="props.detail.shift_status === 'in_progress'" class="badge bg-info text-dark ms-1">Shift In Progress</span>
+                    <span t-if="props.detail.shift_status === 'done'" class="badge bg-success ms-1">Completed</span>
+                </div>
+
+                <!-- Draft leave warning -->
+                <div t-if="props.detail.leave_draft" class="mb-3">
+                    <span class="o_amc_draft_badge_note">
+                        <i class="fa fa-hourglass-half me-1"/>
+                        Leave is <strong>pending approval</strong> — shown with stripe pattern on grid
+                    </span>
+                </div>
+
+                <!-- Attendance status card -->
+                <t t-if="props.detail.absence_status">
+                    <div t-att-class="'o_amc_summary_card mb-3 ' + (props.detail.absence_status === 'full_present' ? 'o_amc_status_full_present' : props.detail.absence_status === 'half_absent' ? 'o_amc_status_half_absent' : 'o_amc_status_full_absent')">
+                        <div class="o_amc_summary_label">Attendance Status</div>
+                        <div class="o_amc_summary_value">
+                            <t t-if="props.detail.absence_status === 'full_present'">
+                                <i class="fa fa-check-circle me-1" style="color:#15803d"/>
+                                Present — Full Day
+                            </t>
+                            <t t-elif="props.detail.absence_status === 'half_absent'">
+                                <i class="fa fa-adjust me-1" style="color:#92400e"/>
+                                Present — Half Day
+                            </t>
+                            <t t-else="">
+                                <i class="fa fa-times-circle me-1" style="color:#991b1b"/>
+                                Absent (Punched In)
+                            </t>
+                        </div>
+                        <t t-if="props.detail.absence_status === 'half_absent' and props.detail.half_day_type">
+                            <div class="mt-1">
+                                <span class="o_amc_half_type_badge">
+                                    <i class="fa fa-clock-o"/>
+                                    <t t-if="props.detail.half_day_type === 'first'">First Half Missing</t>
+                                    <t t-else="">Second Half Missing</t>
+                                </span>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+
+                <!-- Hours comparison -->
+                <t t-if="props.detail.base_scheduled_hours">
+                    <div class="d-flex gap-3 flex-wrap mb-3">
+                        <div class="o_amc_summary_card">
+                            <div class="o_amc_summary_label">Required Hours</div>
+                            <div class="o_amc_summary_value" style="font-size:15px">
+                                <t t-esc="props.detail.base_scheduled_hours"/>
+                                hrs
+                            </div>
+                        </div>
+                        <div class="o_amc_summary_card">
+                            <div class="o_amc_summary_label">Effective Total</div>
+                            <div class="o_amc_summary_value" style="font-size:15px">
+                                <t t-esc="props.detail.daily_total_hours"/>
+                                hrs
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- Permission credit -->
+                <t t-if="props.detail.permission_credit">
+                    <div class="mb-3">
+                        <span class="o_amc_perm_tag">
+                            <i class="fa fa-clock-o"/>
+                            Permission credit applied:
+                            <t t-esc="props.detail.permission_credit"/>
+                            hr
+                        </span>
+                    </div>
+                </t>
+
+                <!-- Shift name -->
+                <p t-if="props.detail.shift_name" class="mb-2 text-muted small">
+                    <strong>Assigned Shift:</strong>
+                    <t t-esc="props.detail.shift_name"/>
+                </p>
+
+                <!-- Leave info -->
+                <div t-if="props.detail.leave_type" class="mb-3">
+                    <p class="text-muted small mb-1">
+                        <strong>Leave Type:</strong>
+                        <t t-esc="props.detail.leave_type"/>
+                        <span t-if="props.detail.leave_half_day" class="badge bg-secondary ms-1">Half Day</span>
+                        <span t-if="props.detail.leave_draft" class="badge bg-warning text-dark ms-1">Pending</span>
+                    </p>
+                </div>
+
+                <!-- Public holiday + comp-off -->
+                <div t-if="props.detail.is_public_holiday" class="mb-3">
+                    <p class="text-muted small mb-1">
+                        <strong>Public Holiday:</strong>
+                        <t t-esc="props.detail.holiday_name"/>
+                    </p>
+                    <p t-if="props.detail.comp_off_granted" class="small mb-0">
+                        <span class="badge bg-info text-dark">
+                            <i class="fa fa-gift me-1"/>
+                            Worked on holiday — 1 day Comp Off credited
+                        </span>
+                    </p>
+                </div>
+
+                <!-- Punch table -->
+                <t t-if="props.detail.punches and props.detail.punches.length">
+                    <h6 class="text-muted text-uppercase small fw-bold mb-2">
+                        Attendance <span class="text-primary">(IST)</span>
+                    </h6>
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Worked</th>
+                                <th>Permission</th>
+                                <th>Extra</th>
+                                <th>Appr. OT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="props.detail.punches" t-as="p" t-key="p_index">
+                                <td><strong t-esc="p.check_in"/></td>
+                                <td>
+                                    <strong t-esc="p.check_out"/>
+                                    <span t-if="p.check_out === '-'" class="badge bg-warning text-dark ms-1">Open</span>
+                                </td>
+                                <td t-esc="p.worked_hours"/>
+                                <td>
+                                    <span t-if="p.permission_credit > 0"
+                                          class="badge" style="background:#e0f2fe;color:#0369a1"
+                                          t-esc="'+' + p.permission_credit + 'h'"/>
+                                    <span t-else="" class="text-muted">—</span>
+                                </td>
+                                <td t-esc="p.extra_hours"/>
+                                <td>
+                                    <span t-if="p.approved_extra_hours > 0"
+                                          class="badge bg-warning text-dark" t-esc="p.approved_extra_hours"/>
+                                    <span t-else="" class="text-muted">—</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Summary cards -->
+                    <div class="d-flex gap-3 flex-wrap o_amc_summary_row">
+                        <div class="o_amc_summary_card">
+                            <div class="o_amc_summary_label">Total Worked</div>
+                            <div class="o_amc_summary_value"><t t-esc="props.detail.total_worked_hours"/>
+                                hrs</div>
+                        </div>
+                        <div class="o_amc_summary_card">
+                            <div class="o_amc_summary_label">Approved OT</div>
+                            <div class="o_amc_summary_value o_amc_summary_ot"><t t-esc="props.detail.total_ot_hours"/>
+                                hrs</div>
+                        </div>
+                        <div class="o_amc_summary_card o_amc_summary_payable">
+                            <div class="o_amc_summary_label">Total Payable</div>
+                            <div class="o_amc_summary_value"><t t-esc="props.detail.total_payable_hours"/>
+                                hrs</div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- No punches yet -->
+                <t t-if="!props.detail.punches and props.detail.shift_status === 'planned'">
+                    <p class="text-muted mt-3"><i class="fa fa-clock-o me-1"/>Not checked in yet.</p>
+                </t>
+
+                <!-- EDP -->
+                <t t-if="props.detail.edp">
+                    <hr/>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-2">EDP — Extra Duty</h6>
+                    <table class="table table-sm">
+                        <tr><th>Shift Template</th>
+                            <td t-esc="props.detail.edp.shift_template"/></tr>
+                        <tr><th>Status</th>
+                            <td><span class="badge bg-success" t-esc="props.detail.edp.state"/></td></tr>
+                    </table>
+                </t>
+
+                <!-- No Response: review right here instead of opening the record -->
+                <t t-if="props.detail.no_response">
+                    <hr/>
+                    <div class="o_amc_nr_review mb-2">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="o_amc_badge o_amc_NR">NR</span>
+                            <strong>No Response — auto checked-out by system</strong>
+                        </div>
+                        <p class="text-muted small mb-2">
+                            Employee did not respond to the extra-hours reminder. Extra hours are
+                            held out of auto-pay until you approve or reject this entry.
+                        </p>
+                        <t t-if="props.detail.can_approve_late_checkout">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success btn-sm" t-on-click="() => props.onApproveNr()">
+                                    Approve
+                                </button>
+                                <button class="btn btn-danger btn-sm" t-on-click="() => props.onRejectNr()">
+                                    Reject
+                                </button>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <span class="text-muted small">Only this employee's manager or an HR admin can approve/reject.</span>
+                        </t>
+                    </div>
+                </t>
+
+                <!-- Plain 4+ hour pending OT (not no-response): same inline
+                     Approve/Reject, so a manager never has to leave the sheet. -->
+                <t t-if="props.detail.pending_ot_review">
+                    <hr/>
+                    <div class="o_amc_ot_review mb-2">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="o_amc_badge o_amc_OT">OT</span>
+                            <strong>Extra hours pending approval</strong>
+                        </div>
+                        <p class="text-muted small mb-2">
+                            4+ hours of extra time on this day. Held out of auto-pay until you
+                            approve or reject it.
+                        </p>
+                        <t t-if="props.detail.can_approve_late_checkout">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success btn-sm" t-on-click="() => props.onApproveOt()">
+                                    Approve
+                                </button>
+                                <button class="btn btn-danger btn-sm" t-on-click="() => props.onRejectOt()">
+                                    Reject
+                                </button>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <span class="text-muted small">Only this employee's manager or an HR admin can approve/reject.</span>
+                        </t>
+                    </div>
+                </t>
+
+            </div>
+        </Dialog>
+    </t>
+
+</templates>

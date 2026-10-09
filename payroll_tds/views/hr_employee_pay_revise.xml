@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_employee_form_pay_revise"
+                model="ir.ui.view">
+
+            <field name="name">hr.employee.form.pay.revise</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+
+            <field name="arch" type="xml">
+
+                <!-- Put Pay Revise button inside the same Gross row,
+                     after the / Monthly section -->
+                <xpath expr="//field[@name='wage'][1]/ancestor::div[contains(concat(' ', normalize-space(@class), ' '), ' o_row ')][1]"
+                       position="inside">
+
+                    <button name="action_open_salary_revision_wizard"
+                            string="Pay Revise"
+                            type="object"
+                            class="btn-primary oe_inline"
+                            icon="fa-pencil"/>
+
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

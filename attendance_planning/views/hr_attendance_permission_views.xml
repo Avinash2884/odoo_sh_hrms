@@ -7,20 +7,38 @@
         <field name="arch" type="xml">
             <form string="Permission Request">
                 <header>
-                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"
-                            invisible="state != 'draft'" groups="hr_attendance.group_hr_attendance_manager"/>
+                    <!-- The Submit button -->
+                    <button name="action_submit" string="Submit" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
 
-                    <button name="action_reject" string="Reject" type="object"
-                            invisible="state != 'draft'" groups="hr_attendance.group_hr_attendance_manager"/>
+                    <!-- Invisible field for manager check -->
+                    <field name="can_approve_manager" invisible="1"/>
 
+                    <!-- Approve Button: Only visible when 'submitted' and user is manager -->
+                    <button name="action_approve"
+                            string="Approve"
+                            type="object"
+                            class="btn-success"
+                            invisible="state != 'submitted' or not can_approve_manager"/>
+
+                    <!-- Reject Button: Only visible when 'submitted' and user is manager -->
+                    <button name="action_reject"
+                            string="Reject"
+                            type="object"
+                            class="btn-danger"
+                            invisible="state != 'submitted' or not can_approve_manager"/>
+
+                    <!-- Cancel Button -->
                     <button name="action_cancel" string="Cancel Request" type="object"
-                            invisible="state not in ['draft', 'approved', 'rejected']" class="btn btn-secondary"/>
+                            invisible="state not in ['draft', 'submitted', 'approved']" class="btn btn-secondary"/>
 
+                    <!-- CHANGED: Reset to Draft is now ONLY visible if Cancelled or Rejected -->
                     <button name="action_reset_draft" string="Reset to Draft" type="object"
-                            invisible="state == 'draft'" groups="hr_attendance.group_hr_attendance_manager"/>
+                            invisible="state not in ['cancelled', 'rejected']"/>
 
-                    <field name="state" widget="statusbar" statusbar_visible="draft,approved,rejected,cancelled"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,rejected"/>
                 </header>
+
                 <sheet>
                     <div class="alert alert-info text-center" role="alert" style="margin-bottom: 20px;">
                         <strong>Permission Policy:</strong>
@@ -72,8 +90,7 @@
         <field name="name">Permissions to Approve</field>
         <field name="res_model">hr.attendance.permission</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[]</field>
-        <field name="context">{'search_default_draft': 1}</field>
+        <field name="domain">[('employee_id.parent_id.user_id', '=', uid)]</field>
     </record>
 
     <menuitem id="menu_hr_attendance_permission_user"
@@ -86,7 +103,7 @@
               name="All Permissions"
               parent="approvals.approvals_menu_root"
               action="action_hr_attendance_permission_all"
-              groups="hr_attendance.group_hr_attendance_manager"
               sequence="20"/>
 
 </odoo>
+

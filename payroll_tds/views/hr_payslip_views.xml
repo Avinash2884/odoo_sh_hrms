@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Payslip Form View -->
+    <record id="view_hr_payslip_form_inherit_timeoff_balance" model="ir.ui.view">
+        <field name="name">hr.payslip.form.inherit.timeoff.balance</field>
+        <field name="model">hr.payslip</field>
+
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+
+        <field name="arch" type="xml">
+
+            <!-- Statusbar -->
+            <xpath expr="//field[@name='state']" position="replace">
+
+                <field name="state"
+                       widget="statusbar"
+                       statusbar_visible="draft,timeoff_balance,validated,paid"/>
+
+            </xpath>
+
+
+        </field>
+    </record>
+
+
+    <!-- Payslip List View -->
+    <record id="view_hr_payslip_tree_inherit_timeoff_balance" model="ir.ui.view">
+        <field name="name">hr.payslip.tree.inherit.timeoff.balance</field>
+        <field name="model">hr.payslip</field>
+
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_tree"/>
+
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='state_display']" position="replace">
+
+                <field
+                    name="state_display"
+                    widget="badge"
+                    decoration-info="state_display == 'draft'"
+                    decoration-warning="state_display == 'timeoff_balance'"
+                    decoration-success="state_display == 'validated'"
+                    decoration-primary="state_display == 'paid'"
+                    decoration-danger="state_display == 'error'"
+                />
+
+            </xpath>
+
+
+        </field>
+    </record>
+      <!-- NEW RECORD -->
+    <record id="view_hr_payslip_form_inherit_print_button" model="ir.ui.view">
+        <field name="name">hr.payslip.form.inherit.print.button</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//button[@name='action_print_payslip']"
+                   position="attributes">
+                <attribute name="type">object</attribute>
+            </xpath>
+
+        </field>
+    </record>
+     <record id="view_hr_payslip_form_inherit_total_period_days" model="ir.ui.view">
+    <field name="name">hr.payslip.form.inherit.total.period.days</field>
+    <field name="model">hr.payslip</field>
+    <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+    <field name="arch" type="xml">
+
+        <xpath expr="//field[@name='struct_id']" position="after">
+    <field name="total_period_days"/>
+            <field name="unpaid_days"/>
+
+            <field name="attendance_days"/>
+</xpath>
+
+    </field>
+</record>
+    <record id="view_hr_payslip_form_inherit_pay_register_tab" model="ir.ui.view">
+    <field name="name">hr.payslip.form.inherit.pay.register.tab</field>
+    <field name="model">hr.payslip</field>
+    <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+    <field name="arch" type="xml">
+
+        <xpath expr="//page[@name='account_info']" position="after">
+
+            <page string="Pay Register" name="pay_register">
+
+                <group>
+                    <field name="employee_id" string="Employee Name" readonly="1"/>
+                    <field name="pay_period" readonly="1"/>
+                  <!--  <field name="date_of_joining"
+                           string="Date of Joining"
+                           readonly="1"/> -->
+                    <field name="date_of_joining_display"
+                           string="Date of Joining"
+                           readonly="1"/>
+                    <field name="date_of_leaving_display"
+                           string="Date of Leaving"
+                           readonly="1"/>
+
+<field name="dob_display"
+       string="DOB"
+       readonly="1"/>
+                    <field name="job_position_id"
+                           string="Designation"
+                           readonly="1"/>
+                    <field name="gender"
+                           string="Gender"
+                           readonly="1"/>
+                  <!--  <field name="dob"
+                           string="DOB"
+                           readonly="1"/> -->
+                    <field name="department_id"
+                           string="Department"
+                           readonly="1"/>
+                    <field name="pan" string="PAN"/>
+                    <field name="uan" string="UAN"/>
+                    <field name="state_id" string="State"/>
+                    <field name="city" string="City"/>
+                    <field name="salary_type_id" string="Salary Type"/>
+<!--                  <field name="bank_name" string="Bank Name"/>-->
+<!--                    <field name="account_number" string="Account Number"/>-->
+<!--                    <field name="ifsc_code" string="IFSC"/>-->
+                    <field name="fixed_basic" string="Fixed Basic"/>
+                    <field name="basic" string="Basic"/>
+                    <field name="fixed_hra" string="Fixed HRA"/>
+                    <field name="hra" string="HRA"/>
+                    <field name="special_allowance" string="Special Allowance"/>
+                    <field name="fixed_conveyance" string="Fixed Conveyance"/>
+                    <field name="conveyance_allowance" string="Conveyance Allowance"/>
+                    <field name="salary_arrear_amount"/>
+                    <field name="stipend" string="Stipend"/>
+                    <field name="bonus" string="Bonus"/>
+                    <field name="incentive" string="Incentive"/>
+                    <field name="other_earnings"
+       string="Other Earnings"
+       readonly="0"/>
+
+<field name="hold_salary"
+       string="Hold Salary"
+       readonly="0"/>
+
+<field name="variable_pay"
+       string="Variable Pay"
+       readonly="0"/>
+
+<field name="pf_arrear"
+       string="PF Arrear"
+       readonly="0"/>
+
+<field name="nps_contribution"
+       string="NPS Contribution"
+       readonly="0"/>
+                    <field name="referral" string="Referral"/>
+                    <field name="other_deductions" string="Other Deductions"/>
+                    <field name="total_period_days" />
+                    <field name="attendance_days" />
+                    <field name="unpaid_days"/>
+                    <field name="gross"/>
+                    <field name="payslip_gross_wage"
+                           string="Total Gross Earnings"
+                           />
+                  <field name="leave_encashment" string="Leave Encashment" readonly="0"/>
+                    <field name="notice_pay" string="Notice Pay"/>
+                    <field name="epf_total" string="EPF"/>
+                    <field name="ctc" string="CTC/Month"/>
+                     <field name="epf_contribution"
+                           string="EPF Contribution"/>
+                    <field name="pt" string="PT" />
+                    <field name="pt_previous_deducted" readonly="1"/>
+                    <field name="income_tax" string="Income Tax"/>
+                    <field name="loan_deduction"
+                           string="Loan Deduction"
+                           readonly="1"/>
+                    <field name="total_deduction" string="Total Deduction" />
+                    <field name="net_wage" string="Net Pay"/>
+                </group>
+
+            </page>
+
+        </xpath>
+
+    </field>
+</record>
+        <!-- NEW RECORD - TDS Sheet Button -->
+   <!-- <record id="view_hr_payslip_form_inherit_tds_sheet_button" model="ir.ui.view">
+        <field name="name">hr.payslip.form.inherit.tds.sheet.button</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//button[@name='action_print_fnf_report']"
+                   position="after">
+                <button name="action_print_tds_sheet"
+                        string="TDS Sheet"
+                        type="object"
+                        invisible="not tax_regime"/>
+            </xpath>
+
+        </field>
+    </record> -->
+
+
+</odoo>

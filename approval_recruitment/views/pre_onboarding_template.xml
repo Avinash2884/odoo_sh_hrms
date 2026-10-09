@@ -1,226 +1,548 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="pre_onboarding_template" name="Pre-Onboarding Form">
         <t t-call="website.layout">
+
             <style>
-                /* Modern Card Styling */
-                .ob-card { border: none; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); background:
-                #ffffff; overflow: hidden; }
+                .ob-page-wrap { background: #f0eeff; min-height: 100vh; padding: 48px 16px; }
+                .ob-card { border: none; border-radius: 24px; box-shadow: 0 20px 60px rgba(91,79,255,0.10); background:
+                #ffffff; overflow: hidden; max-width: 1000px; margin: 0 auto; }
+                .ob-header-main { background: #5b4fff; color: white; padding: 44px 48px 36px; text-align: center; }
+                .ob-header-main h1 { font-weight: 800; font-size: 1.9rem; margin: 0 0 8px; color: #fff; }
+                .ob-header-main p { color: rgba(255,255,255,0.75); margin: 0; font-size: 1rem; }
+                .ob-profile-strip { background: #fdfbff; border-bottom: 2px solid #ede9ff; padding: 28px 40px; }
+                .ob-profile-photo { width: 110px; height: 135px; object-fit: cover; border-radius: 14px; border: 3px
+                solid #5b4fff; box-shadow: 0 4px 16px rgba(91,79,255,0.18); }
+                .ob-profile-placeholder { width: 110px; height: 135px; border-radius: 14px; border: 2px dashed #c7bfff;
+                background: #f3f0ff; display: flex; align-items: center; justify-content: center; color: #9e96e8; }
+                .reg-badge { display: inline-block; background: #5b4fff; color: #fff; padding: 4px 14px; border-radius:
+                50px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; }
+                .ob-profile-name { font-weight: 800; font-size: 1.5rem; color: #1e1a40; margin: 0 0 4px; }
+                .ob-profile-role { color: #7970b3; font-size: 1rem; margin: 0; }
+                .ob-form-body { padding: 36px 40px 48px; }
+                .category-gate { background: #f3f0ff; border: 2px solid #c7bfff; border-radius: 18px; padding: 32px;
+                text-align: center; margin-bottom: 36px; }
+                .category-gate-label { display: block; font-weight: 700; font-size: 0.85rem; letter-spacing: 1.5px;
+                text-transform: uppercase; color: #5b4fff; margin-bottom: 14px; }
+                .category-select { max-width: 320px; width: 100%; border: 2px solid #c7bfff; border-radius: 12px;
+                padding: 14px 18px; font-size: 1rem; background: #fff; color: #1e1a40; cursor: pointer; transition:
+                border-color 0.2s; }
+                .ob-section-title { font-weight: 800; font-size: 1.1rem; color: #5b4fff; margin: 40px 0 20px;
+                padding-bottom: 12px; border-bottom: 2px solid #ede9ff; display: flex; align-items: center; gap: 10px; }
+                .ob-section-num { background: #5b4fff; color: #fff; width: 28px; height: 28px; border-radius: 8px;
+                display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;
+                flex-shrink: 0; }
+                .ob-field-label { display: block; font-weight: 600; color: #2c2640; font-size: 0.9rem; margin-bottom:
+                8px; }
+                .ob-req { color: #e24b4a; margin-left: 2px; }
+                .ob-text-inp { width: 100%; border: 2px solid #e8e3ff; border-radius: 12px; padding: 13px 16px;
+                font-size: 0.95rem; background: #fafbff; color: #1e1a40; }
+                .ob-upload-zone { border: 2px dashed #c7bfff; border-radius: 14px; background: #faf9ff; padding: 16px;
+                position: relative; margin-bottom: 10px; }
+                .ob-upload-trigger { display: flex; align-items: center; gap: 12px; cursor: pointer; position: relative;
+                }
+                .ob-upload-trigger input[type="file"] { position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+                opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 2; }
+                .ob-upload-icon { width: 42px; height: 42px; border-radius: 10px; background: #ede9ff; display: flex;
+                align-items: center; justify-content: center; flex-shrink: 0; }
+                .ob-upload-text { flex: 1; }
+                .ob-upload-text strong { display: block; font-size: 0.9rem; font-weight: 600; color: #5b4fff; }
+                .ob-upload-text span { font-size: 0.78rem; color: #9e96c8; }
+                .ob-file-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+                .ob-file-list.is-multi { flex-direction: row; flex-wrap: wrap; gap: 10px; }
 
-                /* Updated to Brand Color #5b4fff */
-                .ob-header-main { background: #5b4fff; color: white; padding: 40px; text-align: center; }
-                .section-title { color: #5b4fff; font-weight: 800; font-size: 1.6rem; border-bottom: 3px solid #f0f0f0;
-                padding-bottom: 10px; margin-top: 40px; margin-bottom: 25px; display: block; }
+                /* Lightbox */
+                .ob-lightbox { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background:
+                rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; padding: 24px; }
+                .ob-lightbox.is-open { display: flex !important; }
+                .ob-lightbox-content { width: 85%; height: 85%; display: flex; align-items: center; justify-content:
+                center; position: relative; }
+                .ob-lightbox-img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+                .ob-lightbox-pdf { width: 100%; height: 100%; background: #fff; border-radius: 8px; }
+                .ob-lightbox-close { position: fixed; top: 20px; right: 20px; width: 40px; height: 40px; border-radius:
+                50%; background: #fff; border: none; cursor: pointer; color: #333; font-size: 1.5rem; display: flex;
+                align-items: center; justify-content: center; }
 
-                .field-label { font-weight: 700; color: #333; font-size: 1rem; margin-bottom: 8px; display: block; }
-
-                /* Modern Input Styling */
-                .custom-text-input { border-radius: 12px; border: 2px solid #eee; padding: 14px; font-size: 1rem;
-                transition: 0.3s; background: #fafafa; }
-                .custom-text-input:focus { border-color: #5b4fff; background: #fff; box-shadow: 0 0 10px rgba(91, 79,
-                255, 0.1); outline: none; }
-
-                /* File Upload Styling - Modernized */
-                .file-upload-container { position: relative; background: #ffffff; border: 2px dashed #d1d1d1;
-                border-radius: 12px; padding: 15px; transition: 0.3s; text-align: center; }
-                .file-upload-container:hover { border-color: #5b4fff; background: #f8f7ff; }
-                .file-upload-container input[type="file"] { cursor: pointer; }
-
-                /* Category Selection Box */
-                .category-gate { background: #f8f9fa; border-radius: 15px; padding: 30px; border: 2px solid #5b4fff;
-                margin-bottom: 30px; }
-
-                /* Submit Button Color Update */
-                .btn-submit-modern { background: #5b4fff; color: white !important; border-radius: 50px; padding: 18px
-                60px; font-weight: 700; font-size: 1.1rem; letter-spacing: 1px; border: none; transition: 0.3s;
-                margin-top: 40px; width: 100%; }
-                .btn-submit-modern:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(91, 79, 255, 0.3);
-                background: #4a3ee6; }
-
-                .profile-header img { border: 3px solid #5b4fff !important; }
-                .reg-badge { background: #5b4fff; color: white; padding: 4px 12px; border-radius: 50px; font-size:
-                0.8rem; font-weight: 700; }
+                .ob-submit-btn { display: block; width: 100%; margin-top: 40px; background: #5b4fff; color: #fff;
+                border: none; border-radius: 50px; padding: 18px; font-weight: 700; text-transform: uppercase; cursor:
+                pointer; transition: 0.3s; }
+                .ob-submit-btn:hover { background: #4a3ee6; transform: translateY(-2px); box-shadow: 0 10px 20px
+                rgba(91, 79, 255, 0.3); }
+                @media (max-width: 640px) { .ob-form-body { padding: 24px 20px; } }
             </style>
 
-            <div id="wrap" class="bg-light pb-5 pt-5">
+            <div class="ob-lightbox" id="obLightbox">
+                <button class="ob-lightbox-close" id="obLightboxClose" type="button">✕</button>
+                <div class="ob-lightbox-content">
+                    <img class="ob-lightbox-img" id="obLightboxImg" src="" alt="Preview" style="display:none;"/>
+                    <iframe class="ob-lightbox-pdf" id="obLightboxPdf" src=""
+                            style="display:none; border:none;"></iframe>
+                </div>
+            </div>
+
+            <div id="wrap" class="ob-page-wrap pt-5 pb-5">
                 <div class="container">
                     <div class="ob-card mx-auto" style="max-width: 1000px;">
                         <div class="ob-header-main">
-                            <h1 class="font-weight-bold mb-2">Pre-Onboarding Documentation</h1>
-                            <p class="mb-0 opacity-75">Securely upload your records to begin your journey with us.</p>
+                            <h1>Pre-Onboarding Documentation</h1>
+                            <p>Securely upload your records to begin your journey with us.</p>
                         </div>
 
-                        <div class="profile-header"
-                             style="background: #fdfbff; border-bottom: 2px solid #f0f0f0; padding: 30px;">
+                        <div class="ob-profile-strip">
                             <div class="row align-items-center">
                                 <div class="col-auto">
                                     <t t-if="applicant.photograph">
-                                        <img t-att-src="image_data_uri(applicant.photograph)"
-                                             style="width: 110px; height: 135px; object-fit: cover; border-radius: 12px; border: 3px solid #5b4fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"/>
+                                        <img class="ob-profile-photo" t-att-src="image_data_uri(applicant.photograph)"
+                                             alt="Applicant Photo"/>
                                     </t>
                                     <t t-else="">
-                                        <div style="width: 110px; height: 135px; border-radius: 12px; border: 3px solid #dee2e6;"
-                                             class="d-flex align-items-center justify-content-center bg-light text-muted">
-                                            <i class="fa fa-user fa-3x"></i>
+                                        <div class="ob-profile-placeholder">
+                                            <i class="fa fa-user fa-3x"/>
                                         </div>
                                     </t>
                                 </div>
                                 <div class="col">
-                                    <div class="mb-2">
-                                        <span class="reg-badge">REG NO:
-                                            <t t-esc="applicant.registration_no"/>
-                                        </span>
-                                    </div>
-                                    <h2 class="font-weight-bold mb-1" style="color: #2c3e50;">
+                                    <span class="reg-badge">REG NO:
+                                        <t t-esc="applicant.registration_no"/>
+                                    </span>
+                                    <h2 class="ob-profile-name">
                                         <t t-esc="applicant.partner_name"/>
                                     </h2>
-                                    <h5 class="text-muted">
+                                    <p class="ob-profile-role">
                                         <t t-esc="applicant.discipline_applied"/>
-                                    </h5>
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="p-4 p-md-5">
-                            <form action="/job/onboarding/save" method="post" enctype="multipart/form-data">
+                        <div class="ob-form-body p-4 p-md-5">
+                            <form action="/job/onboarding/save" method="post" enctype="multipart/form-data" id="obForm">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                 <input type="hidden" name="access_token" t-att-value="token"/>
+
                                 <div class="category-gate text-center">
-                                    <label class="field-label mb-3 text-uppercase" style="font-size: 1.1rem;">Please
-                                        select your joining status
+                                    <label class="category-gate-label" for="doc_type_selector">Please select your
+                                        joining status
                                     </label>
                                     <select id="doc_type_selector" name="joining_category"
-                                            class="form-control custom-text-input mx-auto" style="max-width: 350px;"
-                                            required="1">
-                                        <option value="" disabled="disabled" selected="selected">-- SELECT CATEGORY --
+                                            class="category-select mx-auto" required="1"
+                                            t-att-style="'background-color: #e9ecef; pointer-events: none;' if applicant.joining_category else ''">
+                                        <option value="" disabled="disabled"
+                                                t-att-selected="not applicant.joining_category">-- SELECT CATEGORY --
                                         </option>
-                                        <option value="fresher">Fresher</option>
-                                        <option value="experienced">Experienced</option>
+                                        <option value="fresher"
+                                                t-att-selected="applicant.joining_category == 'fresher'">Fresher
+                                        </option>
+                                        <option value="experienced"
+                                                t-att-selected="applicant.joining_category == 'experienced'">Experienced
+                                        </option>
                                     </select>
                                 </div>
 
                                 <div id="dynamic_sections" class="d-none">
-                                    <h4 class="section-title">I. Identity &amp; Bank Details</h4>
+
+                                    <div class="ob-section-title">
+                                        <span class="ob-section-num">I</span>
+                                        Identity &amp; Bank Details
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-6 mb-4">
-                                            <label class="field-label">Aadhaar Number</label>
-                                            <input type="text" name="aadhaar_no"
-                                                   class="form-control custom-text-input mb-3"
-                                                   placeholder="1234 5678 9012" required="1"/>
-                                            <div class="file-upload-container">
-                                                <input type="file" name="aadhaar_card" class="form-control-file"
-                                                       required="1" multiple="multiple"/>
+                                            <label class="ob-field-label">Aadhaar Number
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <input type="text" name="aadhaar_no" class="ob-text-inp mb-3"
+                                                   placeholder="XXXX XXXX XXXX" required="1"
+                                                   t-att-value="applicant.aadhaar_no"
+                                                   t-att-readonly="'readonly' if applicant.aadhaar_no else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.aadhaar_no else ''"/>
+
+                                            <label class="ob-field-label">Aadhaar Card Copy
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <div class="ob-upload-zone">
+                                                <div class="ob-upload-trigger">
+                                                    <div class="ob-upload-icon">
+                                                        <i class="fa fa-upload"></i>
+                                                    </div>
+                                                    <div class="ob-upload-text">
+                                                        <strong>Upload Aadhaar</strong>
+                                                        <span>PDF, JPG, PNG</span>
+                                                    </div>
+                                                    <input type="file" class="file-input-advanced" name="aadhaar_card"
+                                                           accept=".pdf,.jpg,.jpeg,.png"
+                                                           t-att-required="'1' if not applicant.aadhaar_card else None"/>
+                                                </div>
+                                                <div class="ob-file-list" id="fl_aadhaar_card"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.aadhaar_card">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
+
                                         <div class="col-md-6 mb-4">
-                                            <label class="field-label">PAN Number</label>
-                                            <input type="text" name="pan_no" class="form-control custom-text-input mb-3"
-                                                   placeholder="ABCDE1234F" required="1"/>
-                                            <div class="file-upload-container">
-                                                <input type="file" name="pan_card" class="form-control-file"
-                                                       required="1" multiple="multiple"/>
+                                            <label class="ob-field-label">PAN Number
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <input type="text" name="pan_no" class="ob-text-inp mb-3"
+                                                   placeholder="ABCDE1234F" required="1"
+                                                   t-att-value="applicant.pan_no"
+                                                   t-att-readonly="'readonly' if applicant.pan_no else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.pan_no else ''"/>
+
+                                            <label class="ob-field-label">PAN Card Copy
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <div class="ob-upload-zone">
+                                                <div class="ob-upload-trigger">
+                                                    <div class="ob-upload-icon">
+                                                        <i class="fa fa-upload"></i>
+                                                    </div>
+                                                    <div class="ob-upload-text">
+                                                        <strong>Upload PAN</strong>
+                                                        <span>PDF, JPG, PNG</span>
+                                                    </div>
+                                                    <input type="file" class="file-input-advanced" name="pan_card"
+                                                           accept=".pdf,.jpg,.jpeg,.png"
+                                                           t-att-required="'1' if not applicant.pan_card else None"/>
+                                                </div>
+                                                <div class="ob-file-list" id="fl_pan_card"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.pan_card">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
+
                                         <div class="col-md-6 mb-4">
-                                            <label class="field-label">Bank Name</label>
-                                            <input type="text" name="bank_name" class="form-control custom-text-input"
-                                                   required="1"/>
+                                            <label class="ob-field-label">Bank Name
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <input type="text" name="bank_name" class="ob-text-inp" required="1"
+                                                   t-att-value="applicant.bank_name"
+                                                   t-att-readonly="'readonly' if applicant.bank_name else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.bank_name else ''"/>
                                         </div>
                                         <div class="col-md-6 mb-4">
-                                            <label class="field-label">Account Number</label>
-                                            <input type="text" name="bank_acc_no" class="form-control custom-text-input"
-                                                   required="1"/>
+                                            <label class="ob-field-label">Account Number
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <input type="text" name="bank_acc_no" class="ob-text-inp" required="1"
+                                                   t-att-value="applicant.bank_acc_no"
+                                                   t-att-readonly="'readonly' if applicant.bank_acc_no else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.bank_acc_no else ''"/>
                                         </div>
                                         <div class="col-md-6 mb-4">
-                                            <label class="field-label">IFSC Code</label>
-                                            <input type="text" name="bank_ifsc" class="form-control custom-text-input"
-                                                   required="1"/>
+                                            <label class="ob-field-label">IFSC Code
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <input type="text" name="bank_ifsc" class="ob-text-inp" required="1"
+                                                   t-att-value="applicant.bank_ifsc"
+                                                   t-att-readonly="'readonly' if applicant.bank_ifsc else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.bank_ifsc else ''"/>
                                         </div>
                                         <div class="col-md-6 mb-4">
-                                            <label class="field-label">Branch Name</label>
-                                            <input type="text" name="bank_branch" class="form-control custom-text-input"
-                                                   required="1"/>
+                                            <label class="ob-field-label">Branch Name
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <input type="text" name="bank_branch" class="ob-text-inp" required="1"
+                                                   t-att-value="applicant.bank_branch"
+                                                   t-att-readonly="'readonly' if applicant.bank_branch else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.bank_branch else ''"/>
                                         </div>
+
                                         <div class="col-md-12 mb-4">
-                                            <label class="field-label">Cancelled Cheque / Passbook Copy</label>
-                                            <div class="file-upload-container">
-                                                <input type="file" name="bank_doc" class="form-control-file"
-                                                       required="1" multiple="multiple"/>
+                                            <label class="ob-field-label">Cancelled Cheque / Passbook
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <div class="ob-upload-zone">
+                                                <div class="ob-upload-trigger">
+                                                    <div class="ob-upload-icon">
+                                                        <i class="fa fa-university"></i>
+                                                    </div>
+                                                    <div class="ob-upload-text">
+                                                        <strong>Upload Bank Document</strong>
+                                                        <span>PDF, JPG, PNG</span>
+                                                    </div>
+                                                    <input type="file" class="file-input-advanced" name="bank_doc"
+                                                           accept=".pdf,.jpg,.jpeg,.png"
+                                                           t-att-required="'1' if not applicant.bank_doc else None"/>
+                                                </div>
+                                                <div class="ob-file-list" id="fl_bank_doc"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.bank_doc">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <h4 class="section-title">II. Educational Documents</h4>
+                                    <div class="ob-section-title">
+                                        <span class="ob-section-num">II</span>
+                                        Educational Documents
+                                    </div>
                                     <div class="row">
+
                                         <div class="col-md-6 mb-4">
-                                            <label class="field-label">10th Marksheet</label>
-                                            <div class="file-upload-container">
-                                                <input type="file" name="marksheet_10" required="1"
-                                                       multiple="multiple"/>
+                                            <label class="ob-field-label">Select Level
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <select class="category-select" name="highest_edu_level"
+                                                    id="edu_level_select" required="1"
+                                                    t-att-style="'background-color: #e9ecef; pointer-events: none;' if applicant.highest_edu_level else ''">
+                                                <option value="" disabled="disabled"
+                                                        t-att-selected="not applicant.highest_edu_level">-- Select --
+                                                </option>
+                                                <option value="ug" t-att-selected="applicant.highest_edu_level == 'ug'">
+                                                    Under Graduate (UG)
+                                                </option>
+                                                <option value="pg" t-att-selected="applicant.highest_edu_level == 'pg'">
+                                                    Post Graduate (PG)
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4 d-none" id="edu_detail_wrapper">
+                                            <label class="ob-field-label">Degree Specialization (e.g., BE, MS)
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <input type="text" name="highest_edu_detail" class="ob-text-inp"
+                                                   id="edu_detail_input"
+                                                   t-att-value="applicant.highest_edu_detail"
+                                                   t-att-readonly="'readonly' if applicant.highest_edu_detail else None"
+                                                   t-att-style="'background-color: #e9ecef; color: #6c757d;' if applicant.highest_edu_detail else ''"/>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <label class="ob-field-label">10th Marksheet
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <div class="ob-upload-zone">
+                                                <div class="ob-upload-trigger">
+                                                    <div class="ob-upload-icon">
+                                                        <i class="fa fa-file-text-o"></i>
+                                                    </div>
+                                                    <div class="ob-upload-text">
+                                                        <strong>Upload file</strong>
+                                                        <span>PDF, JPG, PNG</span>
+                                                    </div>
+                                                    <input type="file" class="file-input-advanced" name="marksheet_10"
+                                                           accept=".pdf,.jpg,.jpeg,.png"
+                                                           t-att-required="'1' if not applicant.marksheet_10 else None"/>
+                                                </div>
+                                                <div class="ob-file-list" id="fl_marksheet_10"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.marksheet_10">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
+
                                         <div class="col-md-6 mb-4">
-                                            <label class="field-label">12th Marksheet</label>
-                                            <div class="file-upload-container">
-                                                <input type="file" name="marksheet_12" required="1"
-                                                       multiple="multiple"/>
+                                            <label class="ob-field-label">12th Marksheet
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <div class="ob-upload-zone">
+                                                <div class="ob-upload-trigger">
+                                                    <div class="ob-upload-icon">
+                                                        <i class="fa fa-file-text-o"></i>
+                                                    </div>
+                                                    <div class="ob-upload-text">
+                                                        <strong>Upload file</strong>
+                                                        <span>PDF, JPG, PNG</span>
+                                                    </div>
+                                                    <input type="file" class="file-input-advanced" name="marksheet_12"
+                                                           accept=".pdf,.jpg,.jpeg,.png"
+                                                           t-att-required="'1' if not applicant.marksheet_12 else None"/>
+                                                </div>
+                                                <div class="ob-file-list" id="fl_marksheet_12"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.marksheet_12">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
-                                        <div class="col-md-6 mb-4">
-                                            <label class="field-label">UG Degree Certificate</label>
-                                            <div class="file-upload-container">
-                                                <input type="file" name="ug_degree" multiple="multiple"/>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 mb-4">
-                                            <label class="field-label">PG Degree Certificate</label>
-                                            <div class="file-upload-container">
-                                                <input type="file" name="pg_degree" multiple="multiple"/>
-                                            </div>
-                                        </div>
+
                                         <div class="col-md-12 mb-4">
-                                            <label class="field-label">Diploma Certificate (if any)</label>
-                                            <div class="file-upload-container">
-                                                <input type="file" name="diploma_cert" multiple="multiple"/>
+                                            <label class="ob-field-label">Diploma Certificate (If any)</label>
+                                            <div class="ob-upload-zone">
+                                                <div class="ob-upload-trigger">
+                                                    <div class="ob-upload-icon">
+                                                        <i class="fa fa-certificate"></i>
+                                                    </div>
+                                                    <div class="ob-upload-text">
+                                                        <strong>Upload file</strong>
+                                                        <span>PDF, JPG, PNG</span>
+                                                    </div>
+                                                    <input type="file" class="file-input-advanced" name="diploma_cert"
+                                                           accept=".pdf,.jpg,.jpeg,.png"/>
+                                                </div>
+                                                <div class="ob-file-list" id="fl_diploma_cert"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.diploma_cert">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4 d-none" id="ug_file_wrapper">
+                                            <label class="ob-field-label">UG Degree Certificate
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <div class="ob-upload-zone">
+                                                <div class="ob-upload-trigger">
+                                                    <div class="ob-upload-icon">
+                                                        <i class="fa fa-graduation-cap"></i>
+                                                    </div>
+                                                    <div class="ob-upload-text">
+                                                        <strong>Upload file</strong>
+                                                        <span>PDF, JPG, PNG</span>
+                                                    </div>
+                                                    <input type="file" class="file-input-advanced" name="ug_degree"
+                                                           accept=".pdf,.jpg,.jpeg,.png" id="ug_file_input"
+                                                           t-att-required="'1' if not applicant.ug_degree else None"/>
+                                                </div>
+                                                <div class="ob-file-list" id="fl_ug_degree"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.ug_degree">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4 d-none" id="pg_file_wrapper">
+                                            <label class="ob-field-label">PG Degree Certificate
+                                                <span class="ob-req">*</span>
+                                            </label>
+                                            <div class="ob-upload-zone">
+                                                <div class="ob-upload-trigger">
+                                                    <div class="ob-upload-icon">
+                                                        <i class="fa fa-graduation-cap"></i>
+                                                    </div>
+                                                    <div class="ob-upload-text">
+                                                        <strong>Upload file</strong>
+                                                        <span>PDF, JPG, PNG</span>
+                                                    </div>
+                                                    <input type="file" class="file-input-advanced" name="pg_degree"
+                                                           accept=".pdf,.jpg,.jpeg,.png" id="pg_file_input"
+                                                           t-att-required="'1' if not applicant.pg_degree else None"/>
+                                                </div>
+                                                <div class="ob-file-list" id="fl_pg_degree"></div>
+                                                <small class="text-success fw-bold" t-if="applicant.pg_degree">
+                                                    <i class="fa fa-check-circle"/>
+                                                    File Already Uploaded
+                                                </small>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div id="exp_docs" class="d-none">
-                                        <h4 class="section-title" style="border-left: 6px solid #5b4fff;">III. Previous
-                                            Employment
-                                        </h4>
+                                        <div class="ob-section-title">
+                                            <span class="ob-section-num">III</span>
+                                            Previous Employment
+                                        </div>
                                         <div class="row">
-                                            <div class="col-md-6 mb-4">
-                                                <label class="field-label">Last 3 Months Payslips</label>
-                                                <div class="file-upload-container">
-                                                    <input type="file" name="payslips" multiple="multiple"/>
+
+                                            <div class="col-md-12 mb-4">
+                                                <label class="ob-field-label">Last 3 Months Payslips (Multiple)
+                                                    <span class="ob-req">*</span>
+                                                </label>
+                                                <div class="ob-upload-zone">
+                                                    <div class="ob-upload-trigger">
+                                                        <div class="ob-upload-icon">
+                                                            <i class="fa fa-files-o"></i>
+                                                        </div>
+                                                        <div class="ob-upload-text">
+                                                            <strong>Upload multiple payslips</strong>
+                                                            <span>Up to 3 files</span>
+                                                        </div>
+                                                        <input type="file" class="file-input-advanced" name="payslips"
+                                                               accept=".pdf,.jpg,.jpeg,.png" multiple="multiple"
+                                                               t-att-required="'1' if not applicant.payslips else None"/>
+                                                    </div>
+                                                    <div class="ob-file-list is-multi" id="fl_payslips"></div>
+                                                    <small class="text-success fw-bold" t-if="applicant.payslips">
+                                                        <i class="fa fa-check-circle"/>
+                                                        File(s) Already Uploaded
+                                                    </small>
                                                 </div>
                                             </div>
+
                                             <div class="col-md-6 mb-4">
-                                                <label class="field-label">Relieving Letter</label>
-                                                <div class="file-upload-container">
-                                                    <input type="file" name="relieving_letter" multiple="multiple"/>
+                                                <label class="ob-field-label">Salary Revision Letter</label>
+                                                <div class="ob-upload-zone">
+                                                    <div class="ob-upload-trigger">
+                                                        <div class="ob-upload-icon">
+                                                            <i class="fa fa-line-chart"></i>
+                                                        </div>
+                                                        <div class="ob-upload-text">
+                                                            <strong>Upload file</strong>
+                                                            <span>PDF, JPG, PNG</span>
+                                                        </div>
+                                                        <input type="file" class="file-input-advanced"
+                                                               name="salary_revision_letter"
+                                                               accept=".pdf,.jpg,.jpeg,.png"/>
+                                                    </div>
+                                                    <div class="ob-file-list" id="fl_salary_revision_letter"></div>
+                                                    <small class="text-success fw-bold"
+                                                           t-if="applicant.salary_revision_letter">
+                                                        <i class="fa fa-check-circle"/>
+                                                        File Already Uploaded
+                                                    </small>
                                                 </div>
                                             </div>
+
                                             <div class="col-md-6 mb-4">
-                                                <label class="field-label">Salary Revision Letter</label>
-                                                <div class="file-upload-container">
-                                                    <input type="file" name="salary_revision_letter"
-                                                           multiple="multiple"/>
+                                                <label class="ob-field-label">Relieving Letter</label>
+                                                <div class="ob-upload-zone">
+                                                    <div class="ob-upload-trigger">
+                                                        <div class="ob-upload-icon">
+                                                            <i class="fa fa-envelope-open-o"></i>
+                                                        </div>
+                                                        <div class="ob-upload-text">
+                                                            <strong>Upload file</strong>
+                                                            <span>PDF, JPG, PNG</span>
+                                                        </div>
+                                                        <input type="file" class="file-input-advanced"
+                                                               name="relieving_letter" accept=".pdf,.jpg,.jpeg,.png"/>
+                                                    </div>
+                                                    <div class="ob-file-list" id="fl_relieving_letter"></div>
+                                                    <small class="text-success fw-bold"
+                                                           t-if="applicant.relieving_letter">
+                                                        <i class="fa fa-check-circle"/>
+                                                        File Already Uploaded
+                                                    </small>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6 mb-4">
-                                                <label class="field-label">Experience Letter</label>
-                                                <div class="file-upload-container">
-                                                    <input type="file" name="exp_appointment_letter"
-                                                           multiple="multiple"/>
+
+                                            <div class="col-md-12 mb-4">
+                                                <label class="ob-field-label">Experience Letter</label>
+                                                <div class="ob-upload-zone">
+                                                    <div class="ob-upload-trigger">
+                                                        <div class="ob-upload-icon">
+                                                            <i class="fa fa-briefcase"></i>
+                                                        </div>
+                                                        <div class="ob-upload-text">
+                                                            <strong>Upload file</strong>
+                                                            <span>PDF, JPG, PNG</span>
+                                                        </div>
+                                                        <input type="file" class="file-input-advanced"
+                                                               name="exp_appointment_letter"
+                                                               accept=".pdf,.jpg,.jpeg,.png"/>
+                                                    </div>
+                                                    <div class="ob-file-list" id="fl_exp_appointment_letter"></div>
+                                                    <small class="text-success fw-bold"
+                                                           t-if="applicant.exp_appointment_letter">
+                                                        <i class="fa fa-check-circle"/>
+                                                        File Already Uploaded
+                                                    </small>
                                                 </div>
                                             </div>
+
                                         </div>
                                     </div>
 
-                                    <button type="submit" class="btn btn-submit-modern shadow">SUBMIT
-                                    </button>
+                                    <button type="submit" class="ob-submit-btn shadow">SUBMIT DOCUMENTS</button>
                                 </div>
                             </form>
                         </div>

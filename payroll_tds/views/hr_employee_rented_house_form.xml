@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+
+        <!-- ===================================================== -->
+        <!-- Rented House Popup Form -->
+        <!-- ===================================================== -->
+
+        <record id="view_hr_employee_rented_house_form"
+                model="ir.ui.view">
+
+            <field name="name">hr.employee.rented.house.form</field>
+            <field name="model">hr.employee.rented.house</field>
+
+            <field name="arch" type="xml">
+
+                <form string="Rental House Details">
+
+                    <sheet>
+
+                        <field name="currency_id"
+                               invisible="1"/>
+
+                        <!-- ================================================= -->
+                        <!-- RENTAL DETAILS -->
+                        <!-- ================================================= -->
+
+                        <group col="2">
+
+                            <group string="Rental Period">
+
+                                <field name="employee_id"
+                                       readonly="1"/>
+
+                                <field name="employee_joining_date"
+                                       readonly="1"/>
+
+                                <field name="rent_start_date"/>
+
+                                <field name="rent_end_date"/>
+
+                                <field name="calculation_start_date"
+                                       readonly="1"/>
+
+                            </group>
+
+                            <group string="Rent Details">
+
+                                <field name="monthly_rent"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                                <field name="total_rent"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="1"/>
+
+                                <field name="eligible_months"
+                                       readonly="1"/>
+
+                            </group>
+
+                        </group>
+
+                        <!-- ================================================= -->
+                        <!-- LANDLORD DETAILS -->
+                        <!-- ================================================= -->
+
+                        <group string="Landlord Details" col="2">
+
+                            <group>
+
+                                <field name="address"/>
+
+                                <field name="landlord_name"/>
+
+                            </group>
+
+                            <group>
+
+                                <field name="urbanization_type"/>
+
+                                <field name="landlord_pan"
+                                       required="monthly_rent &gt;= 100000"/>
+
+                            </group>
+
+                        </group>
+
+                        <!-- ================================================= -->
+                        <!-- HRA CALCULATION SUMMARY -->
+                        <!-- ================================================= -->
+
+                        <group string="HRA Calculation" col="2">
+
+                            <group>
+
+                                <field name="monthly_basic"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="1"/>
+
+                                <field name="monthly_hra"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="1"/>
+
+                                <field name="hra_percentage"
+                                       readonly="1"/>
+
+                            </group>
+
+                            <group>
+
+                                <field name="earned_basic"
+                                       string="Total % of Earned Basic"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="1"/>
+
+                                <field name="hra_amount"
+                                       string="Total HRA Received"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="1"/>
+
+                                <field name="total_hra_exemption"
+                                       string="Total HRA Exemption"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="1"/>
+
+                            </group>
+
+                        </group>
+
+                                              <!-- ================================================= -->
+                        <!-- MONTH-WISE FINANCIAL YEAR TABLE -->
+                        <!-- ================================================= -->
+
+                        <separator string="HRA Exemption Calculation Under Section 10 (Monthly Based Exemption)"/>
+
+                        <field name="monthly_line_ids"
+                               nolabel="1"
+                               readonly="1">
+
+                            <list create="0"
+                                  edit="0"
+                                  delete="0"
+                                  string="Financial Year HRA Calculation">
+
+                                <field name="month_name"
+                                       string="Months"
+                                       readonly="1"/>
+
+                                <field name="rent_paid"
+                                       string="Rent Paid"
+                                       widget="monetary"
+                                       sum="Total"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="1"/>
+
+                                <field name="basic_50_percent"
+                                       string="% of Earned Basic (Metro 50%, Non-Metro 40%)"
+                                       widget="monetary"
+                                       sum="Total"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="1"/>
+
+                                <field name="hra_salary"
+                                       string="HRA Received"
+                                       widget="monetary"
+                                       sum="Total"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="1"/>
+
+                            </list>
+
+                        </field>
+
+
+                        <!-- ================================================= -->
+                        <!-- LEAST AMOUNT FOR HRA TAX EXEMPTION -->
+                        <!-- ================================================= -->
+
+                        <div class="alert alert-info mt16"
+                             role="alert">
+
+                            <strong>
+                                Least amount of the three columns
+                                (% of Earned Basic, HRA Received and
+                                Excess of Rent Paid Over 10% of Basic)
+                                will be considered for tax exemption under HRA =
+                            </strong>
+
+                            <field name="least_hra_exemption"
+                                   nolabel="1"
+                                   readonly="1"
+                                   class="oe_inline"/>
+
+                        </div>
+
+                        <div class="mt16">
+
+                            <button name="action_recalculate_hra"
+                                    type="object"
+                                    string="Recalculate HRA"
+                                    class="btn-secondary"/>
+
+                        </div>
+
+                    </sheet>
+
+                    <footer>
+
+                        <button string="Save"
+                                special="save"
+                                class="btn-primary"/>
+
+                        <button string="Discard"
+                                special="cancel"
+                                class="btn-secondary"/>
+
+                    </footer>
+
+                </form>
+
+            </field>
+
+        </record>
+
+
+    </data>
+
+</odoo>

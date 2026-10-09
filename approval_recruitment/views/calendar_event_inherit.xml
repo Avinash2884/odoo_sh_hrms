@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Inherit Calendar Event Form -->
+        <record id="calendar_event_form_inherit_interview_mail" model="ir.ui.view">
+            <field name="name">calendar.event.form.interview.mail</field>
+            <field name="model">calendar.event</field>
+            <field name="inherit_id" ref="calendar.view_calendar_event_form"/>
+            <field name="arch" type="xml">
+
+                <!-- Add buttons inside header -->
+                <xpath expr="//header" position="inside">
+
+                    <!-- Interview Pending Mail -->
+                    <button name="action_send_interview_pending"
+                            type="object"
+                            string="Send Pending Mail"
+                            class="btn-primary"
+                            groups="base.group_user"/>
+
+                    <!-- Interview Reschedule Mail -->
+                    <button name="action_send_interview_reschedule"
+                            type="object"
+                            string="Reschedule Interview"
+                            class="btn-warning"
+                            groups="base.group_user"/>
+
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

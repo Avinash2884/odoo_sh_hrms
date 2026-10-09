@@ -6,3 +6,11 @@ class ResCompanyInherit(models.Model):
     _description = 'Res Company'
 
     state_id = fields.Many2one('res.country.state',string='State')
+
+    report_footer_address_2 = fields.Html(
+        string='Footer Address 2'
+    )
+
+    report_footer_address_3 = fields.Html(
+        string='Footer Address 3'
+    )

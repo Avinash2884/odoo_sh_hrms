@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+    <record id="view_hr_leave_form_inherit_non_working_days"
+            model="ir.ui.view">
+
+        <field name="name">
+            hr.leave.form.non.working.days
+        </field>
+
+        <field name="model">hr.leave</field>
+
+        <field name="inherit_id"
+               ref="hr_holidays.hr_leave_view_form"/>
+
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='name']"
+                   position="after">
+
+                <field name="weekend_days"
+                       readonly="1"/>
+
+                <field name="public_holiday_days"
+                       readonly="1"/>
+
+            </xpath>
+
+            <xpath expr="//button[@name='action_refuse']"
+                   position="after">
+
+                <button name="action_print_leave"
+                        string="Print"
+                        type="object"
+                        class="btn-primary"/>
+
+            </xpath>
+
+        </field>
+
+    </record>
+    -->
+
+
+    <!-- ========================================================= -->
+    <!-- EMAIL TEMPLATE                                             -->
+    <!-- ========================================================= -->
+
+    <!--
+    <record id="leave_approval_reminder_email_template"
+            model="mail.template">
+
+        <field name="name">
+            Leave Approval Reminder
+        </field>
+
+        <field name="model_id"
+               ref="hr_holidays.model_hr_leave"/>
+
+        <field name="subject">
+            Pending Leave Approval Reminder
+        </field>
+
+        <field name="email_from">
+            ${user.email}
+        </field>
+
+        <field name="body_html" type="html">
+
+            <![CDATA[
+
+            <p>Hello,</p>
+
+            <p>
+                Leave request for employee
+                <strong>${object.employee_id.name}</strong>
+                is still pending approval.
+            </p>
+
+            <p>
+                Leave Type:
+                ${object.holiday_status_id.name}
+            </p>
+
+            <p>
+                From:
+                ${object.request_date_from}
+            </p>
+
+            <p>
+                To:
+                ${object.request_date_to}
+            </p>
+
+            <p>
+                Please review the request.
+            </p>
+
+            ]]>
+
+        </field>
+
+    </record>
+    -->
+
+
+    <!-- ========================================================= -->
+    <!-- COMP OFF ELIGIBILITY START DATE                            -->
+    <!-- ========================================================= -->
+
+    <record id="view_hr_leave_type_comp_off_start_date"
+            model="ir.ui.view">
+
+        <field name="name">
+            hr.leave.type.comp.off.start.date
+        </field>
+
+        <field name="model">hr.leave.type</field>
+
+        <field name="inherit_id"
+               ref="hr_holidays.edit_holiday_status_form"/>
+
+        <field name="arch" type="xml">
+
+            <!--
+                Odoo 19 standard view:
+                Configuration group has id="configuration"
+            -->
+
+            <xpath expr="//group[@id='configuration']"
+                   position="inside">
+
+                <field name="comp_off_start_date"
+                       string="Comp Off Eligibility Start Date"/>
+
+            </xpath>
+
+        </field>
+
+    </record>
+
+
+</odoo>

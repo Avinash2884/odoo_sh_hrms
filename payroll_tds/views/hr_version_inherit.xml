@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<!--    <record id="view_hr_version_form_inherit_da" model="ir.ui.view">-->
+<!--        <field name="name">hr.version.form.inherit.da</field>-->
+<!--        <field name="model">hr.version</field>-->
+
+<!--        &lt;!&ndash; ✅ MOST COMMON WORKING VIEW IN ODOO 19 &ndash;&gt;-->
+<!--        <field name="inherit_id" ref="hr_payroll.hr_contract_view_form"/>-->
+
+<!--        <field name="arch" type="xml">-->
+
+<!--            &lt;!&ndash; After Gratuity &ndash;&gt;-->
+<!--            <xpath expr="//field[@name='l10n_in_gratuity']" position="after">-->
+<!--                <field name="dearness_allowance"/>-->
+<!--            </xpath>-->
+
+<!--        </field>-->
+<!--    </record>-->
+ <record id="view_hr_version_add_ls_employee_id" model="ir.ui.view">
+        <field name="name">payroll.hr.version.view.list.payrun.add.empid</field>
+        <field name="model">hr.version</field>
+        <field name="inherit_id" ref="hr_payroll.payroll_hr_version_list_view_payrun"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='employee_id']" position="after">
+                <field name="ls_employee_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

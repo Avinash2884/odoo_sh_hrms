@@ -10,6 +10,12 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
+                <field name="account_manager"/>
+                <field name="company_id"/>
+                <field name="create_uid"/>
+                <field name="create_date"/>
+                <field name="write_uid"/>
+                <field name="write_date"/>
             </list>
         </field>
     </record>
@@ -24,7 +30,19 @@
             <form string="Account Office Name">
                 <sheet>
                     <group>
-                        <field name="name"/>
+                        <group>
+                            <field name="name"/>
+                            <field name="account_manager"/>
+                            <field name="external_id" readonly="1" invisible="0"/>
+                            <field name="company_id"/>
+
+                        </group>
+                        <group>
+                            <field name="create_uid" options="{'no_open': True}"/>
+                            <field name="create_date"/>
+                            <field name="write_uid" options="{'no_open': True}"/>
+                            <field name="write_date"/>
+                        </group>
                     </group>
                 </sheet>
             </form>

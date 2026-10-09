@@ -4,4 +4,9 @@ class Vertical(models.Model):
     _name = 'vertical'
     _description = 'Vertical'
 
-    name = fields.Char(string="Name", required=True)
+    name = fields.Char(string="Name")
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        default=lambda self: self.env.company
+    )

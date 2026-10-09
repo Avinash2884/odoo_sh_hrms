@@ -13,6 +13,7 @@ class ApprovalRequestInherit(models.Model):
     has_budget_for_each_employee_position = fields.Selection(related="category_id.has_budget_for_each_employee_position")
     has_start_date = fields.Selection(related="category_id.has_start_date")
     has_end_date = fields.Selection(related="category_id.has_end_date")
+    hr_department_id = fields.Many2one('hr.department',related="category_id.hr_department_id",store=True,readonly=True)
 
     no_of_position = fields.Integer(string="No of Position")
     approval_job_position = fields.Char(string="Approval Job Position")
@@ -22,6 +23,25 @@ class ApprovalRequestInherit(models.Model):
     approval_budget_for_each_employee_position = fields.Integer(string="Approval Budget for Per Employee")
     approval_start_date = fields.Date(string="Approval Start Date")
     approval_end_date = fields.Date(string="Approval End Date")
+
+    @api.onchange('category_id')
+    def _onchange_category_id_custom(self):
+        if not self.category_id:
+            self.approver_ids = [(5, 0, 0)]
+            return
+
+        # Category-ல் உள்ள Approver-களை மட்டும் பலவந்தமாக அமைத்தல்
+        approver_commands = [(5, 0, 0)]  # Old list-ஐ clear செய்ய
+
+        for app in self.category_id.approver_ids:
+            if app.user_id:
+                approver_commands.append((0, 0, {
+                    'user_id': app.user_id.id,
+                    'required': app.required,
+                    'sequence': app.sequence,
+                }))
+
+        self.approver_ids = approver_commands
 
     @api.depends('approver_ids.status', 'approver_ids.required')
     def _compute_request_status(self):
@@ -35,8 +55,8 @@ class ApprovalRequestInherit(models.Model):
 
                 # Check Category
                 if category_xml_id == 'approval_category_data_man_power_requisition_inherit' or \
-                        request.category_id.name == 'Man Power Requisition':
-                    print("✅ Man Power Requisition category matched — proceeding to create HR Job")
+                        request.category_id.name == 'HeadCount Requisition':
+                    print("HeadCount Requisition category matched — proceeding to create HR Job")
 
                     # Check if job exists
                     existing_job = self.env['hr.job'].search(
@@ -50,15 +70,16 @@ class ApprovalRequestInherit(models.Model):
                     # --------------------------------------
                     # CREATE NEW HR JOB
                     # --------------------------------------
-                    job = self.env['hr.job'].create({
+                    job_vals = {
                         'name': request.approval_job_position,
                         'approval_experience_minimum': request.approval_experience_minimum,
                         'approval_experience_maximum': request.approval_experience_maximum,
                         'approval_overall_budget_for_all_posting': request.approval_overall_budget_for_all_posting,
                         'approval_budget_for_each_employee_position': request.approval_budget_for_each_employee_position,
                         'no_of_recruitment': request.no_of_position,
-                    })
-
+                        'department_id': request.hr_department_id.id,
+                    }
+                    job = self.env['hr.job'].create(job_vals)
                     print(f"✅ HR Job created: {job.name} (Positions: {job.no_of_recruitment})")
                 else:
                     print("⚠ No skill selected — skipping skill mapping")

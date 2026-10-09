@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="custom_report_layout">
+
+    <t t-set="company" t-value="res_company"/>
+
+    <div class="header"
+         style="
+            font-family: 'DM Sans', Arial, sans-serif;
+            width: 100%;
+
+            padding-right: 0 !important;
+            padding-bottom: 0 !important;
+            padding-left: 0 !important;
+
+            border: 0 !important;
+            border-width: 0 !important;
+            border-style: none !important;
+            border-color: transparent !important;
+
+            box-shadow: none !important;
+            outline: none !important;
+        ">
+
+        <table style="
+            width: 100% !important;
+
+            border: 0 !important;
+            border-width: 0 !important;
+            border-style: none !important;
+            border-color: transparent !important;
+
+            border-collapse: collapse !important;
+            border-spacing: 0 !important;
+
+            box-shadow: none !important;
+            outline: none !important;
+
+            margin: 0 !important;
+            padding: 0 !important;
+        ">
+
+            <tbody style="
+                border: 0 !important;
+                border-width: 0 !important;
+                border-style: none !important;
+            ">
+
+                <tr style="
+                    border: 0 !important;
+                    border-width: 0 !important;
+                    border-style: none !important;
+                    border-color: transparent !important;
+                ">
+
+                    <!-- COMPANY DETAILS -->
+                    <td style="
+                        width: 70%;
+                        vertical-align: top;
+                        text-align: left;
+
+                        border: 0 !important;
+                        border-width: 0 !important;
+                        border-style: none !important;
+                        border-color: transparent !important;
+
+                        padding: 0 !important;
+
+                        font-size: 18px !important;
+                        line-height: 1.6 !important;
+
+                        color: #222222;
+
+                        box-shadow: none !important;
+                    ">
+
+                        <div style="
+                            font-size: 18px !important;
+                            line-height: 1.6 !important;
+                        ">
+
+                            <span t-field="company.company_details"/>
+
+                        </div>
+
+                    </td>
+
+
+                    <!-- LOGO -->
+                    <td style="
+                        width: 30%;
+                        vertical-align: top;
+                        text-align: right;
+
+                        border: 0 !important;
+                        border-width: 0 !important;
+                        border-style: none !important;
+                        border-color: transparent !important;
+
+                        padding: 0 !important;
+
+                        box-shadow: none !important;
+                    ">
+
+                        <img t-if="company.logo"
+                             t-att-src="image_data_uri(company.logo)"
+                             alt="Company Logo"
+                             style="
+                                max-width: 200px;
+                                max-height: 90px;
+                                object-fit: contain;
+
+                                border: 0 !important;
+                                border-width: 0 !important;
+                                border-style: none !important;
+
+                                box-shadow: none !important;
+                                outline: none !important;
+                             "/>
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+<!-- ==================== REPORT CONTENT ==================== -->
+
+    <div class="article"
+         style="
+            font-family: 'DM Sans', sans-serif !important; font-weight: 400;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #222222;
+         ">
+
+        <t t-out="0"/>
+
+    </div>
+
+<!-- ==================== FOOTER ==================== -->
+
+    <div class="footer"
+         style="
+            font-family: 'DM Sans', sans-serif !important; font-weight: 400;
+            width: 100%;
+            border: 0 !important;
+            border-width: 0 !important;
+            border-style: none !important;
+            border-color: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        ">
+
+        <table style="
+            width: 100% !important;
+            border: 0 !important;
+            border-width: 0 !important;
+            border-style: none !important;
+            border-color: transparent !important;
+            border-collapse: collapse !important;
+            border-spacing: 0 !important;
+            box-shadow: none !important;
+            outline: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        ">
+
+            <tbody>
+
+                <!-- ==================== OFFICE ADDRESSES ==================== -->
+
+                <tr style="
+                    border: 0 !important;
+                    border-width: 0 !important;
+                    border-style: none !important;
+                ">
+
+                    <!-- ADDRESS 1 -->
+                    <td style="
+                        width: 33.33%;
+                        vertical-align: top;
+                        text-align: left;
+
+                        border: 0 !important;
+                        border-width: 0 !important;
+                        border-style: none !important;
+
+                        padding: 0 15px 0 0 !important;
+
+                        font-size: 12px !important;
+                        line-height: 1.8 !important;
+                        color: #777777;
+
+                        box-shadow: none !important;
+                    ">
+
+                        <span t-field="company.report_footer"/>
+
+                    </td>
+
+
+                    <!-- ADDRESS 2 -->
+                    <td style="
+                        width: 33.33%;
+                        vertical-align: top;
+                        text-align: left;
+
+                        border: 0 !important;
+                        border-width: 0 !important;
+                        border-style: none !important;
+
+                        padding: 0 15px !important;
+
+                        font-size: 12px !important;
+                        line-height: 1.8 !important;
+                        color: #777777;
+
+                        box-shadow: none !important;
+                    ">
+
+                        <span t-field="company.report_footer_address_2"/>
+
+                    </td>
+
+
+                    <!-- ADDRESS 3 -->
+                    <td style="
+                        width: 33.33%;
+                        vertical-align: top;
+                        text-align: left;
+
+                        border: 0 !important;
+                        border-width: 0 !important;
+                        border-style: none !important;
+
+                        padding: 0 0 0 15px !important;
+
+                        font-size: 12px !important;
+                        line-height: 1.8 !important;
+                        color: #777777;
+
+                        box-shadow: none !important;
+                    ">
+
+                        <span t-field="company.report_footer_address_3"/>
+
+                    </td>
+
+                </tr>
+
+
+                <!-- ==================== PHONE + EMAIL ==================== -->
+
+                <tr style="
+                    border: 0 !important;
+                    border-width: 0 !important;
+                    border-style: none !important;
+                ">
+
+                    <!-- PHONE -->
+                    <td colspan="2"
+                        style="
+                            width: 66.66%;
+
+                            border: 0 !important;
+                            border-width: 0 !important;
+                            border-style: none !important;
+
+                            padding: 12px 0 0 0 !important;
+
+                            font-size: 12px !important;
+                            line-height: 1.5;
+                            color: #777777;
+
+                            text-align: left;
+
+                            box-shadow: none !important;
+                        ">
+
+                        <span t-if="company.phone"
+                              t-field="company.phone"/>
+
+                    </td>
+
+
+                    <!-- EMAIL -->
+                    <td style="
+                        width: 33.33%;
+
+                        border: 0 !important;
+                        border-width: 0 !important;
+                        border-style: none !important;
+
+                        padding: 15px 30px 0 15px !important;
+
+                        font-size: 12px !important;
+                        line-height: 1.8 !important;
+                        color: #777777;
+
+                        text-align: right;
+
+                        box-shadow: none !important;
+                    ">
+
+                        <span t-if="company.email"
+                              t-field="company.email"/>
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+    </template>
+</odoo>

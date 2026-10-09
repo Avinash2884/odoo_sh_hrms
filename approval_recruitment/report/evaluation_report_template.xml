@@ -40,7 +40,7 @@
                             <!-- If no candidates found -->
                             <t t-if="job.env['hr.applicant'].search([('job_id','=',job.id),('stage_id','in',stage_ids)])==False">
                                 <tr>
-                                    <td colspan="7" style="text-align:center;">No candidates in Interview Stage 1 and 2</td>
+                                    <td colspan="7" style="text-align:center;">No candidates in Interview Stage 1, 2 and Culture Fit Assessment</td>
                                 </tr>
                             </t>
                         </tbody>

@@ -4,6 +4,9 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { Component, useRef, onMounted, onWillUnmount, useState } from "@odoo/owl";
 
+// Increased to 45 seconds for mobile devices on slow 3G/4G networks
+const MODEL_LOAD_TIMEOUT_MS = 45000;
+
 export class FaceRegister extends Component {
     setup() {
         this.videoRef = useRef("videoElement");
@@ -15,16 +18,18 @@ export class FaceRegister extends Component {
         this.employeeId = this.props.action.context.default_employee_id;
 
         this.state = useState({
-            statusMessage: "Loading AI Models... Please wait.",
-            isReady: false
+            statusMessage: "Downloading AI Engine... Please wait.",
+            isReady: false,
         });
 
         this.stream = null;
 
         onMounted(async () => {
             await this.injectFaceApiScript();
-            await this.loadModels();
-            await this.startCamera();
+            const modelsOk = await this.loadModels();
+            if (modelsOk) {
+                await this.startCamera();
+            }
         });
 
         onWillUnmount(() => {
@@ -32,7 +37,6 @@ export class FaceRegister extends Component {
         });
     }
 
-    // ADD THIS NEW FUNCTION TO FORCE-LOAD THE SCRIPT
     async injectFaceApiScript() {
         return new Promise((resolve, reject) => {
             if (window.faceapi) {
@@ -52,29 +56,61 @@ export class FaceRegister extends Component {
     }
 
     async loadModels() {
-        try {
-            // NOTE: Change 'your_module' to your actual module folder name!
-            const modelPath = '/attendance_planning/static/src/models';
-            await faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath);
-            await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);
-            await faceapi.nets.faceRecognitionNet.loadFromUri(modelPath);
+        const modelPath = '/attendance_planning/static/src/models';
+        const timeout = (ms) => new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout")), ms)
+        );
 
-            this.state.statusMessage = "AI Ready! Please look at the camera.";
-            this.state.isReady = true;
+        try {
+            await Promise.race([
+                (async () => {
+                    await faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath);
+                    await faceapi.nets.tinyFaceDetector.loadFromUri(modelPath);
+                    await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);
+                    await faceapi.nets.faceRecognitionNet.loadFromUri(modelPath);
+                })(),
+                timeout(MODEL_LOAD_TIMEOUT_MS),
+            ]);
+
+            this.state.statusMessage = "AI Ready! Turning on camera...";
+            return true;
         } catch (error) {
-            console.error(error);
-            this.state.statusMessage = "Error loading AI models. Check console.";
+            console.error("Model load error:", error);
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "error", "AI model download failed/timeout", { message: String(error) }]
+            ).catch(() => {});
+            this.state.statusMessage = "Network too slow to download AI models. Please use Wi-Fi and try again.";
+            return false;
         }
     }
 
     async startCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            this.state.statusMessage = "Camera blocked. Ensure you are using HTTPS and a standard browser (Safari/Chrome).";
+            return;
+        }
         try {
-            this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: "user",
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
+                }
+            });
             if (this.videoRef.el) {
                 this.videoRef.el.srcObject = this.stream;
+                this.videoRef.el.addEventListener('play', () => {
+                    // Instant unlock — no blinking required
+                    this.state.isReady = true;
+                    this.state.statusMessage = "Ready. Look at the camera and click Capture!";
+                });
             }
         } catch (err) {
-            this.state.statusMessage = "Camera access denied or unavailable.";
+            console.error("Camera error:", err);
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "error", "Camera access denied/unavailable", { name: err.name, message: err.message }]
+            ).catch(() => {});
+            this.state.statusMessage = "Camera access denied. Please allow permissions in your browser settings.";
         }
     }
 
@@ -85,46 +121,94 @@ export class FaceRegister extends Component {
     }
 
     async _onCaptureClick() {
-        this.state.statusMessage = "Scanning face... Hold still!";
-        this.state.isReady = false;
-
         const videoEl = this.videoRef.el;
 
-        // 1. Tell the AI to find the face and extract the math (descriptor)
-        const detection = await faceapi.detectSingleFace(videoEl)
+        // 1. FREEZE FRAME: Instantly pause the video and update the text
+        videoEl.pause();
+        this.state.statusMessage = " Snapshot taken! Analyzing face...";
+        this.state.isReady = false;
+
+        // 2. YIELD: Give the browser more time to actually render the freeze
+        // before the AI locks the CPU — slower/budget phones need longer than
+        // flagship devices for the paused frame to fully settle.
+        await new Promise(resolve => setTimeout(resolve, 250));
+
+        let detection;
+        try {
+            // Attempt 1: SSD Mobilenet (accurate, but heavier — can miss on weak devices)
+            detection = await faceapi.detectSingleFace(videoEl)
                                        .withFaceLandmarks()
                                        .withFaceDescriptor();
 
-        if (!detection) {
-            this.state.statusMessage = "No face detected! Make sure your face is clearly visible.";
+            // Attempt 2: fall back to TinyFaceDetector — lighter, more forgiving
+            // on low-power devices / poor camera quality.
+            if (!detection) {
+                detection = await faceapi.detectSingleFace(
+                                        videoEl,
+                                        new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 })
+                                    )
+                                       .withFaceLandmarks()
+                                       .withFaceDescriptor();
+            }
+
+            // Attempt 3: one more try after a brief pause, in case the frame
+            // just hadn't settled yet.
+            if (!detection) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                detection = await faceapi.detectSingleFace(
+                                        videoEl,
+                                        new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.35 })
+                                    )
+                                       .withFaceLandmarks()
+                                       .withFaceDescriptor();
+            }
+        } catch (e) {
+            console.warn("Face capture failed:", e);
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "error", "Hardware/detection error reading camera frame", { message: String(e) }]
+            ).catch(() => {});
+            this.state.statusMessage = "Hardware error reading camera. Please try again.";
             this.state.isReady = true;
+            videoEl.play(); // UNFREEZE on error
             return;
         }
 
-        // 2. Convert the 128 numbers into a string so Python can save it
+        if (!detection) {
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "warning", "No face detected in captured frame",
+                 { videoWidth: videoEl.videoWidth, videoHeight: videoEl.videoHeight }]
+            ).catch(() => {});
+            this.state.statusMessage = "No face detected! Make sure your face is clearly visible.";
+            this.state.isReady = true;
+            videoEl.play(); // UNFREEZE on error
+            return;
+        }
+
         const descriptorArray = Array.from(detection.descriptor);
         const descriptorString = JSON.stringify(descriptorArray);
 
-        // 3. Send it to Python via RPC
-        // 3. Send it to Python via RPC (USING THE SECRET BYPASS)
         try {
-            // THE CRITICAL LINE: Make sure it says sudo_save_face_by_id AND passes this.employeeId
             await this.orm.call("hr.employee", "sudo_save_face_by_id", [this.employeeId, descriptorString]);
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "info", "Face registered successfully"]
+            ).catch(() => {});
+            this.state.statusMessage = "✅ Face Successfully Saved!";
 
-            this.state.statusMessage = "Face Successfully Saved!";
-
-            // Wait 1.5 seconds, then close the camera and go back
             setTimeout(() => {
                 this._onCancelClick();
             }, 1500);
 
         } catch (error) {
-            // If it fails, it prints the real error to your browser console
             console.error("Database Error:", error);
+            this.orm.call("hr.employee", "log_client_event",
+                ["face_register", "error", "Failed to save face descriptor to DB", { message: String(error) }]
+            ).catch(() => {});
             this.state.statusMessage = "Error saving to database.";
             this.state.isReady = true;
+            videoEl.play(); // UNFREEZE on error
         }
     }
+
 
     _onCancelClick() {
         this.stopCamera();
@@ -132,5 +216,6 @@ export class FaceRegister extends Component {
     }
 }
 
-FaceRegister.template = "your_module.FaceRegisterScreen";
+// ── TEMPLATE NAME UPDATED ──
+FaceRegister.template = "attendance_planning.FaceRegisterScreen";
 registry.category("actions").add("attendance_face_register", FaceRegister);

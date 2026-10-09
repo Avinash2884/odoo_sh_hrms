@@ -1,6 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!--  CHANGED: Created a Schedule Tab and moved the fields into it  -->
+    <record id="view_employee_form_schedule_tab" model="ir.ui.view">
+        <field name="name">hr.employee.form.schedule.tab</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
 
+            <!-- 1. Create the new Schedule Tab restricted to your custom security group -->
+            <xpath expr="//notebook" position="inside">
+                <page name="schedule_tab" string="Schedule"
+                      groups="attendance_planning.group_employee_schedule_manager">
+                    <group>
+                        <group name="schedule_main" string="Schedule Configuration">
+                            <!-- Declare your custom field -->
+                            <field name="shift_type" widget="radio" options="{'horizontal': true}"/>
+
+                            <!-- Declare the native field directly -->
+                            <field name="resource_calendar_id" string="Working Schedule"/>
+                        </group>
+                        <group name="schedule_geo" string="Location Rules">
+                            <field name="bypass_geo_restriction"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+            <!-- 2. OPTIONAL: Hide the native field from the original tab so it doesn't appear twice -->
+            <xpath expr="//field[@name='resource_calendar_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- 👇 Face ID views remain completely untouched below 👇 -->
     <record id="view_employee_form_face_inherit" model="ir.ui.view">
         <field name="name">hr.employee.form.face.inherit</field>
         <field name="model">hr.employee</field>
@@ -21,7 +55,8 @@
                                     invisible="has_registered_face == True"/>
 
                             <div invisible="has_registered_face == False" class="text-success fw-bold">
-                                <i class="fa fa-check-circle"/> Your face is successfully registered and secured.
+                                <i class="fa fa-check-circle"/>
+                                Your face is successfully registered and secured.
                             </div>
                         </group>
 
@@ -60,13 +95,45 @@
             </xpath>
 
             <xpath expr="//div[hasclass('oe_title')]" position="before">
-                <div invisible="has_registered_face == True or is_current_user == False" class="alert alert-info text-center" role="alert" style="margin-bottom: 20px;">
+                <div invisible="has_registered_face == True or is_current_user == False"
+                     class="alert alert-info text-center" role="alert" style="margin-bottom: 20px;">
                     <h3 style="margin-bottom: 10px;">Face ID Registration Required</h3>
                     <button name="action_open_face_registration"
                             type="object"
                             string="Click Here to Register Your Face"
                             class="btn btn-primary btn-lg"/>
                 </div>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page name="schedule_tab_public" string="Schedule">
+                    <group>
+                        <group name="schedule_main_public" string="Schedule Configuration">
+                            <field name="shift_type" widget="radio" options="{'horizontal': true}" readonly="1"/>
+                            <field name="resource_calendar_id" string="Working Schedule" readonly="1" options='{"no_open": True, "no_create": True}'/>
+                        </group>
+                        <group name="schedule_geo_public" string="Location Rules">
+                            <field name="bypass_geo_restriction" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+
+                <page name="biometrics_face_id_public" string="Face ID">
+                    <group>
+                        <group string="My Face Registration" invisible="is_current_user == False">
+                            <button name="action_open_face_registration"
+                                    type="object"
+                                    string=" Register My Face "
+                                    class="btn-primary"
+                                    invisible="has_registered_face == True"/>
+
+                            <div invisible="has_registered_face == False" class="text-success fw-bold">
+                                <i class="fa fa-check-circle"/>
+                                Your face is successfully registered and secured.
+                            </div>
+                        </group>
+                    </group>
+                </page>
             </xpath>
 
         </field>

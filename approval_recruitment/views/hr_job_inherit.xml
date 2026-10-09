@@ -5,14 +5,43 @@
         <field name="model">hr.job</field>
         <field name="inherit_id" ref="hr.view_hr_job_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_send_job_email"
+                        type="object"
+                        string="Send Email"
+                        class="oe_highlight"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+            <page string="HR Head Details">
+
+                <group>
+                    <field name="file_data" filename="file_name"/>
+                    <field name="file_name" invisible="1"/>
+                </group>
+
+                <group>
+                    <field name="hr_head_name"/>
+                    <field name="hr_description"/>
+                </group>
+
+            </page>
+        </xpath>
             <xpath expr="//field[@name='department_id']" position="after">
                 <field name="approval_experience_minimum"/>
                 <field name="approval_experience_maximum"/>
             </xpath>
+            <xpath expr="//field[@name='expected_degree']" position="after">
+                <field name="start_date"/>
+                <field name="end_date"/>
+            </xpath>
             <xpath expr="//field[@name='interviewer_ids']" position="after">
+                <field name="hr_interviewer_ids" widget="many2many_tags"/>
                 <field name="approval_overall_budget_for_all_posting"/>
                 <field name="approval_budget_for_each_employee_position"/>
                 <field name="hr_head"/>
+            </xpath>
+            <xpath expr="//field[@name='interviewer_ids']" position="attributes">
+                <attribute name="string">Assign to HR</attribute>
             </xpath>
         </field>
     </record>

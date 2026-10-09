@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    <record id="hr_employee_inherit_tax_form" model="ir.ui.view">
+        <field name="name">hr.employee.inherit.tax.form</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+
+           <!-- Hide native Special Allowance label -->
+<xpath expr="//label[@for='l10n_in_fixed_allowance']" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<!-- Hide native Special Allowance amount row -->
+<xpath expr="//field[@name='l10n_in_fixed_allowance']/ancestor::div[hasclass('o_row')][1]" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<!-- Show the SAME native field immediately after HRA -->
+<xpath expr="//field[@name='l10n_in_hra_percentage']/ancestor::div[hasclass('o_row')][1]" position="after">
+    <label for="l10n_in_fixed_allowance"/>
+    <div class="o_row">
+        <field name="l10n_in_fixed_allowance" class="o_hr_narrow_field"/>
+        <span>/ month</span>
+    </div>
+</xpath>
+            <!-- Insert custom fields after parent_id -->
+            <xpath expr="//page[@name='hr_settings']" position="after">
+                <page name="f_and_f_calculation" string="F &amp; F Calculation">
+                    <group>
+                        <group string="F &amp; F Details">
+                            <field name="month"/>
+                            <field name="year" options="{'no_format': True}"/>
+                            <field name="total_days" readonly="1"/>
+
+                            <field name="wage" readonly="1"/>
+                            <field name="l10n_in_basic_salary_amount" readonly="1"/>
+                            <field name="per_day_gross" help="Per Day Gross = Monthly Gross (Wage) / Total Days in Month"/>
+                            <field name="per_day_basic" help="Per Day Basic = Monthly Basic / Total Days in Month" readonly="1"/>
+                            <field name="ff_paid_days1"/>
+                            <field name="prorated_salary" help="Prorated Salary = Per Day Gross × Paid Days" readonly="1"/>
+                            <field name="el_balance" readonly="1"/>
+                            <field name="leave_encashment" help="Leave Encashment = EL Balance × Per Day Basic" readonly="0"/>
+                            <field name="l10n_in_gratuity" readonly="1"/>
+                            <field name="other_earnings" readonly="1"/>
+                            <field name="total_earnings" readonly="1" help="Total Earnings = Prorated Salary + Leave Encashment + Gratuity + Other Earnings"/>
+                        </group>
+                       <!-- <group string="Notice Period Calculation">
+                            <field name="notice_period_days1"/>
+                            <field name="notice_served_days"/>
+                            <field name="unserved_days" readonly="1"
+                                   help="Unserved Days = Notice Period - Notice Served"/>
+                            <field name="notice_recovery" readonly="1"
+                                   help="Notice Recovery = Unserved Days × Per Day Gross"/>
+                        </group> -->
+                        <group string="">
+                        </group>
+                        <group string="Notice Period Calculation">
+                            <field name="period_days"/>
+                            <field name="notice_served_days"/>
+
+                            <field name="unserved_days" readonly="1"
+                                              help="Unserved Days = Notice Period - Notice Served"/>
+
+                            <field name="notice_recovery" readonly="1"
+                                   widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"
+                                   help="Notice Recovery = Unserved Days × Per Day Gross"/>
+                        </group>
+                        <group string="Advance Details">
+    <field name="total_advance"/>
+    <field name="amount_recovered"/>
+
+    <field name="outstanding_amount" readonly="1"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"
+           help="Outstanding Amount = Total Advance - Amount Recovered"/>
+</group>
+                    </group>
+                </page>
+                <page name="loan_details" string="Loan">
+    <group>
+
+        <group string="Loan Information">
+
+            <field name="loan_amount"/>
+
+            <field name="loan_interest"/>
+
+            <field name="loan_months"/>
+
+            <field name="total_payable_amount"
+                   readonly="1"/>
+
+            <field name="monthly_installment"
+                   readonly="1"/>
+
+        </group>
+
+        <group string="Loan Tracking">
+
+            <field name="paid_installments"/>
+
+            <field name="remaining_balance"
+                   readonly="1"/>
+
+        </group>
+
+    </group>
+</page>
+            </xpath>
+            <xpath expr="//div[@name='wage_on_signature']" position="after">
+                <field name="payslip_gross_wage"
+       widget="monetary"
+       options="{'currency_field': 'currency_id'}"/>
+
+<field name="payslip_month"/>
+                <field name="payslip_paid_days" readonly="1"/>
+                <field name="payslip_yearly_cost"
+       widget="monetary"
+       options="{'currency_field': 'currency_id'}"/>
+<field name="financial_year_incentive" string="Financial Year Incentive" readonly="0"/>
+                <field name="total_income" readonly="1"/>
+                <label name="tax_regime_label" for="tax_regime">Tax Regime</label>
+                <div name="tax_regime" class="o_row">
+                    <field name="tax_regime"/>
+               </div>
+                <label name="standard_deduction_label" for="standard_deduction">Standard Deduction</label>
+                <div name="standard_deduction" class="o_row">
+                    <field name="standard_deduction"/>
+                </div>
+                 <label name="net_taxable_income_label" for="net_taxable_income">Net Taxable Income</label>
+                   <div name="net_taxable_income" class="o_row">
+                    <field name="net_taxable_income" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                   </div>
+                   <!-- Annual TDS for New Regime -->
+                <label name="tds_amount_new_label" for="tds_amount_new" invisible="tax_regime != 'new'">TDS Amount (New Regime)</label>
+                <div name="tds_amount_new" class="o_row">
+                 <field name="tds_amount_new" invisible="tax_regime != 'new'" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                </div>
+
+                <!-- Monthly TDS for New Regime -->
+                <label name="tds_amount_new_month_label" for="tds_amount_new_month" invisible="tax_regime != 'new'">TDS Amount New Regime (Month)</label>
+                <div name="tds_amount_new_month" class="o_row">
+                 <field name="tds_amount_new_month" invisible="tax_regime != 'new'" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                </div>
+
+                 <field name="hra_exemption_amount"
+           string="House Rent Allowance"
+                        invisible="tax_regime != 'old'"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"
+           readonly="0"/>
+                <field name="tax_on_employment"
+           string="Under Section 19 Tax on Employment"
+                       invisible="tax_regime != 'old'"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"
+                       readonly="0"/>
+                <field name="entertainment_allowance"
+       string="Under Section 19 Entertainment Allowance"
+                        invisible="tax_regime != 'old'"
+       widget="monetary"
+       options="{'currency_field': 'currency_id'}"
+       readonly="0"/>
+
+                 <field name="previous_employment_income"
+           string="i) Income After Exemptions"
+           invisible="tax_regime != 'old'" widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+
+    <field name="previous_employment_professional_tax"
+           string="ii) Less: Professional Tax"
+           invisible="tax_regime != 'old'"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+
+
+                <label for="section_80c" invisible="tax_regime != 'old'">Section 123 (80C)</label>
+                <div class="o_row">
+                    <field name="section_80c"
+                        invisible="tax_regime != 'old'"
+                        widget="monetary"
+                        options="{'currency_field': 'currency_id'}"/>
+                </div>
+                <label for="section_80d" invisible="tax_regime != 'old'">Section 80D</label>
+                <div class="o_row">
+                    <field name="section_80d"
+                        invisible="tax_regime != 'old'"
+                        widget="monetary"
+                        options="{'currency_field': 'currency_id'}"/>
+                </div>
+                <label for="section_80g" invisible="tax_regime != 'old'">Section 80G</label>
+                <div class="o_row">
+                    <field name="section_80g"
+                        invisible="tax_regime != 'old'"
+                        widget="monetary"
+                        options="{'currency_field': 'currency_id'}"/>
+                </div>
+                <label for="nps" invisible="tax_regime != 'old'">NPS (80CCD(1B))</label>
+                <div class="o_row">
+                    <field name="nps"
+                        invisible="tax_regime != 'old'"
+                        widget="monetary"
+                        options="{'currency_field': 'currency_id'}"/>
+                </div>
+                <label for="home_loan_interest" invisible="tax_regime != 'old'">Home loan interest</label>
+                <div class="o_row">
+                    <field name="home_loan_interest"
+                        invisible="tax_regime != 'old'"
+                        widget="monetary"
+                        options="{'currency_field': 'currency_id'}"
+                       help="Maximum allowable deduction: ₹2,00,000"/>
+                </div>
+                <label for="section_123_80ccc" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_123_80ccc"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_124_1_80ccd_1" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_124_1_80ccd_1"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_124_1b_80ccd_1b" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_124_1b_80ccd_1b"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_126_80d" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_126_80d"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_127_80dd" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_127_80dd"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_128_80ddb" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_128_80ddb"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_129_80e" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_129_80e"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_130_80ee" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_130_80ee"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_131_80eea" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_131_80eea"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_132_80eeb" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_132_80eeb"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_133_80g" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_133_80g"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_134_80gg" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_134_80gg"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_137_80ggc" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_137_80ggc"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_153_80tta" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_153_80tta"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+<label for="section_154_80u" invisible="tax_regime != 'old'"/>
+<div class="o_row" invisible="tax_regime != 'old'">
+    <field name="section_154_80u"
+           widget="monetary"
+           options="{'currency_field': 'currency_id'}"/>
+</div>
+
+
+                <label name="tds_amount_label" for="tds_amount" invisible="tax_regime != 'old'">TDS Amount</label>
+                <div name="tds_amount" class="o_row">
+                    <field name="tds_amount" invisible="tax_regime != 'old'" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                </div>
+                <label name="tds_amount_month_label" for="tds_amount_month" invisible="tax_regime != 'old'">TDS Amount (Month)</label>
+                <field name="annual_tds_base"/>
+                <div name="tds_amount_month" class="o_row">
+                    <field name="tds_amount_month" invisible="tax_regime != 'old'" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                </div>
+<field name="tds_till_last_month"
+       widget="monetary"
+       options="{'currency_field': 'currency_id'}"
+       />
+            </xpath>
+
+
+            <xpath expr="//field[@name='l10n_in_fixed_allowance']/ancestor::div[1]" position="after">
+
+                <label for="dearness_allowance" invisible="1"/>
+                <div class="o_row" invisible="1">
+                    <field name="dearness_allowance" class="o_hr_narrow_field"/>
+                    <span>/ month</span>
+                </div>
+                <!-- Conveyance Allowance -->
+    <label for="conveyance_allowance"/>
+    <div class="o_row">
+        <field name="conveyance_allowance" class="o_hr_narrow_field"/>
+        <span>/ month</span>
+    </div>
+
+
+
+            </xpath>
+
+           <xpath expr="//field[@name='l10n_in_standard_allowance']/ancestor::div[hasclass('o_row')][1]" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//field[@name='l10n_in_standard_allowance_percentage']/ancestor::div[hasclass('o_row')][1]" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//field[@name='l10n_in_performance_bonus']/ancestor::div[hasclass('o_row')][1]" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//field[@name='l10n_in_performance_bonus_percentage']/ancestor::div[hasclass('o_row')][1]" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+<!-- Hide Leave Travel Allowance -->
+<xpath expr="//field[@name='l10n_in_leave_travel_allowance']/ancestor::div[hasclass('o_row')][1]" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//field[@name='l10n_in_leave_travel_percentage']/ancestor::div[hasclass('o_row')][1]" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+<!-- Hide complete native Benefits section -->
+<xpath expr="//separator[@name='benefits']" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//field[@name='l10n_in_phone_subscription']/ancestor::div[hasclass('o_row')][1]" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//label[@for='l10n_in_phone_subscription']" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//field[@name='l10n_in_internet_subscription']/ancestor::div[hasclass('o_row')][1]" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//label[@for='l10n_in_internet_subscription']" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//field[@name='l10n_in_meal_voucher_amount']/ancestor::div[hasclass('o_row')][1]" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//label[@for='l10n_in_meal_voucher_amount']" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//field[@name='l10n_in_company_transport']/ancestor::div[hasclass('o_row')][1]" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<xpath expr="//label[@for='l10n_in_company_transport']" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+            <!-- Hide native Insurance Benefits separator -->
+<xpath expr="//separator[@name='benefits']/following-sibling::separator[1]"
+       position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<!-- Hide Medical Insurance label -->
+<xpath expr="//label[@for='l10n_in_medical_insurance']" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<!-- Hide Medical Insurance row -->
+<xpath expr="//field[@name='l10n_in_medical_insurance']/ancestor::div[hasclass('o_row')][1]"
+       position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<!-- Hide Insured Spouse -->
+<xpath expr="//field[@name='l10n_in_insured_spouse']" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<!-- Hide First Child -->
+<xpath expr="//field[@name='l10n_in_insured_first_children']" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<!-- Hide Second Child -->
+<xpath expr="//field[@name='l10n_in_insured_second_children']" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+<!-- Hide Medical Insurance Total -->
+<xpath expr="//field[@name='l10n_in_medical_insurance_total']" position="attributes">
+    <attribute name="invisible">True</attribute>
+</xpath>
+
+        </field>
+    </record>
+        <record id="hr_employee_inherit_pran_number" model="ir.ui.view">
+    <field name="name">hr.employee.form.pran.number</field>
+    <field name="model">hr.employee</field>
+    <field name="inherit_id" ref="hr.view_employee_form"/>
+    <field name="arch" type="xml">
+
+        <xpath expr="//field[@name='l10n_in_pan']" position="after">
+            <field name="pran_number"
+                   string="PRAN Number"
+                   placeholder="Enter 12 digit PRAN Number"/>
+        </xpath>
+
+    </field>
+
+</record>
+
+
+</data>
+</odoo>

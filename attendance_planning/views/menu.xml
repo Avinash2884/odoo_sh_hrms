@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<!--    &lt;!&ndash; Standalone Attendance-side Work Entries menu, pointing at our own-->
+<!--         read-only proxy model/action. Native Payroll menu is left-->
+<!--         completely untouched. &ndash;&gt;-->
+<!--    <menuitem id="custom_attendance_work_entry_root"-->
+<!--              name="Work Entries"-->
+<!--              parent="hr_attendance.menu_hr_attendance_root"-->
+<!--              sequence="50"-->
+<!--              action="action_attendance_work_entries_view"-->
+<!--              groups="hr_attendance.group_hr_attendance_officer"/>-->
+
+</odoo>

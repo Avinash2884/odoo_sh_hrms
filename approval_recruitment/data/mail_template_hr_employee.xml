@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="email_template_buddy_assign" model="mail.template">
+        <field name="name">Buddy Assignment - Buddy</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="email_from">{{object.company_id.email}}</field>
+        <field name="email_to">{{ object.buddy_id.email }}</field>
+        <field name="subject">You are assigned as Buddy for {{ object.name }}</field>
+        <field name="body_html" type="html">
+
+            <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
+
+                <p>Dear <t t-esc="object.buddy_id.name"/>,</p>
+
+                <p>
+                    You have been assigned as a <b>Buddy</b> for the employee
+                    <b><t t-esc="object.name"/></b>.
+                </p>
+
+                <p>Please help them during onboarding.</p>
+
+               <p>
+                    <a t-att-href="object.get_base_url() + '/web#id=%s&amp;model=hr.employee&amp;view_type=form' % object.id"
+                       style="padding:10px 20px; background:#0a6ebd; color:white; text-decoration:none;">
+                       View Employee
+                    </a>
+                </p>
+
+                <p>Regards,<br/>
+                    <t t-esc="object.company_id.name"/>
+                </p>
+
+            </div>
+
+        </field>
+    </record>
+    <record id="email_template_employee_buddy" model="mail.template">
+        <field name="name">Buddy Assignment - Employee</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="email_from">{{object.company_id.email}}</field>
+        <field name="email_to">{{ object.work_email }}</field>
+        <field name="subject">Your Buddy has been Assigned</field>
+        <field name="body_html" type="html">
+
+            <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
+
+                <p>Dear <t t-esc="object.name"/>,</p>
+
+                <p>Your onboarding <b>Buddy</b> has been assigned.</p>
+
+                <table style="border-collapse:collapse; margin-top:10px;">
+                    <tr>
+                        <td><b>Name</b></td>
+                        <td><t t-esc="object.buddy_id.name"/></td>
+                    </tr>
+                    <tr>
+                        <td><b>Email</b></td>
+                        <td>
+                            <a t-att-href="'mailto:%s' % (object.buddy_id.work_email or '')">
+                                <t t-esc="object.buddy_id.work_email or 'N/A'"/>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>Phone</b></td>
+                        <td>
+                            <t t-esc="object.buddy_id.mobile_phone or object.buddy_id.work_phone or 'N/A'"/>
+                        </td>
+                    </tr>
+                </table>
+
+                <p style="margin-top:15px;">
+                    You can contact your buddy anytime for guidance.
+                </p>
+
+                <p>Regards,<br/>
+                    <t t-esc="object.company_id.name"/>
+                </p>
+
+            </div>
+
+        </field>
+    </record>
+    <record id="email_template_probation_reminder" model="mail.template">
+        <field name="name">Probation Expiry Reminder</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="email_from">{{object.company_id.email}}</field>
+        <field name="email_to">{{ object.work_email }}</field>
+        <field name="subject">Your Probation Period is Ending Soon</field>
+        <field name="body_html" type="html">
+            <div style="font-family: Arial, sans-serif; font-size:13px; color:#333; line-height:1.5;">
+
+                <p>Dear <t t-esc="object.name"/>,</p>
+
+                <p>
+                    This is a reminder that your <b>probation period</b> is scheduled to end on
+                    <b><t t-esc="object.contract_date_end"/></b>.
+                </p>
+
+                <p>
+                    Kindly connect with the HR team for confirmation or any extension discussion.
+                </p>
+
+                <p style="margin-top:15px;">
+                    <a t-att-href="'/web#id=%d&amp;model=hr.employee&amp;view_type=form' % object.id"
+                       style="display:inline-block;padding:10px 20px;background-color:#0a6ebd;color:white;text-decoration:none;border-radius:5px;">
+                        Fill Appraisal Form
+                    </a>
+                </p>
+
+                <p style="margin-top:15px;">
+                    If you have any questions, feel free to reach out to HR.
+                </p>
+
+                <p>
+                    Regards,<br/>
+                    <t t-esc="object.company_id.name"/>
+                </p>
+
+            </div>
+        </field>
+
+    </record>
+    <record id="email_template_manager_buddy_assign" model="mail.template">
+        <field name="name">Manager - Buddy Assignment</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="email_from">{{object.company_id.email}}</field>
+        <field name="subject">New Employee Created – Buddy Assignment Required</field>
+
+        <field name="body_html" type="html">
+
+            <t t-set="base_url" t-value="object.get_base_url()"/>
+
+            <p>Dear <t t-esc="object.parent_id.name"/>,</p>
+
+            <p>A new employee <b><t t-esc="object.name"/></b> has been created in the system.</p>
+
+            <p>You are assigned as the <b>Reporting Manager</b>.</p>
+
+            <p>Please kindly assign a <b>Buddy</b> for the new employee.</p>
+
+            <p>
+                <a t-att-href="base_url + '/web#id=%d&amp;model=hr.employee&amp;view_type=form' % object.id"
+                   style="display:inline-block;padding:10px 18px;background-color:#0a6ebd;color:white;text-decoration:none;border-radius:4px;">
+                    Open Employee Record
+                </a>
+            </p>
+
+            <p>Regards,<br/>HR Team</p>
+
+        </field>
+    </record>
+</odoo>

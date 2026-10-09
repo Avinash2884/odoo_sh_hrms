@@ -2,8 +2,8 @@
     'name': 'Custom Attendance & Planning',
     'version': '1.0',
     'category': 'Human Resources',
-    'summary': 'Advanced late policies, exact worked hours, and shift templates',
     'author': "Unisas ITBusiness Solutions Private Limited",
+    'summary': 'Advanced late policies, exact worked hours, and shift templates',
     'depends': [
         'base',
         'hr_attendance',
@@ -11,16 +11,30 @@
         'approvals',
         'mail',
         'hr',
+        'approval_recruitment',
+        'user_geo_restriction',
+        'hr_work_entry',
+        'hr_work_entry_enterprise',
+        'hr_payroll'
     ],
     'data': [
+        'data/cron.xml',
+        'data/mail_template_permission.xml',
+        'security/security.xml',
         'security/ir.model.access.csv',
         'wizard/planning_department_wizard_views.xml',
+        'wizard/planning_matrix_import_views.xml',
         "views/hr_attendance_view.xml",
         "views/hr_attendance_management_action.xml",
         "views/planning_role_view.xml",
-        "views/hr_attendance_custom_view.xml",
+        # "views/hr_attendance_custom_view.xml",
         "views/hr_attendance_permission_views.xml",
         'views/hr_employee_views.xml',
+        'views/edp_approval_views.xml',
+        'views/res_config_settings_views.xml',
+        'views/attendance_matrix_report_action.xml',
+        'views/menu.xml',
+
         # 'views/selfie_kiosk_action.xml',
     ],
     'assets': {
@@ -29,8 +43,13 @@
             "attendance_planning/static/src/js/late_checkout_popup.js",
             "attendance_planning/static/src/css/late_checkout.css",
 
+            # Pre-checkout reminder: nudges employees still checked in past
+            # shift end, auto checks-out (flagged NR) if fully ignored.
+            "attendance_planning/static/src/js/auto_checkout_reminder.js",
+            "attendance_planning/static/src/css/auto_checkout_reminder.css",
+
             # 1. The AI Brain (Name matched perfectly to your downloaded file!)
-            # 'attendance_planning/static/src/lib/face-api.js',
+            'attendance_planning/static/src/lib/face-api.js',
 
             # 2. The Face Register Logic
             'attendance_planning/static/src/js/face_register.js',
@@ -42,10 +61,23 @@
 
             'attendance_planning/static/src/js/systray_face_patch.js',
             'attendance_planning/static/src/xml/systray_face_popup.xml',
+            'attendance_planning/static/src/xml/attendance_big_button.xml',
+            'attendance_planning/static/src/css/attendance_big_button.css',
+
+            # Attendance Matrix Report (custom OWL grid)
+            'attendance_planning/static/src/js/attendance_matrix_report.js',
+            'attendance_planning/static/src/xml/attendance_matrix_report.xml',
+            'attendance_planning/static/src/css/attendance_matrix_report.css',
+
+            'attendance_planning/static/src/models/tiny_face_detector_model-weights_manifest.json',
+            'attendance_planning/static/src/models/tiny_face_detector_model-shard1',
+
+            'attendance_planning/static/src/js/planning_holiday_highlight.js',
+            'attendance_planning/static/src/css/planning_holiday_highlight.css',
 
         ],
     },
     'installable': True,
-    'application': False,
+    'application': True,
     'license': 'LGPL-3',
 }

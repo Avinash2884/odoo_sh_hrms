@@ -81,20 +81,8 @@ class HrAppraisalInherit(models.Model):
                 # Increment appraisal-level count
                 record.probation_extension_count += 1
 
-                # 🔹 Mail to HR
-                body = f"""
-                <p>Dear {hr.name},</p>
-                <p>Probation period for employee <b>{employee.name}</b> has been extended for 1 month.</p>
-                <p><b>Reason:</b> {record.probation_reason}</p>
-                <p><b>New contract end date:</b> {contract.date_end}</p>
-                """
-
-                self.env['mail.mail'].sudo().create({
-                    'subject': "Probation Extended",
-                    'body_html': body,
-                    'email_to': hr_email,
-                    'auto_delete': True,
-                }).send()
+                template = self.env.ref('approval_recruitment.mail_template_probation_extension_hr')
+                template.send_mail(record.id, force_send=True)
 
             elif record.manager_decision == 'confirmation':
                 # Confirm employee as permanent
@@ -104,16 +92,5 @@ class HrAppraisalInherit(models.Model):
                 contract.probation_status = 'confirmed'
                 contract.probation_reason = record.probation_reason
 
-                # 🔹 Mail to HR
-                body = f"""
-                <p>Dear {hr.name},</p>
-                <p>Employee <b>{employee.name}</b> has been confirmed as a permanent employee.</p>
-                <p><b>Contract start date:</b> {contract.probation_date_start}</p>
-                """
-
-                self.env['mail.mail'].sudo().create({
-                    'subject': "Employee Confirmed",
-                    'body_html': body,
-                    'email_to': hr_email,
-                    'auto_delete': True,
-                }).send()
+                template = self.env.ref('approval_recruitment.mail_template_employee_confirmation_hr')
+                template.send_mail(record.id, force_send=True)

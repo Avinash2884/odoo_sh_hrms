@@ -1,0 +1,21 @@
+from odoo import models, fields, api, _
+
+class ExitInterviewQuestion(models.Model):
+    _name = 'exit.interview.question'
+    _description = 'Exit Interview Question'
+    _order = 'sequence, id'
+    _copy = True
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+
+    name = fields.Char(string="Question", required=True)
+    sequence = fields.Integer(string="Sequence", default=10)
+    option_ids = fields.One2many('exit.interview.option', 'question_id', string="Options",copy=True)
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        default=lambda self: self.env.company
+    )
+    active = fields.Boolean(
+        string="Active",
+        default=True
+    )

@@ -10,7 +10,7 @@
             <header>
                 <div class="container py-3">
                     <a href="/">
-                        <img src="/website_job_custom/static/src/img/LS_logo.svg"
+                        <img src="/approval_recruitment/static/src/img/LS_logo.svg"
                              alt="Lifesigns"
                              style="max-height: 60px;"/>
                     </a>

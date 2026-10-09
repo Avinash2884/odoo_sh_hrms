@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ====================================================== -->
+    <!-- Employee Investment Tab -->
+    <!-- ====================================================== -->
+
+    <record id="view_employee_form_investment"
+            model="ir.ui.view">
+
+        <field name="name">hr.employee.form.investment</field>
+        <field name="model">hr.employee</field>
+
+        <field name="inherit_id"
+               ref="hr.view_employee_form"/>
+
+        <field name="arch"
+               type="xml">
+
+            <xpath expr="//notebook"
+                   position="inside">
+
+                <page string="Investment"
+                      invisible="tax_regime != 'old'">
+
+                    <!-- ================================================== -->
+                    <!-- RENTAL HOUSE -->
+                    <!-- ================================================== -->
+
+                    <group string="Rental House">
+
+                        <field name="is_rented_house"/>
+
+                        <button name="action_add_rental_details"
+                                string="Add Details"
+                                type="object"
+                                class="oe_highlight"
+                                invisible="not is_rented_house"/>
+
+                    </group>
+
+                    <field name="rented_house_ids"
+                           invisible="1"/>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 123 (80C) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 123 (80C)">
+
+                        <field name="investment_80c_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Investment Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 123 (80CCC) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 123 (80CCC)">
+
+                        <field name="investment_80ccc_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Investment Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 124 (1) (80CCD (1)) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 124 (1) (80CCD (1))">
+
+                        <field name="investment_80ccd1_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Investment Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+                    <!-- ================================================== -->
+<!-- SECTION 126 (80D) -->
+<!-- ================================================== -->
+
+<group string="Section 126 (80D)">
+
+    <field name="investment_80d_ids"
+           nolabel="1"
+           colspan="2">
+
+        <list editable="bottom">
+
+            <field name="investment_type"
+                   string="Exemption Type"/>
+
+            <field name="amount"
+                   string="Amount"
+                   widget="monetary"
+                   options="{'currency_field': 'currency_id'}"/>
+
+            <field name="limit_amount"
+                   string="Limit"
+                   readonly="1"
+                   widget="monetary"
+                   options="{'currency_field': 'currency_id'}"/>
+
+        </list>
+
+    </field>
+
+</group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 124 (1B) (80CCD (1B)) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 124 (1B) (80CCD (1B))">
+
+                        <field name="investment_80ccd1b_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Investment Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                                <field name="limit_amount"
+                                       string="Limit"
+                                       readonly="1"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 127 (80DD) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 127 (80DD)">
+
+                        <field name="investment_80dd_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Deduction Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                                <field name="limit_amount"
+                                       string="Limit"
+                                       readonly="1"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 128 (80DDB) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 128 (80DDB)">
+
+                        <field name="investment_80ddb_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Medical Expenditure Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                                <field name="limit_amount"
+                                       string="Limit"
+                                       readonly="1"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 129 (80E) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 129 (80E)">
+
+                        <field name="investment_80e_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Deduction Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 130 (80EE) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 130 (80EE)">
+
+                        <field name="investment_80ee_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Deduction Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                                <field name="limit_amount"
+                                       string="Limit"
+                                       readonly="1"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 131 (80EEA) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 131 (80EEA)">
+
+                        <field name="investment_80eea_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Deduction Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                                <field name="limit_amount"
+                                       string="Limit"
+                                       readonly="1"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 123 (80EEB) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 132 (80EEB)">
+
+                        <field name="investment_80eeb_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Deduction Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                                <field name="limit_amount"
+                                       string="Limit"
+                                       readonly="1"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 133 (80G) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 133 (80G)">
+
+                        <field name="investment_80g_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Donation Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 134 (80GG) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 134 (80GG)">
+
+                        <field name="investment_80gg_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Deduction Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                                <field name="limit_amount"
+                                       string="Limit"
+                                       readonly="1"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 80GGC -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 137 (80GGC)">
+
+                        <field name="investment_80ggc_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Donation Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 153 (80TTA) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 153 (80TTA)">
+
+                        <field name="investment_80tta_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Income Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                                <field name="limit_amount"
+                                       string="Limit"
+                                       readonly="1"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- SECTION 154 (80U) -->
+                    <!-- ================================================== -->
+
+                    <group string="Section 154 (80U)">
+
+                        <field name="investment_80u_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="investment_type"
+                                       string="Deduction Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+
+                    <!-- ================================================== -->
+                    <!-- OTHER ALLOWANCE DETAILS -->
+                    <!-- ================================================== -->
+
+                    <group string="Other Allowance Details">
+
+                        <field name="other_allowance_ids"
+                               nolabel="1"
+                               colspan="2">
+
+                            <list editable="bottom">
+
+                                <field name="allowance_type"
+                                       string="Allowance Type"/>
+
+                                <field name="amount"
+                                       string="Amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+
+                            </list>
+
+                        </field>
+
+                    </group>
+
+                    <!-- ================================================== -->
+<!-- OTHER SOURCES OF INCOME -->
+<!-- ================================================== -->
+
+<group string="Other Sources of Income">
+
+    <field name="other_income_ids"
+           nolabel="1"
+           colspan="2">
+
+        <list editable="bottom">
+
+            <field name="income_type"
+                   string="Income Type"/>
+
+            <field name="amount"
+                   string="Amount"
+                   widget="monetary"
+                   options="{'currency_field': 'currency_id'}"/>
+
+        </list>
+
+    </field>
+
+</group>
+
+                </page>
+
+            </xpath>
+
+        </field>
+
+    </record>
+
+</odoo>

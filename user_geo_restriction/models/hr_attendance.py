@@ -1,72 +1,115 @@
-from odoo import models, api, _
-from odoo.exceptions import UserError
+from odoo import models, api, _, fields
+from odoo.exceptions import UserError, ValidationError
 from geopy.distance import geodesic
-
 
 class HrAttendance(models.Model):
     _inherit = 'hr.attendance'
 
+    geo_restriction_id = fields.Many2one(
+        'geo.restriction',
+        string="Check-in Location"
+    )
+    check_out_geo_restriction_id = fields.Many2one(
+        'geo.restriction',
+        string="Check-out Location"
+    )
+
     @api.model
-    def create(self, vals):
+    def create(self, vals_list):
 
-        print("===== ATTENDANCE CREATE START =====")
+        records = super().create(vals_list)
 
-        attendance = super().create(vals)
+        # ensure list
+        if isinstance(vals_list, dict):
+            vals_list = [vals_list]
 
-        attendance._check_geo_restriction()
+        for rec, vals in zip(records, vals_list):
+            rec._check_geo_restriction(vals)
 
-        print("===== ATTENDANCE CREATE END =====")
+        return records
 
-        return attendance
+    def write(self, vals):
+        res = super().write(vals)
+        self._check_geo_restriction(vals)
+        return res
 
-    def _check_geo_restriction(self):
-        print("------ GEO RESTRICTION CHECK START ------")
+    def _check_geo_restriction(self, vals):
 
         for attendance in self:
-            print("Employee:", attendance.employee_id.name)
 
-            geo_locations = self.env['geo.restriction'].search([
-                ('employee_ids', 'in', attendance.employee_id.id)
-            ])
+            # ✅ Skip if no check-in / check-out (demo safe)
+            if not attendance.check_in and not attendance.check_out:
+                continue
 
-            print("Geo Locations Found:", len(geo_locations))
-            if not geo_locations:
-                print("No geo restriction configured")
-                return
+            # ✅ Skip if no GPS data (demo safe)
+            if not attendance.in_latitude and not attendance.out_latitude:
+                continue
 
-            # Check check-in
-            if attendance.in_latitude and attendance.in_longitude:
-                lat, lon = attendance.in_latitude, attendance.in_longitude
-                action_type = "Check-in"
-            # Check check-out
-            elif attendance.out_latitude and attendance.out_longitude:
-                lat, lon = attendance.out_latitude, attendance.out_longitude
-                action_type = "Check-out"
-            else:
-                print("Employee location missing")
-                raise UserError(_("Location access required."))
+            geo_locations = attendance.employee_id.geo_restriction_ids
 
-            print(f"{action_type} Latitude:", lat)
-            print(f"{action_type} Longitude:", lon)
+            if attendance.employee_id.bypass_geo_restriction:
+                continue
 
-            for geo in geo_locations:
-                print("Company Latitude:", geo.company_latitude)
-                print("Company Longitude:", geo.company_longitude)
+            # if not geo_locations:
+            #     print("ERROR: No geo locations configured!")
+            #     raise ValidationError(_("No office locations configured for this employee."))
 
-                distance = geodesic(
-                    (geo.company_latitude, geo.company_longitude),
-                    (lat, lon)
-                ).meters
+            # -------------------------
+            # CHECK-IN
+            # -------------------------
+            if vals.get('check_in'):
 
-                print("Distance (Meters):", distance)
-                print("Allowed Distance:", geo.allowed_distance)
+                lat = vals.get('in_latitude') or attendance.in_latitude
+                lon = vals.get('in_longitude') or attendance.in_longitude
 
-                if distance <= geo.allowed_distance:
-                    print("Employee inside allowed radius")
-                    break
-            else:
-                # If no geo matched
-                print("Employee outside allowed radius")
-                raise UserError(_("You are outside allowed work location."))
+                if lat is None or lon is None:
+                    raise UserError(_("Location required for check-in."))
 
-        print("------ GEO RESTRICTION CHECK END ------")
+                matched_geo = False
+
+                for geo in geo_locations:
+                    distance = geodesic(
+                        (geo.company_latitude, geo.company_longitude),
+                        (lat, lon)
+                    ).meters
+
+
+                    allowed_radius = geo.allowed_distance + 50
+
+                    if distance <= geo.allowed_distance:
+                        attendance.geo_restriction_id = geo.id
+                        matched_geo = True
+                        break
+
+                if not matched_geo:
+                    raise UserError(_("Outside allowed location (Check-in)."))
+
+            # -------------------------
+            # CHECK-OUT
+            # -------------------------
+            if vals.get('check_out'):
+
+                lat = vals.get('out_latitude') or attendance.out_latitude
+                lon = vals.get('out_longitude') or attendance.out_longitude
+
+                if lat is None or lon is None:
+                    raise UserError(_("Location required for check-out."))
+
+                matched_geo = False
+
+                for geo in geo_locations:
+                    distance = geodesic(
+                        (geo.company_latitude, geo.company_longitude),
+                        (lat, lon)
+                    ).meters
+
+
+                    allowed_radius = geo.allowed_distance + 50
+
+                    if distance <= geo.allowed_distance:
+                        attendance.check_out_geo_restriction_id = geo.id
+                        matched_geo = True
+                        break
+
+                if not matched_geo:
+                    raise UserError(_("You must check-out from an assigned location."))

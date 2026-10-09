@@ -1,10 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_employee_search_inherit_ls_id" model="ir.ui.view">
+        <field name="name">hr.employee.search.inherit.ls.id</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="arch" type="xml">
+
+            <!-- Add search field -->
+            <xpath expr="//search" position="inside">
+                <field name="ls_employee_id" string="Employee ID"/>
+            </xpath>
+
+        </field>
+    </record>
     <record id="hr_employee_inherit_approval" model="ir.ui.view">
         <field name="name">hr.employee.inherit.approval</field>
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_print_cmt_appointment_letter"
+                        string="Print CMT Appointment Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="appointment_letter_type != 'cmt_appointment_letter'"/>
+
+                <button name="action_print_hse_appointment_letter"
+                        string="Print HSE Appointment Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="appointment_letter_type != 'hse_appointment_letter'"/>
+
+                <button name="action_print_full_time_appointment_letter"
+                        string="Print Full Time Appointment Letter"
+                        type="object"
+                        class="btn-primary"
+                        invisible="appointment_letter_type != 'full_time_appointment_letter'"/>
+
+            </xpath>
+            <xpath expr="//h5[field[@name='work_phone']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide Mobile full block -->
+            <xpath expr="//h5[field[@name='mobile_phone']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='note']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='ssnid']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='distance_home_work']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sim_card']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='internet_invoice']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='job_title']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='job_id']" position="attributes">
+                <attribute name="string">Designation</attribute>
+            </xpath>
+
             <xpath expr="//header" position="inside">
                 <button name="action_send_employee_email"
                         type="object"
@@ -38,18 +101,23 @@
                 </h5>
             </xpath>
             <xpath expr="//field[@name='department_id']" position="before">
-                <field name="entity_name_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="ls_role_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="band_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="level_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="vertical_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="function_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="parent_account_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="account_office_name_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="region_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="employee_status_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="ls_designation_id" options="{'no_open': True, 'no_create': True}"/>
-                <field name="ls_source_of_hire_id" options="{'no_open': True, 'no_create': True}"/>
+                <field name="appointment_letter_type" />
+                <field name="employee_notice_period" />
+                <field name="confirmed_employee_notice_period" />
+                <field name="probation_in_months" />
+<!--                <field name="last_working_date_employee" invisible="0"/>-->
+                <field name="entity_name_id" />
+                <field name="ls_role_id" />
+                <field name="band_id" />
+                <field name="level_id" />
+                <field name="vertical_id" />
+                <field name="function_id" />
+                <field name="parent_account_id" />
+                <field name="account_office_name_ids" widget="many2many_tags" />
+                <field name="region_id" />
+                <field name="employee_status_id" />
+                <field name="ls_designation_id" invisible="1"/>
+                <field name="ls_source_of_hire_id" />
             </xpath>
 
             <!-- Insert custom fields after parent_id -->
@@ -62,14 +130,6 @@
                 <field name="buddy_id" widget="many2one_avatar_user" groups="hr.group_hr_user"/>
                 <field name="joining_date_recruit"/>
                 <field name="date_of_confirmation"/>
-            </xpath>
-            <xpath expr="//field[@name='structure_type_id']" position="after">
-                <field name="probation_status" />
-                <field name="probation_reason"/>
-            </xpath>
-            <xpath expr="//field[@name='employee_type']" position="before">
-                <field name="probation_date_start" placeholder="Probation Start Date" />
-                <field name="probation_date_end" placeholder="Probation End Date" />
             </xpath>
             <xpath expr="//field[@name='parent_id']" position="attributes">
                 <attribute name="string">Reporting Manager</attribute>
@@ -92,7 +152,7 @@
             <xpath expr="//group[@name='hr_education_group']" position="after">
                 <group string="Education" name="education_group">
                     <field name="education_ids" string="">
-                        <list editable="bottom">
+                        <list editable="bottom" create="true" delete="true">
                             <field name="ls_degree"/>
                             <field name="specialisation"/>
                             <field name="college_university_name"/>
@@ -233,6 +293,49 @@
                         <field name="ls_date_of_resignation" placeholder="Date of Resignation"/>
                     </group>
                 </page>
+                <page name="probation" string="Probation">
+                    <group string="Probation Details">
+                        <field name="probation_date_start" placeholder="Probation Start Date" />
+                        <field name="probation_date_end" placeholder="Probation End Date" />
+                        <field name="probation_status" />
+                        <field name="probation_reason"/>
+                    </group>
+                </page>
+                <page name="wage_appointment_letter" string="Letter Details">
+                    <group>
+                        <group string="Wage Details">
+                            <field name="wage_appointment_letter" placeholder="Enter Your Wage" readonly="1"/>
+                        </group>
+                        <group string="Hospital Details">
+                            <field name="cmt_hospital_name" invisible="appointment_letter_type != 'cmt_appointment_letter'"/>
+                            <field name="cmt_hospital_city" invisible="appointment_letter_type != 'cmt_appointment_letter'"/>
+                            <field name="hse_hospital_name" invisible="appointment_letter_type != 'hse_appointment_letter'"/>
+                            <field name="hse_hospital_city" invisible="appointment_letter_type != 'hse_appointment_letter'"/>
+                            <field name="full_time_hospital_name" invisible="appointment_letter_type != 'full_time_appointment_letter'"/>
+                            <field name="full_time_hospital_city" invisible="appointment_letter_type != 'full_time_appointment_letter'"/>
+                        </group>
+                    </group>
+                </page>
+
+                <page string="Annexure Details">
+                    <group>
+                        <group>
+                            <field name="basic_pay" readonly="1"/>
+                            <field name="hra" readonly="1"/>
+                            <field name="special_allowance" readonly="1"/>
+                            <field name="total_gross_pay" readonly="1"/>
+                            <field name="employer_pf" readonly="0"/>
+                        </group>
+                        <group>
+                            <field name="basic_pay_annual" readonly="1"/>
+                            <field name="hra_annual" readonly="1"/>
+                            <field name="special_allowance_annual" readonly="1"/>
+                            <field name="total_gross_pay_annual" readonly="1"/>
+                            <field name="employer_pf_annual" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+
             </xpath>
 
 
@@ -251,6 +354,10 @@
                     <field name="ls_role_id"/>
                 </div>
             </xpath>
+            <xpath expr="//div[field[@name='work_phone']]" position="attributes">
+                <attribute name="t-if">False</attribute>
+            </xpath>
+
         </field>
     </record>    <record id="hr_bank_account_inherit_partner" model="ir.ui.view">
         <field name="name">hr.bank.account.inherit.partner</field>
@@ -265,7 +372,7 @@
             </xpath>
             <xpath expr="//field[@name='bank_id']" position="after">
                 <field name="ls_ifsc_code"/>
-                <field name="ls_account_type_id" options="{'no_open': True, 'no_create': True}"/>
+                <field name="ls_account_type_id" />
             </xpath>
         </field>
     </record>
@@ -282,6 +389,5 @@
 
         </field>
     </record>
-
 
 </odoo>

@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="hr_employee_salary_structure_view_inherit"
+            model="ir.ui.view">
+
+        <field name="name">hr.employee.salary.structure.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+
+        <field name="arch" type="xml">
+
+            <!--
+                Insert Salary Structure at the beginning
+                of the existing Payroll tab.
+            -->
+            <xpath expr="//field[@name='structure_type_id']/ancestor::page[1]/*[1]"
+                   position="before">
+
+                <!-- SALARY STRUCTURE BOX -->
+                <div class="w-100"
+                     style="width:100%;
+                            max-width:100%;
+                            display:block;
+                            clear:both;
+                            box-sizing:border-box;
+                            margin:0 0 15px 0;
+                            padding:0;
+                            border:1px solid #dee2e6;
+                            border-radius:5px;
+                            background:#fff;
+                            overflow:hidden;">
+
+                    <!-- HEADER -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:6px 12px;
+                                border-bottom:1px solid #dee2e6;
+                                font-size:12px;
+                                font-weight:600;">
+
+                        <div>Salary Structure</div>
+
+                        <div style="text-align:right;">
+                            Monthly Amount
+                        </div>
+
+                        <div style="text-align:right;">
+                            Annual Amount
+                        </div>
+
+                    </div>
+
+
+                    <!-- EARNINGS -->
+                    <div style="padding:6px 12px;
+                                font-size:13px;
+                                font-weight:600;">
+                        Earnings
+                    </div>
+
+
+                    <!-- BASIC -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;">
+
+                        <div>
+                            Basic
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="l10n_in_basic_salary_amount"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="basic_salary_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+
+
+                    <!-- HOUSE RENT ALLOWANCE -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;">
+
+                        <div>
+                            House Rent Allowance
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="l10n_in_hra"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="hra_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+
+
+                    <!-- CONVEYANCE -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;">
+
+                        <div>
+                            Conveyance
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="conveyance_allowance"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="conveyance_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+
+                                        <!-- STIPEND -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;">
+
+                        <div>
+                            Stipend
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="stipend"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="stipend_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+
+
+                    <!-- GROSS EARNINGS -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;
+                                font-weight:600;">
+
+                        <div>
+                            Gross Earnings
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="salary_structure_gross_earnings"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="salary_structure_gross_earnings_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+
+
+                    <!-- BENEFITS -->
+                    <div style="padding:8px 12px 5px;
+                                font-size:13px;
+                                font-weight:600;">
+                        Benefits
+                    </div>
+
+
+                    <!-- EPF EMPLOYER -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;">
+
+                        <div>
+
+                            <div>
+                                EPF - Employer Contribution
+                            </div>
+
+
+
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="l10n_in_pf_employer_amount"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="pf_employer_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+
+
+                    <!-- EDLI -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;">
+
+                        <div>
+
+                            <div>
+                                EDLI - Employer Contribution
+                            </div>
+
+                            <span style="font-size:10px;
+                                         color:#6c757d;">
+                                (0.50% of Restricted PF Wages)
+                            </span>
+
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="edli_employer_amount"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="edli_employer_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+
+
+                    <!-- EPF ADMIN CHARGES -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;">
+
+                        <div>
+
+                            <div>
+                                EPF Admin Charges - Employer Contribution
+                            </div>
+
+                            <span style="font-size:10px;
+                                         color:#6c757d;">
+                                (0.50% of Restricted PF Wages)
+                            </span>
+
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="epf_admin_amount"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="epf_admin_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+                                        <!-- TOTAL EPF CONTRIBUTION -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                padding:4px 12px;
+                                font-size:12px;
+                                font-weight:600;">
+
+                        <div>
+                            Total EPF Contribution
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="total_epf_amount"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="total_epf_annual"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+
+
+                    <!-- COST TO COMPANY -->
+                    <div style="display:grid;
+                                grid-template-columns:50% 25% 25%;
+                                border-top:1px solid #dee2e6;
+                                margin-top:5px;
+                                padding:7px 12px;
+                                font-size:12px;
+                                font-weight:600;">
+
+                        <div>
+                            Cost to Company
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="salary_structure_monthly_total"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <field name="salary_structure_annual_total"
+                                   nolabel="1"
+                                   widget="monetary"
+                                   readonly="1"/>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </xpath>
+
+        </field>
+
+    </record>
+
+</odoo>

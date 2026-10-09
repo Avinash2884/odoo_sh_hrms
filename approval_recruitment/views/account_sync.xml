@@ -1,0 +1,52 @@
+<odoo>
+    <record id="view_account_sync_tree" model="ir.ui.view">
+        <field name="name">account.sync.list</field>
+        <field name="model">account.sync</field>
+        <field name="arch" type="xml">
+            <list string="Account Sync">
+                <field name="name"/>
+                <field name="external_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_account_sync_form" model="ir.ui.view">
+        <field name="name">account.sync.form</field>
+        <field name="model">account.sync</field>
+        <field name="arch" type="xml">
+            <form string="Account Sync">
+                <header>
+                    <button name="sync_accounts"
+                            type="object"
+                            string="Sync Now"
+                            class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="external_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_account_sync" model="ir.actions.act_window">
+        <field name="name">Account Sync</field>
+        <field name="res_model">account.sync</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_account_sync_root"
+          name="Account Sync"
+          parent="hr.menu_human_resources_configuration"
+          sequence="1"/>
+
+    <menuitem id="menu_account_sync"
+              name="Accounts"
+              parent="menu_account_sync_root"
+              action="action_account_sync"
+              sequence="1"/>
+
+
+</odoo>

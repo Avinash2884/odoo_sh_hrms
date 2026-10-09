@@ -33,3 +33,17 @@ class HrApplicant(models.Model):
         ('fresher', 'Fresher'),
         ('experienced', 'Experienced')
     ], string="Joining Category")
+
+    highest_edu_level = fields.Selection([
+        ('ug', 'Under Graduate (UG)'),
+        ('pg', 'Post Graduate (PG)')
+    ], string="Highest Education Level")
+
+    highest_edu_detail = fields.Char(string="Degree Specialization")
+
+    income_proof_type = fields.Selection([
+        ('payslip', 'Payslips'),
+        ('bank', 'Bank Statement')
+    ], string="Income Proof Type")
+
+    income_bank_statement = fields.Binary(string="Income Bank Statement")

@@ -24,6 +24,6 @@
     <!-- Menu item to access Regularization Category -->
     <menuitem id="reg_category_menu"
               name="Regularization Category"
-              parent="hr_attendance.menu_hr_attendance_settings"
+              parent="approvals.approvals_menu_config"
               action="reg_category_view_action"/>
 </odoo>

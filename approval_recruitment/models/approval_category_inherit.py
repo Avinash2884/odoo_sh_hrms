@@ -42,7 +42,6 @@ class ApprovalCategoryInherit(models.Model):
     )
 
     def _prepare_department_data(self, department):
-        """Return vals for manager, HR and approvers"""
         vals = {}
         approver_commands = []
 
@@ -55,32 +54,29 @@ class ApprovalCategoryInherit(models.Model):
             'hr_employee_id': department.approval_hr_id.id if department.approval_hr_id else False,
         })
 
+        sequence = 1
+
         # Manager approver
         if department.manager_id and department.manager_id.user_id:
             approver_commands.append((0, 0, {
                 'user_id': department.manager_id.user_id.id,
                 'required': True,
-                'approver_sequence': True,
+                'sequence': sequence,
             }))
+            sequence += 1
 
         # HR approver
         if department.approval_hr_id and department.approval_hr_id.user_id:
             approver_commands.append((0, 0, {
                 'user_id': department.approval_hr_id.user_id.id,
                 'required': True,
-                'approver_sequence': True,
+                'sequence': sequence,
             }))
 
         return vals, approver_commands
 
-    # -----------------------------
-    # CREATE
-    # -----------------------------
     @api.model
     def create(self, vals_list):
-        print("📝 hai from approval create")
-
-        # Ensure vals_list is always a list
         if isinstance(vals_list, dict):
             vals_list = [vals_list]
 
@@ -91,15 +87,16 @@ class ApprovalCategoryInherit(models.Model):
                 dept_vals, approvers = self._prepare_department_data(department)
 
                 vals.update(dept_vals)
-                vals['approver_ids'] = [(5, 0, 0)] + approvers
+
+                # ✅ ONLY add auto approvers (no reset)
+                if approvers:
+                    vals['approver_ids'] = approvers
 
         return super().create(vals_list)
 
-    # -----------------------------
-    # WRITE
-    # -----------------------------
     def write(self, vals):
-        print("📝 hai from approval write")
+        if self.env.context.get('skip_auto_update'):
+            return super().write(vals)
 
         res = super().write(vals)
 
@@ -107,18 +104,28 @@ class ApprovalCategoryInherit(models.Model):
             if rec.hr_department_id:
                 department = rec.hr_department_id
 
-                dept_vals, approvers = self._prepare_department_data(department)
+                dept_vals, approvers = rec._prepare_department_data(department)
 
-                update_vals = {}
-                update_vals.update(dept_vals)
-                update_vals['approver_ids'] = [(5, 0, 0)] + approvers
+                existing_user_ids = rec.approver_ids.mapped('user_id').ids
 
-                super(ApprovalCategoryInherit, rec).write(update_vals)
+                new_commands = []
 
-                print("✅ Updated Manager:", department.manager_id.name if department.manager_id else None)
-                print("✅ Updated HR:", department.approval_hr_id.name if department.approval_hr_id else None)
+                for app in approvers:
+                    user_id = app[2]['user_id']
+                    if user_id not in existing_user_ids:
+                        new_commands.append(app)
+
+                update_vals = {
+                    **dept_vals
+                }
+                if new_commands:
+                    update_vals['approver_ids'] = new_commands
+
+                rec.with_context(skip_auto_update=True).write(update_vals)
 
         return res
+
+
 
 
 

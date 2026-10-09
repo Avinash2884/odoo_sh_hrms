@@ -10,8 +10,6 @@ class HrApplicantEducation(models.Model):
         required=True,
         ondelete='cascade'
     )
-
-    # ===== EDUCATION FIELDS =====
     exam_name = fields.Char(string="Exam / Qualification")
     passing_date = fields.Char(string="Passing Date")
     university = fields.Char(string="University / Institution")
